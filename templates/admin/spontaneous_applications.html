@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="{% if lang == 'ar' %}ar{% else %}fr{% endif %}" {% if lang == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if lang == 'ar' %}الطلبات العفوية - سلسبيل{% else %}Candidatures Spontanées - Admin Salsabil{% endif %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% if lang == 'ar' %}
+    <style>
+        body {
+            direction: rtl;
+            text-align: right;
+        }
+        .admin-sidebar {
+            right: auto;
+            left: 0;
+        }
+        .admin-main {
+            margin-right: 0;
+            margin-left: 280px;
+        }
+        .sidebar-nav .nav-item svg {
+            margin-left: 12px;
+            margin-right: 0;
+        }
+        .admin-table th,
+        .admin-table td {
+            text-align: right;
+        }
+        .admin-table th:last-child,
+        .admin-table td:last-child {
+            text-align: left;
+        }
+        .badge {
+            margin-right: auto;
+            margin-left: 8px;
+        }
+        .filter-group input,
+        .filter-group select {
+            text-align: right;
+        }
+        .position-tags {
+            text-align: right;
+        }
+    </style>
+    {% endif %}
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Logo Salsabil" class="logo-img">
+                <h3>{% if lang == 'ar' %}لوحة التحكم{% else %}Admin Panel{% endif %}</h3>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('admin_dashboard_ar' if lang == 'ar' else 'admin_dashboard') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    {% if lang == 'ar' %}لوحة التحكم{% else %}Dashboard{% endif %}
+                </a>
+                <a href="{{ url_for('admin_jobs_ar' if lang == 'ar' else 'admin_jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {% if lang == 'ar' %}عروض العمل{% else %}Offres d'emploi{% endif %}
+                    {% if jobs|length > 0 %}
+                    <span class="badge">{{ jobs|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_applications_ar' if lang == 'ar' else 'admin_applications') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الطلبات{% else %}Candidatures{% endif %}
+                </a>
+                <a href="{{ url_for('admin_spontaneous_applications_ar' if lang == 'ar' else 'admin_spontaneous_applications') }}" class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M15 8h6m-3-3v6"></path>
+                    </svg>
+                    {% if lang == 'ar' %}طلبات عفوية{% else %}Candidatures Spontanées{% endif %}
+                    {% if spontaneous_count > 0 %}
+                    <span class="badge">{{ spontaneous_count }}</span>
+                    {% endif %}
+                </a>
+                {% if permissions and permissions.view_employees %}
+                <a href="{{ url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    {% if lang == 'ar' %}الموظفون{% else %}Employés{% endif %}
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_profile_ar' if lang == 'ar' else 'admin_profile') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% if lang == 'ar' %}ملفي الشخصي{% else %}Mon Profil{% endif %}
+                </a>
+                <a href="{{ url_for('jobs_ar' if lang == 'ar' else 'jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الموقع العام{% else %}Site public{% endif %}
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <!-- Language Switcher -->
+                {% if lang == 'ar' %}
+                    {% if is_favorites_view %}
+                    <a href="{{ url_for('admin_favorite_applications') }}" class="nav-item lang-switch">
+                    {% else %}
+                    <a href="{{ url_for('admin_spontaneous_applications') }}" class="nav-item lang-switch">
+                    {% endif %}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        Français
+                    </a>
+                {% else %}
+                    {% if is_favorites_view %}
+                    <a href="{{ url_for('admin_favorite_applications_ar') }}" class="nav-item lang-switch">
+                    {% else %}
+                    <a href="{{ url_for('admin_spontaneous_applications_ar') }}" class="nav-item lang-switch">
+                    {% endif %}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        العربية
+                    </a>
+                {% endif %}
+                
+                <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    {% if lang == 'ar' %}تسجيل الخروج{% else %}Déconnexion{% endif %}
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <div>
+                    {% if is_favorites_view %}
+                    <h1>{% if lang == 'ar' %}⭐ المرشحون المفضلون{% else %}⭐ Candidats Favoris{% endif %}</h1>
+                    <p style="color: #666; margin-top: 0.5rem;">{% if lang == 'ar' %}الطلبات العفوية المميزة كمفضلة{% else %}Candidatures spontanées marquées comme favorites{% endif %}</p>
+                    {% else %}
+                    <h1>{% if lang == 'ar' %}🌟 الطلبات العفوية{% else %}🌟 Candidatures Spontanées{% endif %}</h1>
+                    <p style="color: #666; margin-top: 0.5rem;">{% if lang == 'ar' %}المرشحون الذين تقدموا بدون عرض محدد{% else %}Candidats ayant postulé sans offre spécifique{% endif %}</p>
+                    {% endif %}
+                </div>
+                <div class="admin-user">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{{ current_user.prenom if current_user else 'Admin' }} {{ current_user.nom if current_user else '' }}</span>
+                    {% if current_user and current_user.role %}
+                    <span class="user-role">({{ current_user.role|capitalize }})</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Spontaneous Applications Toggle Control -->
+            {% if not is_favorites_view %}
+            <div class="spontaneous-status-control" style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">
+                            {% if lang == 'ar' %}
+                                حالة الطلبات العفوية
+                            {% else %}
+                                Statut des candidatures spontanées
+                            {% endif %}
+                        </h3>
+                        {% if spontaneous_open %}
+                            <div style="display: flex; align-items: center; gap: 0.5rem; color: #10b981;">
+                                <span style="font-size: 1.5rem;">🔓</span>
+                                <strong>
+                                    {% if lang == 'ar' %}
+                                        مفتوحة للجمهور
+                                    {% else %}
+                                        Ouvertes au public
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">
+                                {% if lang == 'ar' %}
+                                    يمكن للمرشحين تقديم طلبات عفوية
+                                {% else %}
+                                    Les candidats peuvent soumettre des candidatures spontanées
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <div style="display: flex; align-items: center; gap: 0.5rem; color: #f59e0b;">
+                                <span style="font-size: 1.5rem;">🔒</span>
+                                <strong>
+                                    {% if lang == 'ar' %}
+                                        مغلقة مؤقتاً
+                                    {% else %}
+                                        Fermées temporairement
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">
+                                {% if lang == 'ar' %}
+                                    لا يمكن تقديم طلبات عفوية جديدة
+                                {% else %}
+                                    Les nouvelles candidatures spontanées sont bloquées
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('admin_toggle_spontaneous') }}" style="margin: 0;">
+                        {% if spontaneous_open %}
+                            <button type="submit" class="btn" style="background: #f59e0b; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s;">
+                                <span>🔒</span>
+                                {% if lang == 'ar' %}
+                                    إغلاق مؤقتاً
+                                {% else %}
+                                    Fermer temporairement
+                                {% endif %}
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn" style="background: #10b981; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s;">
+                                <span>🔓</span>
+                                {% if lang == 'ar' %}
+                                    إعادة فتح الطلبات
+                                {% else %}
+                                    Rouvrir les candidatures
+                                {% endif %}
+                            </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <path d="M15 8h6m-3-3v6"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|length }}</h3>
+                        <p>{% if lang == 'ar' %}إجمالي الطلبات العفوية{% else %}Total candidatures spontanées{% endif %}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|selectattr('status', 'equalto', 'acceptée')|list|length }}</h3>
+                        <p>{% if lang == 'ar' %}مقبول{% else %}Acceptées{% endif %}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|selectattr('status', 'equalto', 'en attente')|list|length }}</h3>
+                        <p>{% if lang == 'ar' %}قيد الانتظار{% else %}En attente{% endif %}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="#FFD700" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|selectattr('is_favorite', 'equalto', 1)|list|length }}</h3>
+                        <p>{% if lang == 'ar' %}المرشحون المفضلون{% else %}Candidats favoris{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toggle Favorites Button -->
+            <div style="margin-bottom: 1.5rem; margin-top: 2rem;">
+                {% if is_favorites_view %}
+                <a href="{{ url_for('admin_spontaneous_applications_ar' if lang == 'ar' else 'admin_spontaneous_applications') }}" class="btn-toggle-favorites">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M15 8h6m-3-3v6"></path>
+                    </svg>
+                    <span>{% if lang == 'ar' %}عرض جميع الطلبات العفوية{% else %}Voir toutes les candidatures spontanées{% endif %}</span>
+                </a>
+                {% else %}
+                <a href="{{ url_for('admin_favorite_applications_ar' if lang == 'ar' else 'admin_favorite_applications') }}" class="btn-toggle-favorites">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD700" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span>{% if lang == 'ar' %}عرض المفضلين فقط{% else %}Voir uniquement les favoris{% endif %}</span>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label>{% if lang == 'ar' %}تصفية حسب الحالة:{% else %}Filtrer par statut:{% endif %}</label>
+                    <select id="statusFilter" onchange="filterApplications()">
+                        <option value="all">{% if lang == 'ar' %}الكل{% else %}Tous{% endif %}</option>
+                        <option value="en-attente">{% if lang == 'ar' %}قيد الانتظار{% else %}En attente{% endif %}</option>
+                        <option value="acceptée">{% if lang == 'ar' %}مقبول{% else %}Acceptée{% endif %}</option>
+                        <option value="rejetée">{% if lang == 'ar' %}مرفوض{% else %}Rejetée{% endif %}</option>
+                    </select>
+                </div>
+                <div class="search-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="{% if lang == 'ar' %}البحث عن مرشح...{% else %}Rechercher un candidat...{% endif %}" onkeyup="searchApplications()">
+                </div>
+                <button class="btn-advanced-filters" onclick="toggleAdvancedFilters()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    {% if lang == 'ar' %}فلاتر متقدمة{% else %}Filtres avancés{% endif %}
+                </button>
+            </div>
+
+            <!-- Advanced Filters Panel -->
+            <div id="advancedFiltersPanel" class="advanced-filters-panel" style="display: none;">
+                <div class="filters-grid">
+                    <!-- Région Filter -->
+                    <div class="filter-item">
+                        <label for="regionFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            {% if lang == 'ar' %}المنطقة{% else %}Région{% endif %}
+                        </label>
+                        <select id="regionFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل المناطق{% else %}Toutes les régions{% endif %}</option>
+                            <optgroup label="{% if lang == 'ar' %}القمر الكبرى{% else %}Grande Comore{% endif %}">
+                                <option value="Bambao">Bambao</option>
+                                <option value="Hambou">Hambou</option>
+                                <option value="Hamahamet">Hamahamet</option>
+                                <option value="Itsandra">Itsandra</option>
+                                <option value="Mitsamiouli">Mitsamiouli</option>
+                                <option value="Moroni">Moroni</option>
+                                <option value="Oichili">Oichili</option>
+                                <option value="Dimani">Dimani</option>
+                                <option value="Tsingoni">Mboikou</option>
+                                <option value="Mboudé">Mboudé</option>
+                            </optgroup>
+                            <optgroup label="Anjouan">
+                                <option value="Domoni">Domoni</option>
+                                <option value="Mutsamudu">Mutsamudu</option>
+                                <option value="Ouani">Ouani</option>
+                                <option value="Sima">Sima</option>
+                                <option value="Adda-Douéni">Adda-Douéni</option>
+                                <option value="Barakani">Barakani</option>
+                                <option value="Koni-Djodjo">Noumakélé</option>
+                                <option value="Moya">Moya</option>
+                                <option value="Nioumachoua">Nioumachoua (Anjouan)</option>
+                                <option value="Pomoni">Pomoni</option>
+                                <option value="Tsembehou">Tsembehou</option>
+                            </optgroup>
+                            <optgroup label="Mohéli">
+                                <option value="Fomboni">Fomboni</option>
+                                <option value="Djando">Djando</option>
+                                <option value="Hoani">Hoani</option>
+                                <option value="Nioumachoua">Nioumachoua (Mohéli)</option>
+                                <option value="Ouallah">Ouallah</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Age Range Filter -->
+                    <div class="filter-item">
+                        <label for="ageFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            {% if lang == 'ar' %}العمر{% else %}Âge{% endif %}
+                        </label>
+                        <select id="ageFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل الأعمار{% else %}Tous les âges{% endif %}</option>
+                            <option value="18-25">{% if lang == 'ar' %}18-25 سنة{% else %}18-25 ans{% endif %}</option>
+                            <option value="26-35">{% if lang == 'ar' %}26-35 سنة{% else %}26-35 ans{% endif %}</option>
+                            <option value="36-45">{% if lang == 'ar' %}36-45 سنة{% else %}36-45 ans{% endif %}</option>
+                            <option value="46-55">{% if lang == 'ar' %}46-55 سنة{% else %}46-55 ans{% endif %}</option>
+                            <option value="56+">{% if lang == 'ar' %}56+ سنة{% else %}56+ ans{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <!-- Département Filter -->
+                    <div class="filter-item">
+                        <label for="departmentFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            </svg>
+                            {% if lang == 'ar' %}القسم{% else %}Département{% endif %}
+                        </label>
+                        <select id="departmentFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل الأقسام{% else %}Tous les départements{% endif %}</option>
+                            <option value="production">{% if lang == 'ar' %}1️⃣ قسم الإنتاج{% else %}1️⃣ Département de la production{% endif %}</option>
+                            <option value="entrepots">{% if lang == 'ar' %}2️⃣ المستودعات والخدمات اللوجستية{% else %}2️⃣ Entrepôts et logistique{% endif %}</option>
+                            <option value="achats">{% if lang == 'ar' %}3️⃣ وحدة المشتريات{% else %}3️⃣ Unité des achats{% endif %}</option>
+                            <option value="administratif">{% if lang == 'ar' %}4️⃣ إداري ومحاسبي{% else %}4️⃣ Administratif et comptable{% endif %}</option>
+                            <option value="sante">{% if lang == 'ar' %}5️⃣ الصحة والسلامة والجودة{% else %}5️⃣ Santé, sécurité et qualité{% endif %}</option>
+                            <option value="marketing">{% if lang == 'ar' %}6️⃣ التسويق والمبيعات{% else %}6️⃣ Marketing et ventes{% endif %}</option>
+                            <option value="maintenance">{% if lang == 'ar' %}7️⃣ الصيانة{% else %}7️⃣ Maintenance{% endif %}</option>
+                            <option value="qualite">{% if lang == 'ar' %}8️⃣ الجودة والرقابة{% else %}8️⃣ Qualité et contrôle{% endif %}</option>
+                            <option value="it">{% if lang == 'ar' %}9️⃣ تكنولوجيا المعلومات{% else %}9️⃣ IT (Technologies de l'information){% endif %}</option>
+                        </select>
+                    </div>
+
+                    <!-- Choix de Travail Filter -->
+                    <div class="filter-item">
+                        <label for="workChoiceFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            </svg>
+                            {% if lang == 'ar' %}منصب محدد{% else %}Poste spécifique{% endif %}
+                        </label>
+                        <select id="workChoiceFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل المناصب{% else %}Tous les postes{% endif %}</option>
+                            <optgroup label="{% if lang == 'ar' %}🏭 الإنتاج{% else %}🏭 Production{% endif %}">
+                                <option value="Chef du département de production">Chef du département de production</option>
+                                <option value="Responsable de production">Responsable de production</option>
+                                <option value="Superviseur de ligne de production">Superviseur de ligne de production</option>
+                                <option value="Chef d'équipe de production">Chef d'équipe de production</option>
+                                <option value="Opérateur de machine">Opérateur de machine</option>
+                                <option value="Technicien de production">Technicien de production</option>
+                                <option value="Ouvrier de production">Ouvrier de production</option>
+                                <option value="Contrôleur de production">Contrôleur de production</option>
+                            </optgroup>
+                            <optgroup label="📦 Entrepôts et logistique">
+                                <option value="Responsable des entrepôts">Responsable des entrepôts</option>
+                                <option value="Chef magasinier">Chef magasinier</option>
+                                <option value="Magasinier / Gestionnaire de stock">Magasinier / Gestionnaire de stock</option>
+                                <option value="Opérateur logistique">Opérateur logistique</option>
+                                <option value="Cariste / Conducteur de chariot élévateur">Cariste / Conducteur de chariot élévateur</option>
+                                <option value="Préparateur de commandes">Préparateur de commandes</option>
+                                <option value="Agent d'expédition / réception">Agent d'expédition / réception</option>
+                            </optgroup>
+                            <optgroup label="🛒 Unité des achats">
+                                <option value="Superviseur des achats">Superviseur des achats</option>
+                                <option value="Responsable des achats locaux">Responsable des achats locaux</option>
+                                <option value="Responsable des achats locaux et administratifs">Responsable des achats locaux et administratifs</option>
+                                <option value="Agent de suivi des livraisons">Agent de suivi des livraisons</option>
+                                <option value="Contrôleur ou analyste des achats">Contrôleur ou analyste des achats</option>
+                            </optgroup>
+                            <optgroup label="💼 Administratif et comptable">
+                                <option value="Comptable">Comptable</option>
+                                <option value="Assistant comptable">Assistant comptable</option>
+                                <option value="Contrôleur financier">Contrôleur financier</option>
+                                <option value="Secrétaire / Assistant administratif">Secrétaire / Assistant administratif</option>
+                                <option value="Gestionnaire de paie">Gestionnaire de paie</option>
+                                <option value="Responsable des ressources humaines (RH)">Responsable des ressources humaines (RH)</option>
+                            </optgroup>
+                            <optgroup label="🛡️ Santé, sécurité et qualité">
+                                <option value="Directeur santé et sécurité au travail">Directeur santé et sécurité au travail</option>
+                                <option value="Responsable hygiène, sécurité et environnement (HSE)">Responsable hygiène, sécurité et environnement (HSE)</option>
+                                <option value="Chef HSE">Chef HSE</option>
+                                <option value="Agent HSE">Agent HSE</option>
+                                <option value="Ingénieur sécurité">Ingénieur sécurité</option>
+                                <option value="Technicien en hygiène et sécurité">Technicien en hygiène et sécurité</option>
+                                <option value="Responsable qualité">Responsable qualité</option>
+                                <option value="Auditeur qualité interne">Auditeur qualité interne</option>
+                                <option value="Contrôleur de sécurité">Contrôleur de sécurité</option>
+                                <option value="Secouriste industriel / Technicien de premiers secours">Secouriste industriel / Technicien de premiers secours</option>
+                            </optgroup>
+                            <optgroup label="📢 Marketing et ventes">
+                                <option value="Responsable marketing">Responsable marketing</option>
+                                <option value="Chef de produit">Chef de produit</option>
+                                <option value="Chargé de communication">Chargé de communication</option>
+                                <option value="Commercial / Vendeur">Commercial / Vendeur</option>
+                                <option value="Assistant marketing">Assistant marketing</option>
+                                <option value="Responsable relations clients">Responsable relations clients</option>
+                            </optgroup>
+                            <optgroup label="� Maintenance">
+                                <option value="Responsable maintenance">Responsable maintenance</option>
+                                <option value="Technicien de maintenance industrielle">Technicien de maintenance industrielle</option>
+                                <option value="Électricien industriel">Électricien industriel</option>
+                                <option value="Mécanicien industriel">Mécanicien industriel</option>
+                                <option value="Automaticien / Technicien en automatisme">Automaticien / Technicien en automatisme</option>
+                                <option value="Technicien frigoriste">Technicien frigoriste</option>
+                                <option value="Soudeur industriel">Soudeur industriel</option>
+                                <option value="Plombier industriel">Plombier industriel</option>
+                                <option value="Chaudronnier">Chaudronnier</option>
+                                <option value="Technicien en instrumentation">Technicien en instrumentation</option>
+                                <option value="Technicien des pompes et systèmes d'eau">Technicien des pompes et systèmes d'eau</option>
+                            </optgroup>
+                            <optgroup label="✅ Qualité et contrôle">
+                                <option value="Responsable contrôle qualité">Responsable contrôle qualité</option>
+                                <option value="Technicien de contrôle qualité">Technicien de contrôle qualité</option>
+                                <option value="Contrôleur qualité produits">Contrôleur qualité produits</option>
+                                <option value="Analyste qualité">Analyste qualité</option>
+                                <option value="Spécialiste en sécurité alimentaire">Spécialiste en sécurité alimentaire</option>
+                                <option value="Technicien de laboratoire (analyse de l'eau)">Technicien de laboratoire (analyse de l'eau)</option>
+                                <option value="Inspecteur qualité">Inspecteur qualité</option>
+                            </optgroup>
+                            <optgroup label="� IT (Technologies de l'information)">
+                                <option value="Responsable IT / Directeur des systèmes d'information">Responsable IT / Directeur des systèmes d'information</option>
+                                <option value="Développeur / Ingénieur logiciel">Développeur / Ingénieur logiciel</option>
+                                <option value="Administrateur réseau et systèmes">Administrateur réseau et systèmes</option>
+                                <option value="Technicien support informatique">Technicien support informatique</option>
+                                <option value="Spécialiste cybersécurité">Spécialiste cybersécurité</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Langue Arabe Filter -->
+                    <div class="filter-item">
+                        <label for="arabicFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            {% if lang == 'ar' %}اللغة العربية{% else %}Langue Arabe{% endif %}
+                        </label>
+                        <select id="arabicFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل المستويات{% else %}Tous niveaux{% endif %}</option>
+                            <option value="Faible">{% if lang == 'ar' %}ضعيف{% else %}Faible{% endif %}</option>
+                            <option value="Bon">{% if lang == 'ar' %}جيد{% else %}Bon{% endif %}</option>
+                            <option value="Très bon">{% if lang == 'ar' %}جيد جداً{% else %}Très bon{% endif %}</option>
+                            <option value="Excellent">{% if lang == 'ar' %}ممتاز{% else %}Excellent{% endif %}</option>
+                            <option value="Non maîtrisée">{% if lang == 'ar' %}غير متقن{% else %}Non maîtrisée{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <!-- Langue Française Filter -->
+                    <div class="filter-item">
+                        <label for="frenchFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            {% if lang == 'ar' %}اللغة الفرنسية{% else %}Langue Française{% endif %}
+                        </label>
+                        <select id="frenchFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل المستويات{% else %}Tous niveaux{% endif %}</option>
+                            <option value="A1 / A2 : Débutant">{% if lang == 'ar' %}A1 / A2 : مبتدئ{% else %}A1 / A2 : Débutant{% endif %}</option>
+                            <option value="B1 / B2 : Intermédiaire">{% if lang == 'ar' %}B1 / B2 : متوسط{% else %}B1 / B2 : Intermédiaire{% endif %}</option>
+                            <option value="C1 / C2 : Avancé">{% if lang == 'ar' %}C1 / C2 : متقدم{% else %}C1 / C2 : Avancé{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <!-- Langue Anglaise Filter -->
+                    <div class="filter-item">
+                        <label for="englishFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                <path d="M2 17l10 5 10-5"></path>
+                                <path d="M2 12l10 5 10-5"></path>
+                            </svg>
+                            {% if lang == 'ar' %}اللغة الإنجليزية{% else %}Langue Anglaise{% endif %}
+                        </label>
+                        <select id="englishFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل المستويات{% else %}Tous niveaux{% endif %}</option>
+                            <option value="A1 / A2 : Débutant">{% if lang == 'ar' %}A1 / A2 : مبتدئ{% else %}A1 / A2 : Débutant{% endif %}</option>
+                            <option value="B1 / B2 : Intermédiaire">{% if lang == 'ar' %}B1 / B2 : متوسط{% else %}B1 / B2 : Intermédiaire{% endif %}</option>
+                            <option value="C1 / C2 : Avancé">{% if lang == 'ar' %}C1 / C2 : متقدم{% else %}C1 / C2 : Avancé{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <!-- Sexe Filter -->
+                    <div class="filter-item">
+                        <label for="sexeFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            {% if lang == 'ar' %}الجنس{% else %}Sexe{% endif %}
+                        </label>
+                        <select id="sexeFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}ذكر وأنثى{% else %}Masculin & Féminin{% endif %}</option>
+                            <option value="Masculin">{% if lang == 'ar' %}ذكر{% else %}Masculin{% endif %}</option>
+                            <option value="Féminin">{% if lang == 'ar' %}أنثى{% else %}Féminin{% endif %}</option>
+                        </select>
+                    </div>
+
+                    <!-- Niveau d'instruction Filter -->
+                    <div class="filter-item">
+                        <label for="educationFilter">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                            </svg>
+                            {% if lang == 'ar' %}المستوى التعليمي{% else %}Niveau d'instruction{% endif %}
+                        </label>
+                        <select id="educationFilter" onchange="filterApplications()">
+                            <option value="all">{% if lang == 'ar' %}كل المستويات{% else %}Tous niveaux{% endif %}</option>
+                            <option value="Aucun">{% if lang == 'ar' %}لا شيء{% else %}Aucun{% endif %}</option>
+                            <option value="Primaire">{% if lang == 'ar' %}ابتدائي{% else %}Primaire{% endif %}</option>
+                            <option value="Secondaire">{% if lang == 'ar' %}ثانوي{% else %}Secondaire{% endif %}</option>
+                            <option value="Baccalauréat">{% if lang == 'ar' %}بكالوريا{% else %}Baccalauréat{% endif %}</option>
+                            <option value="Diplôme d'institut">{% if lang == 'ar' %}دبلوم معهد{% else %}Diplôme d'institut{% endif %}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filters-actions">
+                    <button class="btn-reset-filters" onclick="resetFilters()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="1 4 1 10 7 10"></polyline>
+                            <polyline points="23 20 23 14 17 14"></polyline>
+                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                        </svg>
+                        {% if lang == 'ar' %}إعادة تعيين الفلاتر{% else %}Réinitialiser les filtres{% endif %}
+                    </button>
+                    <span id="resultsCount" class="results-count"></span>
+                </div>
+            </div>
+
+            <!-- Applications List -->
+            <div class="content-section">
+                {% if applications %}
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">⭐</th>
+                                <th>{% if lang == 'ar' %}المرشح{% else %}Candidat{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الهاتف{% else %}Téléphone{% endif %}</th>
+                                <th>{% if lang == 'ar' %}العنوان{% else %}Adresse{% endif %}</th>
+                                <th>{% if lang == 'ar' %}تاريخ التقديم{% else %}Date de soumission{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الحالة{% else %}Statut{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الإجراءات{% else %}Actions{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicationsTable">
+                            {% for app in applications %}
+                            <tr data-status="{{ app.status.replace(' ', '-') }}" 
+                                data-name="{{ app.prenom }} {{ app.nom }}"
+                                data-region="{{ app.region if app.region else '' }}"
+                                data-birthdate="{{ app.date_naissance if app.date_naissance else '' }}"
+                                data-workchoice="{{ app.choix_travail if app.choix_travail else '' }}"
+                                data-arabic="{{ app.langue_arabe if app.langue_arabe else '' }}"
+                                data-french="{{ app.langue_francaise if app.langue_francaise else '' }}"
+                                data-english="{{ app.langue_anglaise if app.langue_anglaise else '' }}"
+                                data-sexe="{{ app.sexe if app.sexe else '' }}"
+                                data-education="{{ app.niveau_instruction if app.niveau_instruction else '' }}">
+                                <td style="text-align: center;">
+                                    <form action="{{ url_for('admin_toggle_favorite', app_id=app.id) }}" method="POST" style="display: inline;">
+                                        <button type="submit" class="btn-favorite {{ 'active' if app.is_favorite == 1 else '' }}" title="{{ 'Retirer des favoris' if app.is_favorite == 1 else 'Ajouter aux favoris' }}">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="{{ '#FFD700' if app.is_favorite == 1 else 'none' }}" stroke="currentColor" stroke-width="2">
+                                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <div class="candidate-info">
+                                        <div class="candidate-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                                            {{ app.prenom[0] }}{{ app.nom[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="candidate-name">{{ app.prenom }} {{ app.nom }}</div>
+                                            <div class="candidate-email">{{ app.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ app.telephone }}</td>
+                                <td>{{ app.adresse if app.adresse else '-' }}</td>
+                                <td>{{ app.date_soumission }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ app.status.replace(' ', '-') }}">
+                                        {% if lang == 'ar' %}
+                                            {% if app.status == 'en attente' %}قيد الانتظار
+                                            {% elif app.status == 'acceptée' %}مقبول
+                                            {% elif app.status == 'rejetée' %}مرفوض
+                                            {% else %}{{ app.status }}{% endif %}
+                                        {% else %}
+                                            {{ app.status }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_spontaneous_application_detail_ar' if lang == 'ar' else 'admin_spontaneous_application_detail', app_id=app.id) }}?v=2" class="btn-view" title="{% if lang == 'ar' %}عرض التفاصيل{% else %}Voir les détails{% endif %}">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}عرض التفاصيل{% else %}Voir détails{% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    {% if is_favorites_view %}
+                    <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <h3>{% if lang == 'ar' %}لا يوجد مرشحون مفضلون{% else %}Aucun candidat favori{% endif %}</h3>
+                    <p>{% if lang == 'ar' %}انقر على النجمة ⭐ لتمييز المرشحين كمفضلين{% else %}Cliquez sur l'étoile ⭐ pour marquer des candidats comme favoris{% endif %}</p>
+                    <a href="{{ url_for('admin_spontaneous_applications_ar' if lang == 'ar' else 'admin_spontaneous_applications') }}" style="margin-top: 1rem; display: inline-block; color: #667eea; text-decoration: none; font-weight: 500;">
+                        → {% if lang == 'ar' %}عرض جميع الطلبات العفوية{% else %}Voir toutes les candidatures spontanées{% endif %}
+                    </a>
+                    {% else %}
+                    <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M15 8h6m-3-3v6"></path>
+                    </svg>
+                    <h3>{% if lang == 'ar' %}لا توجد طلبات عفوية{% else %}Aucune candidature spontanée{% endif %}</h3>
+                    <p>{% if lang == 'ar' %}ستظهر الطلبات العفوية المقدمة هنا{% else %}Les candidatures spontanées soumises apparaîtront ici{% endif %}</p>
+                    <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        💡 {% if lang == 'ar' %}يمكن للمرشحين التقديم عفوياً عبر رابط "طلب عفوي" على الموقع العام{% else %}Les candidats peuvent postuler en candidature spontanée via le lien "Candidature Spontanée" sur le site public{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                        <button onclick="this.parentElement.style.display='none'">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        // Toggle Advanced Filters Panel
+        function toggleAdvancedFilters() {
+            const panel = document.getElementById('advancedFiltersPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                // Smooth animation
+                setTimeout(() => {
+                    panel.style.opacity = '1';
+                    panel.style.transform = 'translateY(0)';
+                }, 10);
+            } else {
+                panel.style.opacity = '0';
+                panel.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    panel.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Calculate age from birthdate
+        function calculateAge(birthdate) {
+            if (!birthdate) return null;
+            const today = new Date();
+            const birthDate = new Date(birthdate);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Check if age is in range
+        function isAgeInRange(birthdate, range) {
+            const age = calculateAge(birthdate);
+            if (age === null) return false;
+            
+            switch(range) {
+                case '18-25': return age >= 18 && age <= 25;
+                case '26-35': return age >= 26 && age <= 35;
+                case '36-45': return age >= 36 && age <= 45;
+                case '46-55': return age >= 46 && age <= 55;
+                case '56+': return age >= 56;
+                default: return true;
+            }
+        }
+
+        // Department mapping for filtering
+        const departmentKeywords = {
+            'production': ['Chef du département de production', 'Responsable de production', 'Superviseur de ligne de production', 'Chef d\'équipe de production', 'Opérateur de machine', 'Technicien de production', 'Ouvrier de production', 'Contrôleur de production'],
+            'entrepots': ['Responsable des entrepôts', 'Chef magasinier', 'Magasinier / Gestionnaire de stock', 'Opérateur logistique', 'Cariste / Conducteur de chariot élévateur', 'Préparateur de commandes', 'Agent d\'expédition / réception'],
+            'achats': ['Superviseur des achats', 'Responsable des achats locaux', 'Responsable des achats locaux et administratifs', 'Agent de suivi des livraisons', 'Contrôleur ou analyste des achats'],
+            'administratif': ['Comptable', 'Assistant comptable', 'Contrôleur financier', 'Secrétaire / Assistant administratif', 'Gestionnaire de paie', 'Responsable des ressources humaines (RH)'],
+            'sante': ['Directeur santé et sécurité au travail', 'Responsable hygiène, sécurité et environnement (HSE)', 'Chef HSE', 'Agent HSE', 'Ingénieur sécurité', 'Technicien en hygiène et sécurité', 'Responsable qualité', 'Auditeur qualité interne', 'Contrôleur de sécurité', 'Secouriste industriel / Technicien de premiers secours'],
+            'marketing': ['Responsable marketing', 'Chef de produit', 'Chargé de communication', 'Commercial / Vendeur', 'Assistant marketing', 'Responsable relations clients'],
+            'maintenance': ['Responsable maintenance', 'Technicien de maintenance industrielle', 'Électricien industriel', 'Mécanicien industriel', 'Automaticien / Technicien en automatisme', 'Technicien frigoriste', 'Soudeur industriel', 'Plombier industriel', 'Chaudronnier', 'Technicien en instrumentation', 'Technicien des pompes et systèmes d\'eau'],
+            'qualite': ['Responsable contrôle qualité', 'Technicien de contrôle qualité', 'Contrôleur qualité produits', 'Analyste qualité', 'Spécialiste en sécurité alimentaire', 'Technicien de laboratoire (analyse de l\'eau)', 'Inspecteur qualité'],
+            'it': ['Responsable IT / Directeur des systèmes d\'information', 'Développeur / Ingénieur logiciel', 'Administrateur réseau et systèmes', 'Technicien support informatique', 'Spécialiste cybersécurité']
+        };
+
+        // Main filter function
+        function filterApplications() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const regionFilter = document.getElementById('regionFilter') ? document.getElementById('regionFilter').value : 'all';
+            const ageFilter = document.getElementById('ageFilter') ? document.getElementById('ageFilter').value : 'all';
+            const departmentFilter = document.getElementById('departmentFilter') ? document.getElementById('departmentFilter').value : 'all';
+            const workChoiceFilter = document.getElementById('workChoiceFilter') ? document.getElementById('workChoiceFilter').value : 'all';
+            const arabicFilter = document.getElementById('arabicFilter') ? document.getElementById('arabicFilter').value : 'all';
+            const frenchFilter = document.getElementById('frenchFilter') ? document.getElementById('frenchFilter').value : 'all';
+            const englishFilter = document.getElementById('englishFilter') ? document.getElementById('englishFilter').value : 'all';
+            const sexeFilter = document.getElementById('sexeFilter') ? document.getElementById('sexeFilter').value : 'all';
+            const educationFilter = document.getElementById('educationFilter') ? document.getElementById('educationFilter').value : 'all';
+            
+            const rows = document.querySelectorAll('#applicationsTable tr');
+            let visibleCount = 0;
+            
+            rows.forEach(row => {
+                const status = row.dataset.status;
+                const name = row.dataset.name.toLowerCase();
+                const region = row.dataset.region;
+                const birthdate = row.dataset.birthdate;
+                const workChoice = row.dataset.workchoice || '';
+                const arabic = row.dataset.arabic || '';
+                const french = row.dataset.french || '';
+                const english = row.dataset.english || '';
+                const sexe = row.dataset.sexe || '';
+                const education = row.dataset.education || '';
+                
+                // Apply all filters
+                let showRow = true;
+                
+                // Status filter
+                if (statusFilter !== 'all' && status !== statusFilter) {
+                    showRow = false;
+                }
+                
+                // Search filter
+                if (searchInput && !name.includes(searchInput)) {
+                    showRow = false;
+                }
+                
+                // Region filter
+                if (regionFilter !== 'all' && region !== regionFilter) {
+                    showRow = false;
+                }
+                
+                // Age filter
+                if (ageFilter !== 'all' && !isAgeInRange(birthdate, ageFilter)) {
+                    showRow = false;
+                }
+                
+                // Department filter - check if any of the candidate's work choices match the department
+                if (departmentFilter !== 'all') {
+                    const deptPositions = departmentKeywords[departmentFilter] || [];
+                    const hasMatchingPosition = deptPositions.some(position => workChoice.includes(position));
+                    if (!hasMatchingPosition) {
+                        showRow = false;
+                    }
+                }
+                
+                // Work choice filter - specific position
+                if (workChoiceFilter !== 'all' && !workChoice.includes(workChoiceFilter)) {
+                    showRow = false;
+                }
+                
+                // Arabic filter
+                if (arabicFilter !== 'all' && arabic !== arabicFilter) {
+                    showRow = false;
+                }
+                
+                // French filter
+                if (frenchFilter !== 'all' && french !== frenchFilter) {
+                    showRow = false;
+                }
+                
+                // English filter
+                if (englishFilter !== 'all' && english !== englishFilter) {
+                    showRow = false;
+                }
+                
+                // Sexe filter - FIXED: compare trimmed values
+                if (sexeFilter !== 'all' && sexe.trim() !== sexeFilter) {
+                    showRow = false;
+                }
+                
+                // Education filter
+                if (educationFilter !== 'all' && education !== educationFilter) {
+                    showRow = false;
+                }
+                
+                // Show or hide row
+                if (showRow) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update results count
+            updateResultsCount(visibleCount, rows.length);
+        }
+
+        // Search applications (kept for compatibility)
+        function searchApplications() {
+            filterApplications();
+        }
+
+        // Reset all filters
+        function resetFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('searchInput').value = '';
+            
+            if (document.getElementById('regionFilter')) document.getElementById('regionFilter').value = 'all';
+            if (document.getElementById('ageFilter')) document.getElementById('ageFilter').value = 'all';
+            if (document.getElementById('departmentFilter')) document.getElementById('departmentFilter').value = 'all';
+            if (document.getElementById('workChoiceFilter')) document.getElementById('workChoiceFilter').value = 'all';
+            if (document.getElementById('arabicFilter')) document.getElementById('arabicFilter').value = 'all';
+            if (document.getElementById('frenchFilter')) document.getElementById('frenchFilter').value = 'all';
+            if (document.getElementById('englishFilter')) document.getElementById('englishFilter').value = 'all';
+            if (document.getElementById('sexeFilter')) document.getElementById('sexeFilter').value = 'all';
+            if (document.getElementById('educationFilter')) document.getElementById('educationFilter').value = 'all';
+            
+            filterApplications();
+        }
+
+        // Update results count
+        function updateResultsCount(visible, total) {
+            const resultsCount = document.getElementById('resultsCount');
+            if (resultsCount) {
+                if (visible === total) {
+                    resultsCount.textContent = `${total} candidat(s) au total`;
+                } else {
+                    resultsCount.textContent = `${visible} sur ${total} candidat(s)`;
+                }
+                resultsCount.style.color = visible < total ? '#667eea' : '#666';
+                resultsCount.style.fontWeight = visible < total ? '600' : '400';
+            }
+        }
+
+        // Initialize results count on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('#applicationsTable tr');
+            updateResultsCount(rows.length, rows.length);
+        });
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(() => {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

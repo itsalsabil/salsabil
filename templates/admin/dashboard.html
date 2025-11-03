@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="{% if lang == 'ar' %}ar{% else %}fr{% endif %}" {% if lang == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if lang == 'ar' %}لوحة التحكم - سلسبيل{% else %}Dashboard Admin - Salsabil{% endif %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% if lang == 'ar' %}
+    <style>
+        body {
+            direction: rtl;
+            text-align: right;
+        }
+        .admin-sidebar {
+            right: auto;
+            left: 0;
+        }
+        .admin-main {
+            margin-right: 0;
+            margin-left: 280px;
+        }
+        .sidebar-nav .nav-item svg {
+            margin-left: 12px;
+            margin-right: 0;
+        }
+        .stat-card {
+            text-align: right;
+        }
+        .admin-table th,
+        .admin-table td {
+            text-align: right;
+        }
+        .admin-table th:last-child,
+        .admin-table td:last-child {
+            text-align: left;
+        }
+        .badge {
+            margin-right: auto;
+            margin-left: 8px;
+        }
+    </style>
+    {% endif %}
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Logo Salsabil" class="logo-img">
+                <h3>{% if lang == 'ar' %}لوحة التحكم{% else %}Admin Panel{% endif %}</h3>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('admin_dashboard_ar' if lang == 'ar' else 'admin_dashboard') }}" class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    {% if lang == 'ar' %}لوحة التحكم{% else %}Dashboard{% endif %}
+                </a>
+                <a href="{{ url_for('admin_jobs_ar' if lang == 'ar' else 'admin_jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {% if lang == 'ar' %}عروض العمل{% else %}Offres d'emploi{% endif %}
+                    {% if jobs|length > 0 %}
+                    <span class="badge">{{ jobs|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_applications_ar' if lang == 'ar' else 'admin_applications') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الطلبات{% else %}Candidatures{% endif %}
+                    {% if applications|length > 0 %}
+                    <span class="badge">{{ applications|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_spontaneous_applications_ar' if lang == 'ar' else 'admin_spontaneous_applications') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M15 8h6m-3-3v6"></path>
+                    </svg>
+                    {% if lang == 'ar' %}طلبات عفوية{% else %}Candidatures Spontanées{% endif %}
+                    {% if spontaneous_count > 0 %}
+                    <span class="badge">{{ spontaneous_count }}</span>
+                    {% endif %}
+                </a>
+                {% if permissions and permissions.view_employees %}
+                <a href="{{ url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    {% if lang == 'ar' %}الموظفون{% else %}Employés{% endif %}
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_profile_ar' if lang == 'ar' else 'admin_profile') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% if lang == 'ar' %}ملفي الشخصي{% else %}Mon Profil{% endif %}
+                </a>
+                <a href="{{ url_for('jobs_ar' if lang == 'ar' else 'jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الموقع العام{% else %}Site public{% endif %}
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <!-- Language Switcher -->
+                {% if lang == 'ar' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-item lang-switch">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    Français
+                </a>
+                {% else %}
+                <a href="{{ url_for('admin_dashboard_ar') }}" class="nav-item lang-switch">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    العربية
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    {% if lang == 'ar' %}تسجيل الخروج{% else %}Déconnexion{% endif %}
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>{% if lang == 'ar' %}لوحة التحكم{% else %}Dashboard{% endif %}</h1>
+                <div class="admin-user">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{{ current_user.prenom if current_user else 'Admin' }} {{ current_user.nom if current_user else '' }}</span>
+                    {% if current_user and current_user.role %}
+                    <span class="user-role">({{ current_user.role|capitalize }})</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <polyline points="17 11 19 13 23 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|length }}</h3>
+                        <p>{% if lang == 'ar' %}إجمالي الطلبات{% else %}Candidatures totales{% endif %}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|selectattr('status', 'equalto', 'acceptée')|list|length }}</h3>
+                        <p>{% if lang == 'ar' %}الطلبات المقبولة{% else %}Candidatures acceptées{% endif %}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|selectattr('status', 'equalto', 'en attente')|list|length }}</h3>
+                        <p>{% if lang == 'ar' %}قيد الانتظار{% else %}En attente{% endif %}</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon red">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ applications|selectattr('status', 'equalto', 'rejetée')|list|length }}</h3>
+                        <p>{% if lang == 'ar' %}الطلبات المرفوضة{% else %}Candidatures rejetées{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications -->
+            <div class="content-section">
+                <div class="section-header">
+                    <h2>{% if lang == 'ar' %}الطلبات الأخيرة{% else %}Candidatures récentes{% endif %}</h2>
+                    <a href="{{ url_for('admin_applications_ar' if lang == 'ar' else 'admin_applications') }}" class="btn-view-all">
+                        {% if lang == 'ar' %}عرض الكل{% else %}Voir tout{% endif %}
+                    </a>
+                </div>
+
+                {% if applications %}
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>{% if lang == 'ar' %}المرشح{% else %}Candidat{% endif %}</th>
+                                <th>{% if lang == 'ar' %}المنصب{% else %}Poste{% endif %}</th>
+                                <th>{% if lang == 'ar' %}التاريخ{% else %}Date{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الحالة{% else %}Statut{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الإجراءات{% else %}Actions{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications[:5] %}
+                            <tr>
+                                <td>
+                                    <div class="candidate-info">
+                                        <div class="candidate-avatar">
+                                            {{ app.prenom[0] }}{{ app.nom[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="candidate-name">{{ app.prenom }} {{ app.nom }}</div>
+                                            <div class="candidate-email">{{ app.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ app.job_title }}</td>
+                                <td>{{ app.date_soumission }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ app.status.replace(' ', '-') }}">
+                                        {% if lang == 'ar' %}
+                                            {% if app.status == 'en attente' %}قيد الانتظار
+                                            {% elif app.status == 'acceptée' %}مقبول
+                                            {% elif app.status == 'rejetée' %}مرفوض
+                                            {% else %}{{ app.status }}{% endif %}
+                                        {% else %}
+                                            {{ app.status }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_application_detail_ar' if lang == 'ar' else 'admin_application_detail', app_id=app.id) }}" class="btn-view" title="{% if lang == 'ar' %}عرض التفاصيل{% else %}Voir les détails{% endif %}">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}عرض التفاصيل{% else %}Voir détails{% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    <h3>{% if lang == 'ar' %}لا توجد طلبات في الوقت الحالي{% else %}Aucune candidature pour le moment{% endif %}</h3>
+                    <p>{% if lang == 'ar' %}ستظهر الطلبات الجديدة هنا{% else %}Les nouvelles candidatures apparaîtront ici{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

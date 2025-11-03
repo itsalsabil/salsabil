@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="{% if lang == 'ar' %}ar{% else %}fr{% endif %}" {% if lang == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if lang == 'ar' %}إدارة الموظفين - سلسبيل{% else %}Gestion des Employés - Admin Salsabil{% endif %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% if lang == 'ar' %}
+    <style>
+        body { direction: rtl; text-align: right; }
+        .admin-sidebar { right: auto; left: 0; }
+        .admin-main { margin-right: 0; margin-left: 280px; }
+        .sidebar-nav .nav-item svg { margin-left: 12px; margin-right: 0; }
+        .badge { margin-right: auto; margin-left: 8px; }
+        .admin-table th, .admin-table td { text-align: right; }
+        .candidate-info { flex-direction: row-reverse; text-align: right; }
+        .candidate-avatar { margin-left: 12px; margin-right: 0; }
+        .action-buttons-inline { justify-content: flex-end; }
+        .modal-content { text-align: right; }
+        .form-group label { text-align: right; }
+        .form-group input, .form-group select { text-align: right; }
+        .role-info ul { margin: 0.5rem 1.2rem 0 0; padding: 0; }
+        .btn-add-job svg, .btn-submit svg { margin-left: 8px; margin-right: 0; }
+    </style>
+    {% endif %}
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Logo Salsabil" class="logo-img">
+                <h3>{% if lang == 'ar' %}لوحة التحكم{% else %}Admin Panel{% endif %}</h3>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('admin_dashboard_ar' if lang == 'ar' else 'admin_dashboard') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    {% if lang == 'ar' %}لوحة التحكم{% else %}Dashboard{% endif %}
+                </a>
+                <a href="{{ url_for('admin_jobs_ar' if lang == 'ar' else 'admin_jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {% if lang == 'ar' %}عروض العمل{% else %}Offres d'emploi{% endif %}
+                    {% if jobs|length > 0 %}
+                    <span class="badge">{{ jobs|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_applications_ar' if lang == 'ar' else 'admin_applications') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الطلبات{% else %}Candidatures{% endif %}
+                </a>
+                <a href="{{ url_for('admin_spontaneous_applications_ar' if lang == 'ar' else 'admin_spontaneous_applications') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M15 8h6m-3-3v6"></path>
+                    </svg>
+                    {% if lang == 'ar' %}طلبات عفوية{% else %}Candidatures Spontanées{% endif %}
+                    {% if spontaneous_count > 0 %}
+                    <span class="badge">{{ spontaneous_count }}</span>
+                    {% endif %}
+                </a>
+                {% if permissions.view_employees %}
+                <a href="{{ url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees') }}" class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    {% if lang == 'ar' %}الموظفون{% else %}Employés{% endif %}
+                    <span class="badge">{{ employees|length }}</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_profile_ar' if lang == 'ar' else 'admin_profile') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% if lang == 'ar' %}ملفي الشخصي{% else %}Mon Profil{% endif %}
+                </a>
+                <a href="{{ url_for('jobs_ar' if lang == 'ar' else 'jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الموقع العام{% else %}Site public{% endif %}
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                {% if lang == 'ar' %}
+                <a href="{{ url_for('admin_employees') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <text x="12" y="16" text-anchor="middle" font-size="12" fill="currentColor">FR</text>
+                    </svg>
+                    Français
+                </a>
+                {% else %}
+                <a href="{{ url_for('admin_employees_ar') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <text x="12" y="16" text-anchor="middle" font-size="10" fill="currentColor">ع</text>
+                    </svg>
+                    العربية
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_logout') }}" class="nav-item logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    {% if lang == 'ar' %}تسجيل الخروج{% else %}Déconnexion{% endif %}
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>{% if lang == 'ar' %}إدارة الموظفين{% else %}Gestion des Employés{% endif %}</h1>
+                <div class="admin-user">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{{ current_user.prenom if current_user else 'Admin' }} {{ current_user.nom if current_user else '' }}</span>
+                    {% if current_user and current_user.role %}
+                    <span class="user-role">({{ current_user.role|capitalize }})</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Add Employee Button -->
+            {% if permissions.add_employee %}
+            <div class="action-bar">
+                <div class="action-bar-text">
+                    <h3>{% if lang == 'ar' %}🎯 إدارة فريقك{% else %}🎯 Gérez votre équipe{% endif %}</h3>
+                    <p>{% if lang == 'ar' %}أضف أعضاء جدد إلى فريق التوظيف{% else %}Ajoutez de nouveaux membres à votre équipe de recrutement{% endif %}</p>
+                </div>
+                <button class="btn-add-job" onclick="openEmployeeModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    {% if lang == 'ar' %}إضافة موظف{% else %}Ajouter un employé{% endif %}
+                </button>
+            </div>
+            {% endif %}
+
+            <!-- Employees List -->
+            <div class="content-section">
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>{% if lang == 'ar' %}الموظف{% else %}Employé{% endif %}</th>
+                                <th>{% if lang == 'ar' %}اسم المستخدم{% else %}Nom d'utilisateur{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الدور{% else %}Rôle{% endif %}</th>
+                                <th>{% if lang == 'ar' %}تاريخ الإنشاء{% else %}Date de création{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الحالة{% else %}Statut{% endif %}</th>
+                                <th>{% if lang == 'ar' %}الإجراءات{% else %}Actions{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in employees %}
+                            <tr>
+                                <td>
+                                    <div class="candidate-info">
+                                        <div class="candidate-avatar employee-avatar-{{ emp.role }}">
+                                            {{ emp.prenom[0] }}{{ emp.nom[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="candidate-name">{{ emp.prenom }} {{ emp.nom }}</div>
+                                            <div class="candidate-email">{{ emp.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ emp.username }}</td>
+                                <td>
+                                    <span class="role-badge role-{{ emp.role }}">
+                                        {% if lang == 'ar' %}
+                                            {% if emp.role == 'admin' %}مدير
+                                            {% elif emp.role == 'hr' %}موارد بشرية
+                                            {% elif emp.role == 'recruteur' %}موظف توظيف
+                                            {% else %}{{ emp.role|capitalize }}{% endif %}
+                                        {% else %}
+                                            {{ emp.role|capitalize }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ emp.date_creation }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ emp.status }}">
+                                        {% if lang == 'ar' %}
+                                            {% if emp.status == 'actif' %}نشط
+                                            {% elif emp.status == 'inactif' %}غير نشط
+                                            {% else %}{{ emp.status|capitalize }}{% endif %}
+                                        {% else %}
+                                            {{ emp.status|capitalize }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if emp.id != current_user.id %}
+                                        <div class="action-buttons-inline">
+                                            {% if permissions.edit_employee %}
+                                            <form method="POST" action="{{ url_for('admin_toggle_employee_status', emp_id=emp.id) }}" style="display: inline;">
+                                                <button type="submit" class="btn-toggle" title="{% if lang == 'ar' %}{{ 'تفعيل' if emp.status == 'inactif' else 'تعطيل' }}{% else %}{{ 'Activer' if emp.status == 'inactif' else 'Désactiver' }}{% endif %}">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            {% if permissions.delete_employee %}
+                                            <form method="POST" action="{{ url_for('admin_delete_employee', emp_id=emp.id) }}" style="display: inline;" onsubmit="return confirm(&quot;{% if lang == 'ar' %}هل أنت متأكد من حذف هذا الموظف؟{% else %}Êtes-vous sûr de vouloir supprimer cet employé ?{% endif %}&quot;);">
+                                                <button type="submit" class="btn-delete-job" title="{% if lang == 'ar' %}حذف{% else %}Supprimer{% endif %}">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">{% if lang == 'ar' %}أنت{% else %}Vous-même{% endif %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal pour ajouter un employé -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>{% if lang == 'ar' %}إضافة موظف{% else %}Ajouter un employé{% endif %}</h2>
+                <span class="close" onclick="closeEmployeeModal()">&times;</span>
+            </div>
+            <form id="employeeForm" method="POST" action="{{ url_for('admin_add_employee') }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="prenom">{% if lang == 'ar' %}الاسم الأول *{% else %}Prénom *{% endif %}</label>
+                        <input type="text" id="prenom" name="prenom" required placeholder="{% if lang == 'ar' %}مثال: أحمد{% else %}Ex: Ahmed{% endif %}">
+                    </div>
+                    <div class="form-group">
+                        <label for="nom">{% if lang == 'ar' %}اسم العائلة *{% else %}Nom *{% endif %}</label>
+                        <input type="text" id="nom" name="nom" required placeholder="{% if lang == 'ar' %}مثال: بنعلي{% else %}Ex: Benali{% endif %}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">{% if lang == 'ar' %}البريد الإلكتروني المهني *{% else %}Email professionnel *{% endif %}</label>
+                    <input type="email" id="email" name="email" required placeholder="ahmed.benali@salsabil.com">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">{% if lang == 'ar' %}اسم المستخدم *{% else %}Nom d'utilisateur *{% endif %}</label>
+                        <input type="text" id="username" name="username" required placeholder="ahmed.benali">
+                        <small style="color: #7f8c8d; font-size: 0.85rem;">{% if lang == 'ar' %}يُستخدم لتسجيل الدخول{% else %}Utilisé pour la connexion{% endif %}</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">{% if lang == 'ar' %}كلمة المرور *{% else %}Mot de passe *{% endif %}</label>
+                        <input type="password" id="password" name="password" required minlength="6" placeholder="{% if lang == 'ar' %}6 أحرف على الأقل{% else %}Min. 6 caractères{% endif %}">
+                        <small style="color: #7f8c8d; font-size: 0.85rem;">{% if lang == 'ar' %}يمكن تغييرها لاحقاً{% else %}Peut être changé plus tard{% endif %}</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">{% if lang == 'ar' %}الدور *{% else %}Rôle *{% endif %}</label>
+                    <select id="role" name="role" required onchange="showRoleInfo()">
+                        <option value="">{% if lang == 'ar' %}اختر دوراً{% else %}Sélectionner un rôle{% endif %}</option>
+                        <option value="admin">{% if lang == 'ar' %}👑 مدير - وصول كامل{% else %}👑 Admin - Accès complet{% endif %}</option>
+                        <option value="hr">{% if lang == 'ar' %}💼 موارد بشرية - إدارة الطلبات والعروض{% else %}💼 HR - Gestion candidatures et offres{% endif %}</option>
+                        <option value="recruteur">{% if lang == 'ar' %}👥 موظف توظيف - استشارة فقط{% else %}👥 Recruteur - Consultation uniquement{% endif %}</option>
+                    </select>
+                    
+                    <div id="role-info-admin" class="role-info">
+                        <strong>{% if lang == 'ar' %}👑 مدير{% else %}👑 Administrateur{% endif %}</strong>
+                        <ul style="margin: 0.5rem {% if lang == 'ar' %}1.2rem 0 0{% else %}0 0 1.2rem{% endif %}; padding: 0;">
+                            <li>{% if lang == 'ar' %}وصول كامل لجميع الوظائف{% else %}Accès complet à toutes les fonctionnalités{% endif %}</li>
+                            <li>{% if lang == 'ar' %}إدارة الموظفين{% else %}Gestion des employés{% endif %}</li>
+                            <li>{% if lang == 'ar' %}إدارة العروض والطلبات{% else %}Gestion des offres et candidatures{% endif %}</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="role-info-hr" class="role-info">
+                        <strong>{% if lang == 'ar' %}💼 موارد بشرية{% else %}💼 Ressources Humaines{% endif %}</strong>
+                        <ul style="margin: 0.5rem {% if lang == 'ar' %}1.2rem 0 0{% else %}0 0 1.2rem{% endif %}; padding: 0;">
+                            <li>{% if lang == 'ar' %}إدارة كاملة للطلبات{% else %}Gestion complète des candidatures{% endif %}</li>
+                            <li>{% if lang == 'ar' %}إضافة وتعديل العروض{% else %}Ajout et modification des offres{% endif %}</li>
+                            <li>{% if lang == 'ar' %}لا يمكن الوصول لإدارة الموظفين{% else %}Pas d'accès à la gestion des employés{% endif %}</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="role-info-recruteur" class="role-info">
+                        <strong>{% if lang == 'ar' %}👥 موظف توظيف{% else %}👥 Recruteur{% endif %}</strong>
+                        <ul style="margin: 0.5rem {% if lang == 'ar' %}1.2rem 0 0{% else %}0 0 1.2rem{% endif %}; padding: 0;">
+                            <li>{% if lang == 'ar' %}استشارة الطلبات والعروض{% else %}Consultation des candidatures et offres{% endif %}</li>
+                            <li>{% if lang == 'ar' %}تعديل حالة الطلبات{% else %}Modification du statut des candidatures{% endif %}</li>
+                            <li>{% if lang == 'ar' %}وصول محدود للقراءة{% else %}Accès limité en lecture{% endif %}</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    {% if lang == 'ar' %}إنشاء الموظف{% else %}Créer l'employé{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEmployeeModal() {
+            document.getElementById('employeeModal').style.display = 'flex';
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').style.display = 'none';
+            document.getElementById('employeeForm').reset();
+            // Masquer toutes les infos de rôle
+            document.querySelectorAll('.role-info').forEach(info => {
+                info.classList.remove('active');
+            });
+        }
+        
+        function showRoleInfo() {
+            const role = document.getElementById('role').value;
+            
+            // Masquer toutes les infos
+            document.querySelectorAll('.role-info').forEach(info => {
+                info.classList.remove('active');
+            });
+            
+            // Afficher l'info du rôle sélectionné
+            if (role) {
+                const infoElement = document.getElementById('role-info-' + role);
+                if (infoElement) {
+                    infoElement.classList.add('active');
+                }
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('employeeModal');
+            if (event.target === modal) {
+                closeEmployeeModal();
+            }
+        }
+    </script>
+</body>
+</html>

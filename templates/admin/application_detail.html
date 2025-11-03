@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="{% if lang == 'ar' %}ar{% else %}fr{% endif %}" {% if lang == 'ar' %}dir="rtl"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if application.job_id is none %}
+    <title>{% if lang == 'ar' %}⭐ طلب عفوي - سلسبيل{% else %}⭐ Candidature Spontanée - Admin Salsabil{% endif %}</title>
+    {% else %}
+    <title>{% if lang == 'ar' %}تفاصيل الطلب - سلسبيل{% else %}Détails Candidature - Admin Salsabil{% endif %}</title>
+    {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <style>
+        /* Language Toggle Styles */
+        .language-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+        .lang-btn {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .lang-btn:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+            color: #667eea;
+        }
+        .lang-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            cursor: default;
+        }
+    </style>
+    {% if lang == 'ar' %}
+    <style>
+        body { direction: rtl; text-align: right; }
+        .admin-sidebar { right: auto; left: 0; }
+        .admin-main { margin-right: 0; margin-left: 280px; }
+        .sidebar-nav .nav-item svg { margin-left: 12px; margin-right: 0; }
+        .badge { margin-right: auto; margin-left: 8px; }
+        .detail-card { text-align: right; }
+        .detail-row { flex-direction: row-reverse; }
+        .detail-label { text-align: right; }
+        .detail-value { text-align: right; }
+        .action-buttons { flex-direction: row-reverse; }
+        .btn svg { margin-left: 8px; margin-right: 0; }
+        .language-toggle { margin-right: 0; margin-left: 1rem; }
+    </style>
+    {% endif %}
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Logo Salsabil" class="logo-img">
+                <h3>{% if lang == 'ar' %}لوحة التحكم{% else %}Admin Panel{% endif %}</h3>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('admin_dashboard_ar' if lang == 'ar' else 'admin_dashboard') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    {% if lang == 'ar' %}لوحة التحكم{% else %}Dashboard{% endif %}
+                </a>
+                <a href="{{ url_for('admin_jobs_ar' if lang == 'ar' else 'admin_jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    {% if lang == 'ar' %}عروض العمل{% else %}Offres d'emploi{% endif %}
+                    {% if jobs|length > 0 %}
+                    <span class="badge">{{ jobs|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_applications_ar' if lang == 'ar' else 'admin_applications') }}" class="nav-item {% if application.job_id is not none %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الطلبات{% else %}Candidatures{% endif %}
+                    {% if applications|length > 0 %}
+                    <span class="badge">{{ applications|length }}</span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_spontaneous_applications_ar' if lang == 'ar' else 'admin_spontaneous_applications') }}" class="nav-item {% if application.job_id is none %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M15 8h6m-3-3v6"></path>
+                    </svg>
+                    {% if lang == 'ar' %}طلبات عفوية{% else %}Candidatures Spontanées{% endif %}
+                    {% if spontaneous_count > 0 %}
+                    <span class="badge">{{ spontaneous_count }}</span>
+                    {% endif %}
+                </a>
+                {% if permissions and permissions.view_employees %}
+                <a href="{{ url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    {% if lang == 'ar' %}الموظفون{% else %}Employés{% endif %}
+                </a>
+                {% endif %}
+                <a href="{{ url_for('admin_profile_ar' if lang == 'ar' else 'admin_profile') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    {% if lang == 'ar' %}ملفي الشخصي{% else %}Mon Profil{% endif %}
+                </a>
+                <a href="{{ url_for('jobs_ar' if lang == 'ar' else 'jobs') }}" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    {% if lang == 'ar' %}الموقع العام{% else %}Site public{% endif %}
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('admin_logout') }}" class="btn-logout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    {% if lang == 'ar' %}تسجيل الخروج{% else %}Déconnexion{% endif %}
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <div>
+                    {% if application.job_id is none %}
+                    <a href="{{ url_for('admin_spontaneous_applications_ar' if lang == 'ar' else 'admin_spontaneous_applications') }}" class="back-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        {% if lang == 'ar' %}العودة إلى الطلبات العفوية{% else %}Retour aux Candidatures Spontanées{% endif %}
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('admin_applications_ar' if lang == 'ar' else 'admin_applications') }}" class="back-button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        {% if lang == 'ar' %}العودة إلى الطلبات{% else %}Retour aux Candidatures{% endif %}
+                    </a>
+                    {% endif %}
+                    {% if application.job_id is none %}
+                    <h1>{% if lang == 'ar' %}⭐ تفاصيل الطلب العفوي{% else %}⭐ Détails de la Candidature Spontanée{% endif %}</h1>
+                    {% else %}
+                    <h1>{% if lang == 'ar' %}تفاصيل الطلب{% else %}Détails de la Candidature{% endif %}</h1>
+                    {% endif %}
+                </div>
+                <div class="admin-user">
+                    <!-- Language Toggle -->
+                    <div class="language-toggle">
+                        {% if application.job_id is none %}
+                            {% if lang == 'ar' %}
+                            <a href="{{ url_for('admin_spontaneous_application_detail', app_id=application.id) }}" class="lang-btn">FR</a>
+                            <span class="lang-btn active">AR</span>
+                            {% else %}
+                            <span class="lang-btn active">FR</span>
+                            <a href="{{ url_for('admin_spontaneous_application_detail_ar', app_id=application.id) }}" class="lang-btn">AR</a>
+                            {% endif %}
+                        {% else %}
+                            {% if lang == 'ar' %}
+                            <a href="{{ url_for('admin_application_detail', app_id=application.id) }}" class="lang-btn">FR</a>
+                            <span class="lang-btn active">AR</span>
+                            {% else %}
+                            <span class="lang-btn active">FR</span>
+                            <a href="{{ url_for('admin_application_detail_ar', app_id=application.id) }}" class="lang-btn">AR</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{{ current_user.prenom if current_user else 'Admin' }} {{ current_user.nom if current_user else '' }}</span>
+                    {% if current_user and current_user.role %}
+                    <span class="user-role">({{ current_user.role|capitalize }})</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="detail-container">
+                <!-- Candidate Info Card -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <h2>{% if lang == 'ar' %}معلومات المرشح{% else %}Informations du Candidat{% endif %}</h2>
+                            {% if application.job_id is none %}
+                            <form action="{{ url_for('admin_toggle_favorite', app_id=application.id) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-favorite-large {{ 'active' if application.is_favorite == 1 else '' }}" title="{% if lang == 'ar' %}{{ 'إزالة من المفضلة' if application.is_favorite == 1 else 'إضافة إلى المفضلة' }}{% else %}{{ 'Retirer des favoris' if application.is_favorite == 1 else 'Ajouter aux favoris' }}{% endif %}">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="{{ '#FFD700' if application.is_favorite == 1 else 'none' }}" stroke="currentColor" stroke-width="2">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                    <span>{% if lang == 'ar' %}{{ 'مفضل' if application.is_favorite == 1 else 'إضافة إلى المفضلة' }}{% else %}{{ 'Favori' if application.is_favorite == 1 else 'Ajouter aux favoris' }}{% endif %}</span>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        <span class="status-badge status-{{ application.status.replace(' ', '-') }}">
+                            {{ application.status }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="candidate-profile">
+                            {% if application.photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + application.photo) }}" alt="{% if lang == 'ar' %}صورة{% else %}Photo{% endif %}" class="profile-photo">
+                            {% else %}
+                            <div class="profile-avatar">
+                                {{ application.prenom[0] }}{{ application.nom[0] }}
+                            </div>
+                            {% endif %}
+                            <div class="profile-info">
+                                <h3>{{ application.prenom }} {{ application.nom }}</h3>
+                                {% if application.job_id is none %}
+                                <p class="job-applied" style="color: #764ba2; font-weight: 600;">
+                                    {% if lang == 'ar' %}⭐ طلب عفوي{% else %}⭐ Candidature Spontanée{% endif %}
+                                </p>
+                                {% else %}
+                                <p class="job-applied">{% if lang == 'ar' %}الوظيفة{% else %}Poste{% endif %}: {{ application.job_title }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}البريد الإلكتروني{% else %}Email{% endif %}</label>
+                                    <p>{{ application.email }}</p>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}الهاتف{% else %}Téléphone{% endif %}</label>
+                                    <p>{{ application.telephone }}</p>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}العنوان{% else %}Adresse{% endif %}</label>
+                                    <p>{{ application.adresse }}</p>
+                                </div>
+                            </div>
+
+                            {% if application.pays %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}البلد (الجزيرة){% else %}Pays (Île){% endif %}</label>
+                                    <p>{{ application.pays }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.region %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}المنطقة{% else %}Région{% endif %}</label>
+                                    <p>{{ application.region }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.sexe %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}الجنس{% else %}Sexe{% endif %}</label>
+                                    <p>{{ application.sexe }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.lieu_naissance %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}مكان الميلاد{% else %}Lieu de naissance{% endif %}</label>
+                                    <p>{{ application.lieu_naissance }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.date_naissance %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}تاريخ الميلاد{% else %}Date de naissance{% endif %}</label>
+                                    <p>{{ application.date_naissance }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.nationalite %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                                    <line x1="4" y1="10" x2="20" y2="10"></line>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}الجنسية{% else %}Nationalité{% endif %}</label>
+                                    <p>{{ application.nationalite }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.choix_travail and application.job_id is none %}
+                            <div class="info-item" style="grid-column: 1 / -1;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}💼 اختيار العمل (طلب عفوي){% else %}💼 Choix de travail (Candidature Spontanée){% endif %}</label>
+                                    <p style="color: #667eea; font-weight: 600; font-size: 1.05rem;">{{ application.choix_travail }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.etat_civil %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}الحالة المدنية{% else %}État civil{% endif %}</label>
+                                    <p>{{ application.etat_civil }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.travaille_actuellement %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}يعمل حاليا{% else %}Travaille actuellement{% endif %}</label>
+                                    <p>{{ application.travaille_actuellement }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.dernier_lieu_travail %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}آخر مكان عمل{% else %}Dernier lieu de travail{% endif %}</label>
+                                    <p>{{ application.dernier_lieu_travail }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.raison_depart %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                <div>
+                                    <label>Raison du départ</label>
+                                    <p>{{ application.raison_depart }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <div>
+                                    <label>Date de soumission</label>
+                                    <p>{{ application.date_soumission }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formation et Compétences Card -->
+                {% if application.niveau_instruction or application.langue_arabe or application.langue_anglaise or application.langue_francaise %}
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h2>{% if lang == 'ar' %}📚 التعليم والمهارات{% else %}📚 Formation et Compétences{% endif %}</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            {% if application.niveau_instruction %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}المستوى التعليمي{% else %}Niveau d'instruction{% endif %}</label>
+                                    <p>{{ application.niveau_instruction }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.specialisation %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}التخصص{% else %}Spécialisation{% endif %}</label>
+                                    <p>{{ application.specialisation }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.specialisation_autre %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}تخصص آخر{% else %}Autre spécialisation{% endif %}</label>
+                                    <p>{{ application.specialisation_autre }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.langue_arabe %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    <path d="M2 12h20"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}اللغة العربية{% else %}Langue arabe{% endif %}</label>
+                                    <p>{{ application.langue_arabe }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.langue_anglaise %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    <path d="M2 12h20"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}اللغة الإنجليزية{% else %}Langue anglaise{% endif %}</label>
+                                    <p>{{ application.langue_anglaise }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.langue_francaise %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    <path d="M2 12h20"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}اللغة الفرنسية{% else %}Langue française{% endif %}</label>
+                                    <p>{{ application.langue_francaise }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.autre_langue_nom %}
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    <path d="M2 12h20"></path>
+                                </svg>
+                                <div>
+                                    <label>{{ application.autre_langue_nom }}</label>
+                                    <p>{{ application.autre_langue_niveau }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Informations de Santé Card -->
+                {% if application.problemes_sante %}
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h2>{% if lang == 'ar' %}🏥 المعلومات الصحية{% else %}🏥 Informations de Santé{% endif %}</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}مشاكل صحية{% else %}Problèmes de santé{% endif %}</label>
+                                    <p>{{ application.problemes_sante }}</p>
+                                </div>
+                            </div>
+
+                            {% if application.nature_maladie %}
+                            <div class="info-item" style="grid-column: 1 / -1;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}طبيعة المرض{% else %}Nature de la maladie{% endif %}</label>
+                                    <p>{{ application.nature_maladie }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Choix de travail Card (Candidature Spontanée) -->
+                {% if application.choix_travail and application.job_id is none %}
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h2>{% if lang == 'ar' %}💼 اختيار العمل (طلب عفوي){% else %}💼 Choix de travail (Candidature Spontanée){% endif %}</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-item" style="grid-column: 1 / -1;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                </svg>
+                                <div>
+                                    <label>{% if lang == 'ar' %}مجالات الاهتمام{% else %}Domaines d'intérêt{% endif %}</label>
+                                    <p style="color: #667eea; font-weight: 600;">{{ application.choix_travail }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Documents Card -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h2>{% if lang == 'ar' %}الوثائق المقدمة{% else %}Documents soumis{% endif %}</h2>
+                        <a href="{{ url_for('admin_download_all_documents', app_id=application.id) }}" class="btn-download-all">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            {% if lang == 'ar' %}تحميل الكل (ZIP){% else %}Télécharger tout (ZIP){% endif %}
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="documents-list">
+                            {% if application.photo %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}صورة الهوية{% else %}Photo d\'identité{% endif %}</span>
+                                    <span class="document-filename">{{ application.photo }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.photo) }}', 'Photo d&apos;identité')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.photo) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.cv %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}السيرة الذاتية{% else %}CV{% endif %}</span>
+                                    <span class="document-filename">{{ application.cv }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.cv) }}', 'CV')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.cv) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.lettre_demande %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}خطاب الطلب{% else %}Lettre de Demande{% endif %}</span>
+                                    <span class="document-filename">{{ application.lettre_demande }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.lettre_demande) }}', 'Lettre de Demande')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.lettre_demande) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.carte_id %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}بطاقة الهوية / جواز السفر{% else %}Carte d\'identité / Passport{% endif %}</span>
+                                    <span class="document-filename">{{ application.carte_id }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.carte_id) }}', 'Carte d&apos;identité / Passport')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.carte_id) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.lettre_recommandation %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}خطاب التوصية{% else %}Lettre de Recommandation{% endif %}</span>
+                                    <span class="document-filename">{{ application.lettre_recommandation }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.lettre_recommandation) }}', 'Lettre de Recommandation')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.lettre_recommandation) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.casier_judiciaire %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}السجل العدلي{% else %}Casier Judiciaire{% endif %}</span>
+                                    <span class="document-filename">{{ application.casier_judiciaire }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.casier_judiciaire) }}', 'Casier Judiciaire')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.casier_judiciaire) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.diplome %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}الدبلوم{% else %}Diplôme{% endif %}</span>
+                                    <span class="document-filename">{{ application.diplome }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.diplome) }}', 'Diplôme')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.diplome) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if application.certificat_travail %}
+                            <div class="document-item">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <div class="document-info">
+                                    <span class="document-name">{% if lang == 'ar' %}شهادة العمل{% else %}Certificat de Travail{% endif %}</span>
+                                    <span class="document-filename">{{ application.certificat_travail }}</span>
+                                </div>
+                                <div class="document-actions">
+                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.certificat_travail) }}', 'Certificat de Travail')" class="btn-preview">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
+                                    </button>
+                                    <a href="{{ url_for('static', filename='uploads/' + application.certificat_travail) }}" download class="btn-download">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                        </svg>
+                                        {% if lang == 'ar' %}تحميل{% else %}Télécharger{% endif %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if not (application.photo or application.cv or application.lettre_demande or application.carte_id or application.lettre_recommandation or application.casier_judiciaire or application.diplome or application.certificat_travail) %}
+                        <div class="empty-state" style="padding: 2rem;">
+                            <p style="color: #7f8c8d; text-align: center;">Aucun document n'a été soumis avec cette candidature.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="detail-card">
+                    <div class="card-header">
+                        <h2>{% if lang == 'ar' %}عملية التوظيف{% else %}Processus de Recrutement{% endif %}</h2>
+                        <span class="workflow-badge workflow-{{ application.workflow_phase }}">
+                            {% if application.workflow_phase == 'phase1' %}
+                                {% if lang == 'ar' %}📋 المرحلة 1{% else %}📋 Phase 1{% endif %}
+                            {% elif application.workflow_phase == 'phase2' %}
+                                {% if lang == 'ar' %}🎯 المرحلة 2{% else %}🎯 Phase 2{% endif %}
+                            {% else %}
+                                {% if lang == 'ar' %}✅ منتهي{% else %}✅ Terminé{% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- PHASE 1: Sélection pour interview -->
+                        <div class="workflow-phase">
+                            <h3 class="phase-title">
+                                <span class="phase-number">1</span>
+                                {% if lang == 'ar' %}المرحلة 1: الاختيار للمقابلة{% else %}Phase 1 : Sélection pour Interview{% endif %}
+                            </h3>
+                            
+                            {% if application.phase1_status == 'pending' and application.workflow_phase == 'phase1' %}
+                                <!-- Formulaire de décision Phase 1 -->
+                                <div class="phase-content active">
+                                    <p class="phase-description">
+                                        {% if lang == 'ar' %}المرشح في انتظار القرار بخصوص المقابلة حالياً.{% else %}Le candidat est actuellement en attente de décision pour l'interview.{% endif %}
+                                    </p>
+                                    
+                                    <form method="POST" action="{{ url_for('admin_phase1_decision', app_id=application.id) }}" class="workflow-form">
+                                        {% if application.job_id is none and application.choix_travail %}
+                                        <!-- Sélection du poste pour candidature spontanée -->
+                                        <div class="form-group" style="background: #f8f9ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea;">
+                                            <label style="font-weight: 600; color: #667eea; display: flex; align-items: center; gap: 0.5rem;">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                                </svg>
+                                                {% if lang == 'ar' %}اختيار المنصب للمقابلة *{% else %}Sélectionner le poste pour l'entretien *{% endif %}
+                                            </label>
+                                            <small style="color: #666; margin-bottom: 0.5rem; display: block;">
+                                                {% if lang == 'ar' %}اختر من بين مجالات اهتمام المرشح:{% else %}Choisissez parmi les domaines d'intérêt du candidat :{% endif %} <strong>{{ application.choix_travail }}</strong>
+                                            </small>
+                                            <select name="selected_job_title" id="selectedJobTitle" required style="font-size: 1rem; padding: 0.8rem;">
+                                                <option value="">{% if lang == 'ar' %}-- اختر المنصب للمقابلة --{% else %}-- Choisir le poste pour l'entretien --{% endif %}</option>
+                                                {% set job_choices = application.choix_travail.split(', ') %}
+                                                {% for choice in job_choices %}
+                                                <option value="{{ choice }}">{{ choice }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <small style="color: #3498db; margin-top: 0.5rem; display: block;">
+                                                {% if lang == 'ar' %}💡 سيتم ذكر هذا المنصب في الدعوة الرسمية{% else %}💡 Ce poste sera mentionné dans la convocation officielle{% endif %}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="form-group">
+                                            <label>{% if lang == 'ar' %}القرار:{% else %}Décision :{% endif %}</label>
+                                            <select name="decision" id="phase1Decision" required onchange="togglePhase1Fields()">
+                                                <option value="">{% if lang == 'ar' %}-- اختر --{% else %}-- Sélectionner --{% endif %}</option>
+                                                <option value="selected_for_interview">{% if lang == 'ar' %}✅ محتفظ به للمقابلة{% else %}✅ Retenu pour interview{% endif %}</option>
+                                                <option value="rejected">{% if lang == 'ar' %}❌ مرفوض{% else %}❌ Rejeté{% endif %}</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div id="interviewDateField" class="form-group" style="display: none;">
+                                            <label>{% if lang == 'ar' %}تاريخ المقابلة:{% else %}Date de l'entretien :{% endif %}</label>
+                                            <input type="datetime-local" name="interview_date" class="form-input">
+                                            <small>{% if lang == 'ar' %}سيتلقى المرشح بريدًا إلكترونيًا ورسالة واتساب مع هذا التاريخ.{% else %}Le candidat recevra un email et un message WhatsApp avec cette date.{% endif %}</small>
+                                        </div>
+                                        
+                                        <div id="rejectionReasonField" class="form-group" style="display: none;">
+                                            <label>{% if lang == 'ar' %}سبب الرفض (اختياري):{% else %}Raison du rejet (optionnel) :{% endif %}</label>
+                                            <textarea name="rejection_reason" rows="3" class="form-input" placeholder="{% if lang == 'ar' %}مثال: الملف الشخصي لا يتوافق مع متطلبات المنصب...{% else %}Ex: Profil ne correspondant pas aux exigences du poste...{% endif %}"></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn-workflow">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            {% if lang == 'ar' %}تأكيد القرار{% else %}Valider la décision{% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            
+                            {% elif application.phase1_status == 'selected_for_interview' %}
+                                <!-- Candidat sélectionné pour interview -->
+                                <div class="phase-content completed">
+                                    <div class="decision-badge decision-selected">
+                                        {% if lang == 'ar' %}✅ المرشح محتفظ به للمقابلة{% else %}✅ Candidat retenu pour interview{% endif %}
+                                    </div>
+                                    <p><strong>{% if lang == 'ar' %}تاريخ المقابلة:{% else %}Date de l'entretien :{% endif %}</strong> {{ application.interview_date or ('غير محدد' if lang == 'ar' else 'Non spécifiée') }}</p>
+                                    <p><strong>{% if lang == 'ar' %}تاريخ القرار:{% else %}Décision prise le :{% endif %}</strong> {{ application.phase1_date }}</p>
+                                    
+                                    <!-- Section Convocation PDF -->
+                                    <div class="pdf-invitation-section">
+                                        <h4 class="pdf-section-title">{% if lang == 'ar' %}📄 دعوة رسمية{% else %}📄 Convocation Officielle{% endif %}</h4>
+                                        
+                                        {% if application.interview_invitation_pdf %}
+                                            <!-- PDF déjà généré -->
+                                            <div class="pdf-status-box pdf-generated">
+                                                <div class="pdf-status-icon">✅</div>
+                                                <div class="pdf-status-content">
+                                                    <p class="pdf-status-text"><strong>{% if lang == 'ar' %}تم إنشاء الدعوة{% else %}Convocation générée{% endif %}</strong></p>
+                                                    <p class="pdf-status-detail">{% if lang == 'ar' %}وثيقة رسمية للوصول إلى المكان{% else %}Document officiel pour l'accès aux locaux{% endif %}</p>
+                                                </div>
+                                            </div>
+                                            <div class="pdf-action-buttons">
+                                                <a href="{{ url_for('admin_download_interview_invitation', app_id=application.id) }}" class="btn-pdf-download">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}تحميل PDF{% else %}Télécharger le PDF{% endif %}
+                                                </a>
+                                                {% if lang == 'ar' %}
+                                                <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('إنشاء دعوة PDF جديدة؟')">
+                                                {% else %}
+                                                <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('Générer un nouveau PDF de convocation ?')">
+                                                {% endif %}
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إعادة الإنشاء{% else %}Régénérer{% endif %}
+                                                </a>
+                                            </div>
+                                        {% else %}
+                                            <!-- Aucun PDF généré -->
+                                            <div class="pdf-status-box pdf-not-generated">
+                                                <div class="pdf-status-icon">📄</div>
+                                                <div class="pdf-status-content">
+                                                    <p class="pdf-status-text"><strong>Convocation non générée</strong></p>
+                                                    <p class="pdf-status-detail">Le candidat aura besoin de ce document pour accéder aux locaux</p>
+                                                </div>
+                                            </div>
+                                            <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-generate">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                                                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                                                </svg>
+                                                {% if lang == 'ar' %}إنشاء دعوة PDF{% else %}Générer la Convocation PDF{% endif %}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if application.phase1_notification_sent %}
+                                        <p class="notification-status sent">{% if lang == 'ar' %}✉️ تم إرسال الإشعار{% else %}✉️ Notification envoyée{% endif %}</p>
+                                    {% else %}
+                                        <p class="notification-status pending">{% if lang == 'ar' %}⏳ إشعار في الانتظار{% else %}⏳ Notification en attente{% endif %}</p>
+                                        
+                                        <!-- Lien PDF discret si disponible -->
+                                        {% if session.pending_notifications and session.pending_notifications.pdf_path %}
+                                        <div style="margin: 10px 0;">
+                                            <a href="{{ url_for('admin_download_interview_invitation', app_id=application.id) }}" 
+                                               class="btn-download-pdf" 
+                                               target="_blank"
+                                               style="font-size: 13px; padding: 6px 12px; display: inline-block;">
+                                                📥 {{ session.pending_notifications.pdf_filename }}
+                                            </a>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="notification-buttons">
+                                            {% if session.pending_notifications and session.pending_notifications.app_id == application.id and session.pending_notifications.phase == 1 %}
+                                                <a href="{{ session.pending_notifications.email_link }}" class="btn-notify btn-email" onclick="markNotificationSent({{ application.id }}, 1)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال بريد إلكتروني{% else %}Envoyer Email{% endif %}
+                                                </a>
+                                                <a href="{{ session.pending_notifications.whatsapp_link }}" target="_blank" class="btn-notify btn-whatsapp" onclick="markNotificationSent({{ application.id }}, 1)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال واتساب{% else %}Envoyer WhatsApp{% endif %}
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            
+                            {% elif application.phase1_status == 'rejected' %}
+                                <!-- Candidat rejeté en Phase 1 -->
+                                <div class="phase-content completed">
+                                    <div class="decision-badge decision-rejected">
+                                        ❌ Candidat rejeté
+                                    </div>
+                                    <p><strong>{% if lang == 'ar' %}تاريخ القرار:{% else %}Décision prise le :{% endif %}</strong> {{ application.phase1_date }}</p>
+                                    {% if application.rejection_reason %}
+                                        <p><strong>Raison :</strong> {{ application.rejection_reason }}</p>
+                                    {% endif %}
+                                    
+                                    {% if application.phase1_notification_sent %}
+                                        <p class="notification-status sent">✉️ Notification envoyée</p>
+                                    {% else %}
+                                        <p class="notification-status pending">⏳ Notification en attente</p>
+                                        <div class="notification-buttons">
+                                            {% if session.pending_notifications and session.pending_notifications.app_id == application.id and session.pending_notifications.phase == 1 %}
+                                                <a href="{{ session.pending_notifications.email_link }}" class="btn-notify btn-email" onclick="markNotificationSent({{ application.id }}, 1)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال بريد إلكتروني{% else %}Envoyer Email{% endif %}
+                                                </a>
+                                                <a href="{{ session.pending_notifications.whatsapp_link }}" target="_blank" class="btn-notify btn-whatsapp" onclick="markNotificationSent({{ application.id }}, 1)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال واتساب{% else %}Envoyer WhatsApp{% endif %}
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="workflow-separator"></div>
+                        
+                        <!-- PHASE 2: Décision finale après interview -->
+                        <div class="workflow-phase {% if application.phase1_status != 'selected_for_interview' %}disabled{% endif %}">
+                            <h3 class="phase-title">
+                                <span class="phase-number">2</span>
+                                {% if lang == 'ar' %}المرحلة 2: القرار النهائي بعد المقابلة{% else %}Phase 2 : Décision Finale après Interview{% endif %}
+                            </h3>
+                            
+                            {% if application.phase1_status == 'selected_for_interview' and not application.phase2_status %}
+                                <!-- Formulaire de décision Phase 2 -->
+                                <div class="phase-content active">
+                                    <p class="phase-description">
+                                        {% if lang == 'ar' %}تمت المقابلة. اتخذ الآن قرارك النهائي.{% else %}L'entretien a eu lieu. Prenez maintenant votre décision finale.{% endif %}
+                                    </p>
+                                    
+                                    <form method="POST" action="{{ url_for('admin_phase2_decision', app_id=application.id) }}" class="workflow-form">
+                                        <div class="form-group">
+                                            <label>{% if lang == 'ar' %}ملاحظات المقابلة (اختياري):{% else %}Notes d'entretien (optionnel) :{% endif %}</label>
+                                            <textarea name="interview_notes" rows="4" class="form-input" placeholder="{% if lang == 'ar' %}ملاحظاتك أثناء المقابلة...{% else %}Vos observations pendant l'entretien...{% endif %}">{{ application.interview_notes or '' }}</textarea>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label>{% if lang == 'ar' %}القرار النهائي:{% else %}Décision finale :{% endif %}</label>
+                                            <select name="decision" id="phase2Decision" required onchange="togglePhase2Fields()">
+                                                <option value="">{% if lang == 'ar' %}-- اختر --{% else %}-- Sélectionner --{% endif %}</option>
+                                                <option value="accepted">{% if lang == 'ar' %}✅ مقبول (يصبح عضواً){% else %}✅ Accepté (devient membre){% endif %}</option>
+                                                <option value="rejected">{% if lang == 'ar' %}❌ مرفوض{% else %}❌ Rejeté{% endif %}</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div id="phase2RejectionReasonField" class="form-group" style="display: none;">
+                                            <label>{% if lang == 'ar' %}سبب الرفض (اختياري):{% else %}Raison du rejet (optionnel) :{% endif %}</label>
+                                            <textarea name="rejection_reason" rows="3" class="form-input" placeholder="{% if lang == 'ar' %}مثال: مهارات تقنية غير كافية...{% else %}Ex: Compétences techniques insuffisantes...{% endif %}"></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn-workflow">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                            {% if lang == 'ar' %}تأكيد القرار النهائي{% else %}Valider la décision finale{% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            
+            {% elif application.phase2_status == 'accepted' %}
+                <!-- Candidat accepté -->
+                <div class="phase-content completed">
+                    <div class="decision-badge decision-accepted">
+                        {% if lang == 'ar' %}🎉 المرشح مقبول - عضو جديد!{% else %}🎉 Candidat accepté - Nouveau membre !{% endif %}
+                    </div>
+                    <p><strong>{% if lang == 'ar' %}تاريخ القرار:{% else %}Décision prise le :{% endif %}</strong> {{ application.phase2_date }}</p>
+                    
+                    <!-- Bouton de téléchargement de la lettre d'acceptation -->
+                    {% if application.acceptance_letter_pdf %}
+                    <div style="margin: 1rem 0;">
+                        <a href="{{ url_for('static', filename='acceptances/' + application.acceptance_letter_pdf) }}" 
+                           class="btn-download-acceptance" 
+                           target="_blank"
+                           download>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            {% if lang == 'ar' %}📄 تحميل خطاب القبول (PDF){% else %}📄 Télécharger la lettre d'acceptation (PDF){% endif %}
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if application.interview_notes %}
+                        <p><strong>{% if lang == 'ar' %}ملاحظات المقابلة:{% else %}Notes d'entretien :{% endif %}</strong></p>
+                        <div class="interview-notes">{{ application.interview_notes }}</div>
+                    {% endif %}                                    {% if application.phase2_notification_sent %}
+                                        <p class="notification-status sent">{% if lang == 'ar' %}✉️ تم إرسال الإشعار{% else %}✉️ Notification envoyée{% endif %}</p>
+                                    {% else %}
+                                        <p class="notification-status pending">{% if lang == 'ar' %}⏳ إشعار في الانتظار{% else %}⏳ Notification en attente{% endif %}</p>
+                                        <div class="notification-buttons">
+                                            {% if session.pending_notifications and session.pending_notifications.app_id == application.id and session.pending_notifications.phase == 2 %}
+                                                <a href="{{ session.pending_notifications.email_link }}" class="btn-notify btn-email" onclick="markNotificationSent({{ application.id }}, 2)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال بريد إلكتروني{% else %}Envoyer Email{% endif %}
+                                                </a>
+                                                <a href="{{ session.pending_notifications.whatsapp_link }}" target="_blank" class="btn-notify btn-whatsapp" onclick="markNotificationSent({{ application.id }}, 2)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال واتساب{% else %}Envoyer WhatsApp{% endif %}
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            
+                            {% elif application.phase2_status == 'rejected' %}
+                                <!-- Candidat rejeté en Phase 2 -->
+                                <div class="phase-content completed">
+                                    <div class="decision-badge decision-rejected">
+                                        {% if lang == 'ar' %}❌ المرشح مرفوض بعد المقابلة{% else %}❌ Candidat rejeté après interview{% endif %}
+                                    </div>
+                                    <p><strong>{% if lang == 'ar' %}تاريخ القرار:{% else %}Décision prise le :{% endif %}</strong> {{ application.phase2_date }}</p>
+                                    {% if application.rejection_reason %}
+                                        <p><strong>{% if lang == 'ar' %}السبب:{% else %}Raison :{% endif %}</strong> {{ application.rejection_reason }}</p>
+                                    {% endif %}
+                                    {% if application.interview_notes %}
+                                        <p><strong>{% if lang == 'ar' %}ملاحظات المقابلة:{% else %}Notes d'entretien :{% endif %}</strong></p>
+                                        <div class="interview-notes">{{ application.interview_notes }}</div>
+                                    {% endif %}
+                                    
+                                    {% if application.phase2_notification_sent %}
+                                        <p class="notification-status sent">{% if lang == 'ar' %}✉️ تم إرسال الإشعار{% else %}✉️ Notification envoyée{% endif %}</p>
+                                    {% else %}
+                                        <p class="notification-status pending">{% if lang == 'ar' %}⏳ إشعار في الانتظار{% else %}⏳ Notification en attente{% endif %}</p>
+                                        <div class="notification-buttons">
+                                            {% if session.pending_notifications and session.pending_notifications.app_id == application.id and session.pending_notifications.phase == 2 %}
+                                                <a href="{{ session.pending_notifications.email_link }}" class="btn-notify btn-email" onclick="markNotificationSent({{ application.id }}, 2)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال بريد إلكتروني{% else %}Envoyer Email{% endif %}
+                                                </a>
+                                                <a href="{{ session.pending_notifications.whatsapp_link }}" target="_blank" class="btn-notify btn-whatsapp" onclick="markNotificationSent({{ application.id }}, 2)">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                                    </svg>
+                                                    {% if lang == 'ar' %}إرسال واتساب{% else %}Envoyer WhatsApp{% endif %}
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            
+                            {% elif application.phase1_status != 'selected_for_interview' %}
+                                <!-- Phase 2 désactivée -->
+                                <div class="phase-content disabled">
+                                    <p class="phase-disabled-message">
+                                        {% if lang == 'ar' %}🔒 ستكون هذه المرحلة متاحة بمجرد اختيار المرشح للمقابلة (المرحلة 1).{% else %}🔒 Cette phase sera accessible une fois que le candidat aura été retenu pour l'interview (Phase 1).{% endif %}
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="workflow-separator"></div>
+                        
+                        <!-- Actions rapides -->
+                        <div class="quick-actions">
+                            <h4>{% if lang == 'ar' %}إجراءات سريعة{% else %}Actions Rapides{% endif %}</h4>
+                            <div class="action-buttons-grid">
+                                <a href="mailto:{{ application.email }}" class="btn-quick-action">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                    {% if lang == 'ar' %}البريد الإلكتروني الشخصي{% else %}Email personnel{% endif %}
+                                </a>
+
+                                <a href="https://wa.me/{{ application.telephone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '') }}?text=Bonjour%20{{ application.prenom }}%20{{ application.nom }},%20" target="_blank" class="btn-quick-action">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                                    </svg>
+                                    {% if lang == 'ar' %}واتساب شخصي{% else %}WhatsApp personnel{% endif %}
+                                </a>
+                                
+                                <form method="POST" action="{{ url_for('admin_delete_application', app_id=application.id) }}" onsubmit="return confirm(&quot;{% if lang == 'ar' %}هل أنت متأكد من رغبتك في حذف هذا الطلب؟{% else %}Êtes-vous sûr de vouloir supprimer cette candidature ?{% endif %}&quot;);" style="display: inline;">
+                                    <button type="submit" class="btn-quick-action btn-danger">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                        {% if lang == 'ar' %}حذف{% else %}Supprimer{% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal d'aperçu des documents -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-modal-content">
+            <div class="preview-modal-header">
+                <h3 id="previewTitle">{% if lang == 'ar' %}معاينة الوثيقة{% else %}Aperçu du document{% endif %}</h3>
+                <button class="preview-close" onclick="closePreview()">&times;</button>
+            </div>
+            <div class="preview-modal-body">
+                <iframe id="previewFrame" src="" frameborder="0"></iframe>
+                <img id="previewImage" src="" alt="Document" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openPreview(fileUrl, fileName) {
+            const modal = document.getElementById('previewModal');
+            const frame = document.getElementById('previewFrame');
+            const image = document.getElementById('previewImage');
+            const title = document.getElementById('previewTitle');
+            
+            title.textContent = '{% if lang == "ar" %}معاينة{% else %}Aperçu{% endif %}: ' + fileName;
+            
+            // Extraire l'extension depuis l'URL du fichier au lieu du nom affiché
+            const fileExtension = fileUrl.split('.').pop().toLowerCase().split('?')[0];
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            
+            if (imageExtensions.includes(fileExtension)) {
+                // Afficher l'image
+                frame.style.display = 'none';
+                image.style.display = 'block';
+                image.src = fileUrl;
+            } else {
+                // Afficher le document dans l'iframe
+                image.style.display = 'none';
+                frame.style.display = 'block';
+                frame.src = fileUrl;
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        function closePreview() {
+            const modal = document.getElementById('previewModal');
+            const frame = document.getElementById('previewFrame');
+            const image = document.getElementById('previewImage');
+            
+            modal.style.display = 'none';
+            frame.src = '';
+            image.src = '';
+        }
+        
+        // Fermer la modal en cliquant en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                closePreview();
+            }
+        }
+        
+        // Fonctions pour le workflow
+        function togglePhase1Fields() {
+            const decision = document.getElementById('phase1Decision').value;
+            const interviewDateField = document.getElementById('interviewDateField');
+            const rejectionReasonField = document.getElementById('rejectionReasonField');
+            
+            if (decision === 'selected_for_interview') {
+                interviewDateField.style.display = 'block';
+                rejectionReasonField.style.display = 'none';
+            } else if (decision === 'rejected') {
+                interviewDateField.style.display = 'none';
+                rejectionReasonField.style.display = 'block';
+            } else {
+                interviewDateField.style.display = 'none';
+                rejectionReasonField.style.display = 'none';
+            }
+        }
+        
+        function togglePhase2Fields() {
+            const decision = document.getElementById('phase2Decision').value;
+            const rejectionReasonField = document.getElementById('phase2RejectionReasonField');
+            
+            if (decision === 'rejected') {
+                rejectionReasonField.style.display = 'block';
+            } else {
+                rejectionReasonField.style.display = 'none';
+            }
+        }
+        
+        function markNotificationSent(appId, phase) {
+            // Rediriger vers la route pour marquer la notification comme envoyée
+            setTimeout(function() {
+                window.location.href = '/admin/applications/' + appId + '/send-notification?phase=' + phase;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
