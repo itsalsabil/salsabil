@@ -1382,7 +1382,8 @@ def admin_jobs():
                          applications=regular_applications,
                          current_user=current_user,
                          permissions=permissions,
-                         spontaneous_count=spontaneous_count)
+                         spontaneous_count=spontaneous_count,
+                         is_closing_soon=is_closing_soon)
 
 @app.route('/admin/jobs/<int:job_id>/candidates')
 @login_required
@@ -1886,6 +1887,7 @@ def admin_jobs_ar():
                          current_user=current_user,
                          permissions=permissions,
                          spontaneous_count=spontaneous_count,
+                         is_closing_soon=is_closing_soon,
                          lang='ar')
 
 @app.route('/admin/employees_ar')
