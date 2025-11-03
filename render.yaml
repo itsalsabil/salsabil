@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: salsabil-rh
+    env: python
+    buildCommand: bash build.sh
+    startCommand: gunicorn -c gunicorn_config.py app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        value: 50413bec4583c16ffdc1e34242029112
+      - key: FLASK_ENV
+        value: production
+      - key: DEBUG
+        value: False
+      - key: DATABASE_URL
+        value: postgresql://db_salsabil_fpjg_user:YRaTW6nwgOnD9WIFd0rG97Jgi19zQmT1@dpg-d3s6d7fdiees7386jnjg-a.oregon-postgres.render.com/db_salsabil_fpjg
+    autoDeploy: true
