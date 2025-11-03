@@ -8,11 +8,11 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: SECRET_KEY
-        value: 50413bec4583c16ffdc1e34242029112
+        value: b61a18f9ef47065d7cf7d69431e48771
       - key: FLASK_ENV
         value: production
       - key: DEBUG
         value: False
       - key: DATABASE_URL
-        value: postgresql://db_salsabil_fpjg_user:YRaTW6nwgOnD9WIFd0rG97Jgi19zQmT1@dpg-d3s6d7fdiees7386jnjg-a.oregon-postgres.render.com/db_salsabil_fpjg
+        value: postgresql://db_salsabil_zxno_user:YMChtUjDA2lcWo4pyQwU58LTz17GIRLS@dpg-d441ukumcj7s73bjgo5g-a.oregon-postgres.render.com/db_salsabil_zxno
     autoDeploy: true

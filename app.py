@@ -14,7 +14,7 @@ from database import init_db
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', '50413bec4583c16ffdc1e34242029112')  # Utilisez une vraie clé en production
+app.secret_key = os.environ.get('SECRET_KEY', 'b61a18f9ef47065d7cf7d69431e48771')  # Utilisez une vraie clé en production
 
 # Initialiser la base de données au démarrage
 init_db()
