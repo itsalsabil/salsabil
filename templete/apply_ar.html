@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقديم - {{ job.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl-mobile-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/apply-mobile.css') }}">
+
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container navbar-container">
+                <button class="menu-toggle" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="/jobs_ar" class="logo-link">
+                    <div class="logo">
+                        <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="شعار سلسبيل" class="logo-img">
+                        <div class="logo-text-container">
+                            <span class="logo-text">التطبيق</span>
+                            <span class="logo-subtitle">ابحث عن تحديك القادم</span>
+                        </div>
+                    </div>
+                </a>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="https://salsabil-km.com/" class="nav-link">الرئيسية</a></li>
+                    <li class="dropdown">
+                        <a href="https://salsabil-km.com/about" class="nav-link dropdown-toggle">
+                            من نحن
+                            <svg class="dropdown-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="https://salsabil-km.com/about#history" class="dropdown-item">التاريخ</a></li>
+                            <li><a href="https://salsabil-km.com/about#vision" class="dropdown-item">الرؤية</a></li>
+                            <li><a href="https://salsabil-km.com/about#message" class="dropdown-item">المهمة</a></li>
+                            <li><a href="https://salsabil-km.com/about#values" class="dropdown-item">القيم</a></li>
+                            <li><a href="https://salsabil-km.com/about#objectives" class="dropdown-item">الأهداف</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="https://salsabil-km.com/products" class="nav-link">منتجاتنا</a></li>
+                    <li><a href="https://salsabil-km.com/events" class="nav-link">الفعاليات</a></li>
+                    <li><a href="https://salsabil-km.com/achievements" class="nav-link">الإنجازات</a></li>
+                    <li><a href="https://salsabil-km.com/gallery" class="nav-link">المعرض</a></li>
+                    <li><a href="https://salsabil-km.com/news" class="nav-link">الأخبار</a></li>
+                    <li><a href="https://salsabil-km.com/contact" class="nav-link">اتصل بنا</a></li>
+                    <li><a href="/jobs_ar" class="nav-link active">الوظائف المتاحة</a></li>
+                    <li><a href="/jobs" class="nav-link">🇫🇷 Français</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Overlay pour fermer le menu mobile -->
+    <div class="nav-overlay" id="navOverlay" onclick="toggleMenu()"></div>
+
+    <main>
+        <section class="apply-section">
+            <div class="container">
+                <div class="apply-header">
+                    <h2>التقديم على: {{ job.title }}</h2>
+                    <p class="job-info">
+                        <span>📁 {{ job.department }}</span>
+                        <span>📍 {{ job.location }}</span>
+                        <span class="job-type {{ job.type.lower() }}">{{ job.type }}</span>
+                    </p>
+                </div>
+
+                <div class="apply-content">
+                    <div class="job-summary">
+                        <h3>حول الوظيفة</h3>
+                        <p>{{ job.description }}</p>
+                        <h4>المهارات المطلوبة:</h4>
+                        <ul>
+                            {% for req in job.requirements %}
+                            <li>{{ req }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% if job.langues_requises %}
+                        <div class="job-languages-apply">
+                            <h4>🌐 اللغات المطلوبة:</h4>
+                            <div class="language-tags-apply">
+                                {% set langues = job.langues_requises.split(', ') %}
+                                {% for langue in langues %}
+                                <span class="language-tag-apply">
+                                    {% if langue == 'Arabe' %}🇸🇦
+                                    {% elif langue == 'Anglais' %}🇬🇧
+                                    {% elif langue == 'Français' %}🇫🇷
+                                    {% endif %}
+                                    {{ langue }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="application-form">
+                        <h3>طلب التوظيف</h3>
+                        
+                        <!-- Progress Steps -->
+                        <div class="progress-steps">
+                            <div class="step active" data-step="1">
+                                <div class="step-number">1</div>
+                                <div class="step-label">المعلومات الشخصية</div>
+                            </div>
+                            <div class="step" data-step="2">
+                                <div class="step-number">2</div>
+                                <div class="step-label">التعليم</div>
+                            </div>
+                            <div class="step" data-step="3">
+                                <div class="step-number">3</div>
+                                <div class="step-label">اللغات</div>
+                            </div>
+                            <div class="step" data-step="4">
+                                <div class="step-number">4</div>
+                                <div class="step-label">الصحة</div>
+                            </div>
+                            {% if job.id == 0 %}
+                            <div class="step" data-step="5">
+                                <div class="step-number">5</div>
+                                <div class="step-label">اختيار العمل</div>
+                            </div>
+                            {% endif %}
+                            <div class="step" data-step="{% if job.id == 0 %}6{% else %}5{% endif %}">
+                                <div class="step-number">{% if job.id == 0 %}6{% else %}5{% endif %}</div>
+                                <div class="step-label">المستندات</div>
+                            </div>
+                        </div>
+
+                        <form method="POST" enctype="multipart/form-data" id="applicationForm">
+                            <!-- Section 1: Informations personnelles -->
+                            <div class="form-section active" data-section="1">
+                                <h4 class="section-title">📋 المعلومات الشخصية</h4>
+
+                            <div class="form-group">
+                                <label for="prenom">الاسم الأول *</label>
+                                <input type="text" id="prenom" name="prenom" required placeholder="محمد">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nom">اسم العائلة *</label>
+                                <input type="text" id="nom" name="nom" required placeholder="عبد الله">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">البريد الإلكتروني *</label>
+                                <input type="email" id="email" name="email" required placeholder="mohamed.abdullah@email.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="telephone">رقم الهاتف *</label>
+                                <input type="tel" id="telephone" name="telephone" required placeholder="+269 3 77 12 34">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="adresse">العنوان *</label>
+                                <input type="text" id="adresse" name="adresse" required placeholder="الشارع، الحي، المدينة">
+                                <small>أدخل عنوانك (الشارع، الحي، المدينة)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pays">الجزيرة *</label>
+                                <select id="pays" name="pays" required onchange="updateRegions()">
+                                    <option value="">-- اختر جزيرة --</option>
+                                    <option value="Grande Comore">Grande Comore</option>
+                                    <option value="Anjouan">Anjouan</option>
+                                    <option value="Mohéli">Mohéli</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="region">المنطقة *</label>
+                                <select id="region" name="region" required disabled>
+                                    <option value="">-- اختر الجزيرة أولاً --</option>
+                                </select>
+                                <small>اختر جزيرتك أولاً لرؤية المناطق المتاحة</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sexe">الجنس *</label>
+                                <select id="sexe" name="sexe" required>
+                                    <option value="">-- اختر --</option>
+                                    <option value="Masculin">ذكر</option>
+                                    <option value="Féminin">أنثى</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lieu_naissance">مكان الميلاد *</label>
+                                <input type="text" id="lieu_naissance" name="lieu_naissance" required placeholder="المدينة، البلد">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="date_naissance">تاريخ الميلاد *</label>
+                                <input type="date" id="date_naissance" name="date_naissance" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="nationalite">الجنسية *</label>
+                                <select id="nationalite" name="nationalite" required>
+                                    <option value="">-- اختر جنسيتك --</option>
+                                    <option value="Comorienne">قمرية</option>
+                                    <optgroup label="Afrique">
+                                        <option value="Algérienne">Algérienne</option>
+                                        <option value="Angolaise">Angolaise</option>
+                                        <option value="Béninoise">Béninoise</option>
+                                        <option value="Botswanaise">Botswanaise</option>
+                                        <option value="Burkinabé">Burkinabé</option>
+                                        <option value="Burundaise">Burundaise</option>
+                                        <option value="Camerounaise">Camerounaise</option>
+                                        <option value="Cap-Verdienne">Cap-Verdienne</option>
+                                        <option value="Centrafricaine">Centrafricaine</option>
+                                        <option value="Tchadienne">Tchadienne</option>
+                                        <option value="Congolaise (RDC)">Congolaise (RDC)</option>
+                                        <option value="Congolaise (RC)">Congolaise (RC)</option>
+                                        <option value="Djiboutienne">Djiboutienne</option>
+                                        <option value="Égyptienne">Égyptienne</option>
+                                        <option value="Équato-guinéenne">Équato-guinéenne</option>
+                                        <option value="Érythréenne">Érythréenne</option>
+                                        <option value="Éthiopienne">Éthiopienne</option>
+                                        <option value="Gabonaise">Gabonaise</option>
+                                        <option value="Gambienne">Gambienne</option>
+                                        <option value="Ghanéenne">Ghanéenne</option>
+                                        <option value="Guinéenne">Guinéenne</option>
+                                        <option value="Bissau-Guinéenne">Bissau-Guinéenne</option>
+                                        <option value="Ivoirienne">Ivoirienne</option>
+                                        <option value="Kényane">Kényane</option>
+                                        <option value="Lesothane">Lesothane</option>
+                                        <option value="Libérienne">Libérienne</option>
+                                        <option value="Libyenne">Libyenne</option>
+                                        <option value="Malgache">Malgache</option>
+                                        <option value="Malawienne">Malawienne</option>
+                                        <option value="Malienne">Malienne</option>
+                                        <option value="Mauritanienne">Mauritanienne</option>
+                                        <option value="Mauricienne">Mauricienne</option>
+                                        <option value="Marocaine">Marocaine</option>
+                                        <option value="Mozambicaine">Mozambicaine</option>
+                                        <option value="Namibienne">Namibienne</option>
+                                        <option value="Nigérienne">Nigérienne</option>
+                                        <option value="Nigériane">Nigériane</option>
+                                        <option value="Rwandaise">Rwandaise</option>
+                                        <option value="Sao-toméenne">Sao-toméenne</option>
+                                        <option value="Sénégalaise">Sénégalaise</option>
+                                        <option value="Seychelloise">Seychelloise</option>
+                                        <option value="Sierra-léonaise">Sierra-léonaise</option>
+                                        <option value="Somalienne">Somalienne</option>
+                                        <option value="Sud-africaine">Sud-africaine</option>
+                                        <option value="Sud-soudanaise">Sud-soudanaise</option>
+                                        <option value="Soudanaise">Soudanaise</option>
+                                        <option value="Swazi">Swazi</option>
+                                        <option value="Tanzanienne">Tanzanienne</option>
+                                        <option value="Togolaise">Togolaise</option>
+                                        <option value="Tunisienne">Tunisienne</option>
+                                        <option value="Ougandaise">Ougandaise</option>
+                                        <option value="Zambienne">Zambienne</option>
+                                        <option value="Zimbabwéenne">Zimbabwéenne</option>
+                                    </optgroup>
+                                    <optgroup label="Asie">
+                                        <option value="Afghane">Afghane</option>
+                                        <option value="Saoudienne">Saoudienne</option>
+                                        <option value="Bahreïnie">Bahreïnie</option>
+                                        <option value="Bangladaise">Bangladaise</option>
+                                        <option value="Birmane">Birmane</option>
+                                        <option value="Brunéienne">Brunéienne</option>
+                                        <option value="Cambodgienne">Cambodgienne</option>
+                                        <option value="Chinoise">Chinoise</option>
+                                        <option value="Coréenne (Nord)">Coréenne (Nord)</option>
+                                        <option value="Coréenne (Sud)">Coréenne (Sud)</option>
+                                        <option value="Émiratie">Émiratie</option>
+                                        <option value="Indienne">Indienne</option>
+                                        <option value="Indonésienne">Indonésienne</option>
+                                        <option value="Irakienne">Irakienne</option>
+                                        <option value="Iranienne">Iranienne</option>
+                                        <option value="Israélienne">Israélienne</option>
+                                        <option value="Japonaise">Japonaise</option>
+                                        <option value="Jordanienne">Jordanienne</option>
+                                        <option value="Kazakhe">Kazakhe</option>
+                                        <option value="Koweïtienne">Koweïtienne</option>
+                                        <option value="Laotienne">Laotienne</option>
+                                        <option value="Libanaise">Libanaise</option>
+                                        <option value="Malaisienne">Malaisienne</option>
+                                        <option value="Maldivienne">Maldivienne</option>
+                                        <option value="Mongole">Mongole</option>
+                                        <option value="Népalaise">Népalaise</option>
+                                        <option value="Omanaise">Omanaise</option>
+                                        <option value="Pakistanaise">Pakistanaise</option>
+                                        <option value="Palestinienne">Palestinienne</option>
+                                        <option value="Philippine">Philippine</option>
+                                        <option value="Qatarie">Qatarie</option>
+                                        <option value="Singapourienne">Singapourienne</option>
+                                        <option value="Sri-lankaise">Sri-lankaise</option>
+                                        <option value="Syrienne">Syrienne</option>
+                                        <option value="Tadjike">Tadjike</option>
+                                        <option value="Taïwanaise">Taïwanaise</option>
+                                        <option value="Thaïlandaise">Thaïlandaise</option>
+                                        <option value="Timoraise">Timoraise</option>
+                                        <option value="Turque">Turque</option>
+                                        <option value="Turkmène">Turkmène</option>
+                                        <option value="Ouzbèke">Ouzbèke</option>
+                                        <option value="Vietnamienne">Vietnamienne</option>
+                                        <option value="Yéménite">Yéménite</option>
+                                    </optgroup>
+                                    <optgroup label="Europe">
+                                        <option value="Albanaise">Albanaise</option>
+                                        <option value="Allemande">Allemande</option>
+                                        <option value="Andorrane">Andorrane</option>
+                                        <option value="Autrichienne">Autrichienne</option>
+                                        <option value="Belge">Belge</option>
+                                        <option value="Biélorusse">Biélorusse</option>
+                                        <option value="Bosniaque">Bosniaque</option>
+                                        <option value="Bulgare">Bulgare</option>
+                                        <option value="Chypriote">Chypriote</option>
+                                        <option value="Croate">Croate</option>
+                                        <option value="Danoise">Danoise</option>
+                                        <option value="Espagnole">Espagnole</option>
+                                        <option value="Estonienne">Estonienne</option>
+                                        <option value="Finlandaise">Finlandaise</option>
+                                        <option value="Française">Française</option>
+                                        <option value="Grecque">Grecque</option>
+                                        <option value="Hongroise">Hongroise</option>
+                                        <option value="Irlandaise">Irlandaise</option>
+                                        <option value="Islandaise">Islandaise</option>
+                                        <option value="Italienne">Italienne</option>
+                                        <option value="Lettone">Lettone</option>
+                                        <option value="Liechtensteinoise">Liechtensteinoise</option>
+                                        <option value="Lituanienne">Lituanienne</option>
+                                        <option value="Luxembourgeoise">Luxembourgeoise</option>
+                                        <option value="Macédonienne">Macédonienne</option>
+                                        <option value="Maltaise">Maltaise</option>
+                                        <option value="Moldave">Moldave</option>
+                                        <option value="Monégasque">Monégasque</option>
+                                        <option value="Monténégrine">Monténégrine</option>
+                                        <option value="Norvégienne">Norvégienne</option>
+                                        <option value="Néerlandaise">Néerlandaise</option>
+                                        <option value="Polonaise">Polonaise</option>
+                                        <option value="Portugaise">Portugaise</option>
+                                        <option value="Roumaine">Roumaine</option>
+                                        <option value="Britannique">Britannique</option>
+                                        <option value="Russe">Russe</option>
+                                        <option value="Saint-marinaise">Saint-marinaise</option>
+                                        <option value="Serbe">Serbe</option>
+                                        <option value="Slovaque">Slovaque</option>
+                                        <option value="Slovène">Slovène</option>
+                                        <option value="Suédoise">Suédoise</option>
+                                        <option value="Suisse">Suisse</option>
+                                        <option value="Tchèque">Tchèque</option>
+                                        <option value="Ukrainienne">Ukrainienne</option>
+                                        <option value="Vaticane">Vaticane</option>
+                                    </optgroup>
+                                    <optgroup label="Amérique">
+                                        <option value="Américaine">Américaine</option>
+                                        <option value="Antiguaise et barbudienne">Antiguaise et barbudienne</option>
+                                        <option value="Argentine">Argentine</option>
+                                        <option value="Bahamienne">Bahamienne</option>
+                                        <option value="Barbadienne">Barbadienne</option>
+                                        <option value="Bélizienne">Bélizienne</option>
+                                        <option value="Bolivienne">Bolivienne</option>
+                                        <option value="Brésilienne">Brésilienne</option>
+                                        <option value="Canadienne">Canadienne</option>
+                                        <option value="Chilienne">Chilienne</option>
+                                        <option value="Colombienne">Colombienne</option>
+                                        <option value="Costaricaine">Costaricaine</option>
+                                        <option value="Cubaine">Cubaine</option>
+                                        <option value="Dominicaine">Dominicaine</option>
+                                        <option value="Dominiquaise">Dominiquaise</option>
+                                        <option value="Équatorienne">Équatorienne</option>
+                                        <option value="Grenadienne">Grenadienne</option>
+                                        <option value="Guatémaltèque">Guatémaltèque</option>
+                                        <option value="Guyanienne">Guyanienne</option>
+                                        <option value="Haïtienne">Haïtienne</option>
+                                        <option value="Hondurienne">Hondurienne</option>
+                                        <option value="Jamaïcaine">Jamaïcaine</option>
+                                        <option value="Mexicaine">Mexicaine</option>
+                                        <option value="Nicaraguayenne">Nicaraguayenne</option>
+                                        <option value="Panaméenne">Panaméenne</option>
+                                        <option value="Paraguayenne">Paraguayenne</option>
+                                        <option value="Péruvienne">Péruvienne</option>
+                                        <option value="Saint-lucienne">Saint-lucienne</option>
+                                        <option value="Saint-vincentaise">Saint-vincentaise</option>
+                                        <option value="Salvadorienne">Salvadorienne</option>
+                                        <option value="Surinamaise">Surinamaise</option>
+                                        <option value="Trinidadienne">Trinidadienne</option>
+                                        <option value="Uruguayenne">Uruguayenne</option>
+                                        <option value="Vénézuélienne">Vénézuélienne</option>
+                                    </optgroup>
+                                    <optgroup label="Océanie">
+                                        <option value="Australienne">Australienne</option>
+                                        <option value="Fidjienne">Fidjienne</option>
+                                        <option value="Marshallaise">Marshallaise</option>
+                                        <option value="Micronésienne">Micronésienne</option>
+                                        <option value="Nauruane">Nauruane</option>
+                                        <option value="Néo-zélandaise">Néo-zélandaise</option>
+                                        <option value="Paluane">Paluane</option>
+                                        <option value="Papouane-néo-guinéenne">Papouane-néo-guinéenne</option>
+                                        <option value="Salomonaise">Salomonaise</option>
+                                        <option value="Samoane">Samoane</option>
+                                        <option value="Tongienne">Tongienne</option>
+                                        <option value="Tuvaluane">Tuvaluane</option>
+                                        <option value="Vanuatuane">Vanuatuane</option>
+                                    </optgroup>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="etat_civil">الحالة الاجتماعية *</label>
+                                <select id="etat_civil" name="etat_civil" required>
+                                    <option value="">-- اختر --</option>
+                                    <option value="Célibataire">أعزب/عزباء</option>
+                                    <option value="Marié">متزوج/متزوجة</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="travaille_actuellement">هل تعمل حالياً؟ *</label>
+                                <select id="travaille_actuellement" name="travaille_actuellement" required onchange="toggleWorkFields()">
+                                    <option value="">-- اختر --</option>
+                                    <option value="Oui">نعم</option>
+                                    <option value="Non">لا</option>
+                                </select>
+                            </div>
+
+                            <div id="work-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="dernier_lieu_travail">آخر مكان عمل</label>
+                                    <input type="text" id="dernier_lieu_travail" name="dernier_lieu_travail" placeholder="اسم الشركة">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="raison_depart">سبب المغادرة</label>
+                                    <textarea id="raison_depart" name="raison_depart" rows="3" placeholder="اشرح بإيجاز سبب مغادرتك..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Navigation Buttons Section 1 -->
+                            <div class="form-navigation">
+                                <button type="button" class="btn-next" onclick="nextSection(1)">
+                                    التالي
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Formation et compétences -->
+                        <div class="form-section" data-section="2">
+                            <h4 class="section-title">🎓 التعليم والمهارات</h4>
+
+                            <div class="form-group">
+                                <label for="niveau_instruction">المستوى التعليمي *</label>
+                                <select id="niveau_instruction" name="niveau_instruction" required onchange="toggleSpecialisation()">
+                                    <option value="">-- اختر --</option>
+                                    <option value="Éducation de base ou moins">تعليم أساسي أو أقل</option>
+                                    <option value="Diplôme intermédiaire">شهادة متوسطة</option>
+                                    <option value="Diplôme du secondaire">شهادة ثانوية</option>
+                                    <option value="Diplôme d'institut">شهادة جامعية</option>
+                                </select>
+                            </div>
+
+                            <div id="specialisation-field" style="display: none;">
+                                <div class="form-group">
+                                    <label for="specialisation">التخصص الجامعي *</label>
+                                    <select id="specialisation" name="specialisation" onchange="toggleAutreSpecialisation()">
+                                        <option value="">-- اختر --</option>
+                                        <optgroup label="Licence (Baccalauréat universitaire)">
+                                            <option value="Licence - Génie informatique">Génie informatique</option>
+                                            <option value="Licence - Sciences informatiques">Sciences informatiques</option>
+                                            <option value="Licence - Administration des affaires">Administration des affaires</option>
+                                            <option value="Licence - Génie électrique et électronique">Génie électrique et électronique</option>
+                                            <option value="Licence - Gestion des soins de santé">Gestion des soins de santé</option>
+                                            <option value="Licence - Systèmes d'information de gestion">Systèmes d'information de gestion</option>
+                                            <option value="Licence - Mathématiques">Mathématiques</option>
+                                            <option value="Licence - Génie biomédical">Génie biomédical</option>
+                                            <option value="Licence - Technologie de l'information">Technologie de l'information</option>
+                                            <option value="Licence - Génie mécanique">Génie mécanique</option>
+                                            <option value="Licence - Génie industriel">Génie industriel</option>
+                                            <option value="Licence - Génie civil">Génie civil</option>
+                                            <option value="Licence - Chimie">Chimie</option>
+                                            <option value="Licence - Administration publique">Administration publique</option>
+                                            <option value="Licence - Conception de jeux numériques">Conception de jeux numériques</option>
+                                            <option value="Licence - Logistique">Logistique</option>
+                                            <option value="Licence - Infirmier / Soins infirmiers">Infirmier / Soins infirmiers</option>
+                                            <option value="Licence - Comptabilité">Comptabilité</option>
+                                            <option value="Licence - Physique">Physique</option>
+                                            <option value="Licence - Relations publiques">Relations publiques</option>
+                                            <option value="Licence - Ressources humaines">Ressources humaines</option>
+                                            <option value="Licence - Finance">Finance</option>
+                                            <option value="Licence - Économie">Économie</option>
+                                            <option value="Licence - Sociologie">Sociologie</option>
+                                            <option value="Licence - Communications">Communications</option>
+                                        </optgroup>
+                                        <optgroup label="Master">
+                                            <option value="Master - Génie informatique">Génie informatique</option>
+                                            <option value="Master - Sciences informatiques">Sciences informatiques</option>
+                                            <option value="Master - Administration des affaires">Administration des affaires</option>
+                                            <option value="Master - Génie électrique et électronique">Génie électrique et électronique</option>
+                                            <option value="Master - Gestion des soins de santé">Gestion des soins de santé</option>
+                                            <option value="Master - Systèmes d'information de gestion">Systèmes d'information de gestion</option>
+                                            <option value="Master - Mathématiques">Mathématiques</option>
+                                            <option value="Master - Génie biomédical">Génie biomédical</option>
+                                            <option value="Master - Technologie de l'information">Technologie de l'information</option>
+                                            <option value="Master - Génie mécanique">Génie mécanique</option>
+                                            <option value="Master - Génie industriel">Génie industriel</option>
+                                            <option value="Master - Génie civil">Génie civil</option>
+                                            <option value="Master - Chimie">Chimie</option>
+                                            <option value="Master - Administration publique">Administration publique</option>
+                                            <option value="Master - Logistique">Logistique</option>
+                                            <option value="Master - Infirmier / Soins infirmiers">Infirmier / Soins infirmiers</option>
+                                            <option value="Master - Comptabilité">Comptabilité</option>
+                                            <option value="Master - Physique">Physique</option>
+                                            <option value="Master - Relations publiques">Relations publiques</option>
+                                            <option value="Master - Ressources humaines">Ressources humaines</option>
+                                            <option value="Master - Finance">Finance</option>
+                                            <option value="Master - Économie">Économie</option>
+                                            <option value="Master - Sociologie">Sociologie</option>
+                                            <option value="Master - Communications">Communications</option>
+                                        </optgroup>
+                                        <optgroup label="Doctorat">
+                                            <option value="Doctorat - Génie informatique">Génie informatique</option>
+                                            <option value="Doctorat - Sciences informatiques">Sciences informatiques</option>
+                                            <option value="Doctorat - Administration des affaires">Administration des affaires</option>
+                                            <option value="Doctorat - Génie électrique et électronique">Génie électrique et électronique</option>
+                                            <option value="Doctorat - Mathématiques">Mathématiques</option>
+                                            <option value="Doctorat - Génie biomédical">Génie biomédical</option>
+                                            <option value="Doctorat - Génie mécanique">Génie mécanique</option>
+                                            <option value="Doctorat - Génie civil">Génie civil</option>
+                                            <option value="Doctorat - Chimie">Chimie</option>
+                                            <option value="Doctorat - Physique">Physique</option>
+                                            <option value="Doctorat - Économie">Économie</option>
+                                            <option value="Doctorat - Sociologie">Sociologie</option>
+                                        </optgroup>
+                                        <option value="Autre">Autre</option>
+                                    </select>
+                                </div>
+
+                                <div id="autre-specialisation-field" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="specialisation_autre">حدد تخصصك</label>
+                                        <input type="text" id="specialisation_autre" name="specialisation_autre" placeholder="أدخل تخصصك">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Navigation Buttons Section 2 -->
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" onclick="prevSection(2)">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                    السابق
+                                </button>
+                                <button type="button" class="btn-next" onclick="nextSection(2)">
+                                    التالي
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Compétences linguistiques -->
+                        <div class="form-section" data-section="3">
+                            <h4 class="section-title">🌍 المهارات اللغوية</h4>
+
+                            <div class="form-group">
+                                <label for="langue_arabe">اللغة العربية *</label>
+                                <select id="langue_arabe" name="langue_arabe" required>
+                                    <option value="">-- اختر --</option>
+                                    <option value="Faible">ضعيف</option>
+                                    <option value="Bon">جيد</option>
+                                    <option value="Très bon">جيد جداً</option>
+                                    <option value="Excellent">ممتاز</option>
+                                    <option value="Non maîtrisée">غير متقن</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="langue_anglaise">اللغة الإنجليزية *</label>
+                                <select id="langue_anglaise" name="langue_anglaise" required>
+                                    <option value="">-- اختر --</option>
+                                    <option value="A1 / A2 : Débutant">A1 / A2 : مبتدئ</option>
+                                    <option value="B1 / B2 : Intermédiaire">B1 / B2 : متوسط</option>
+                                    <option value="C1 / C2 : Avancé">C1 / C2 : متقدم</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="langue_francaise">اللغة الفرنسية *</label>
+                                <select id="langue_francaise" name="langue_francaise" required>
+                                    <option value="">-- اختر --</option>
+                                    <option value="A1 / A2 : Débutant">A1 / A2 : مبتدئ</option>
+                                    <option value="B1 / B2 : Intermédiaire">B1 / B2 : متوسط</option>
+                                    <option value="C1 / C2 : Avancé">C1 / C2 : متقدم</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="autre_langue_toggle">
+                                    <input type="checkbox" id="autre_langue_toggle" onchange="toggleAutreLangue()">
+                                    إضافة لغة أخرى
+                                </label>
+                            </div>
+
+                            <div id="autre-langue-fields" style="display: none;">
+                                <div class="form-group">
+                                    <label for="autre_langue_nom">اسم اللغة</label>
+                                    <input type="text" id="autre_langue_nom" name="autre_langue_nom" placeholder="مثال: الإسبانية، الألمانية...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="autre_langue_niveau">المستوى</label>
+                                    <select id="autre_langue_niveau" name="autre_langue_niveau">
+                                        <option value="">-- اختر --</option>
+                                        <option value="A1 / A2 : Débutant">A1 / A2 : مبتدئ</option>
+                                        <option value="B1 / B2 : Intermédiaire">B1 / B2 : متوسط</option>
+                                        <option value="C1 / C2 : Avancé">C1 / C2 : متقدم</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Navigation Buttons Section 3 -->
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" onclick="prevSection(3)">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                    السابق
+                                </button>
+                                <button type="button" class="btn-next" onclick="nextSection(3)">
+                                    التالي
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Informations supplémentaires -->
+                        <div class="form-section" data-section="4">
+                            <h4 class="section-title">🏥 معلومات إضافية</h4>
+
+                            <div class="form-group">
+                                <label for="problemes_sante">هل تعاني من مشاكل صحية؟ *</label>
+                                <select id="problemes_sante" name="problemes_sante" required onchange="toggleNatureMaladie()">
+                                    <option value="">-- اختر --</option>
+                                    <option value="Oui">نعم</option>
+                                    <option value="Non">لا</option>
+                                </select>
+                            </div>
+
+                            <div id="nature-maladie-field" style="display: none;">
+                                <div class="form-group">
+                                    <label for="nature_maladie">طبيعة المرض</label>
+                                    <textarea id="nature_maladie" name="nature_maladie" rows="3" placeholder="حدد طبيعة مشكلتك الصحية..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Navigation Buttons Section 4 -->
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" onclick="prevSection(4)">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                    السابق
+                                </button>
+                                <button type="button" class="btn-next" onclick="nextSection(4)">
+                                    التالي
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Section 5: Choix de travail (Candidature Spontanée uniquement) -->
+                        {% if job.id == 0 %}
+                        <div class="form-section" data-section="5">
+                            <h4 class="section-title">💼 اختيار العمل</h4>
+                            <p style="margin-bottom: 1rem; color: #666;">
+                                Cliquez sur un département pour voir les postes disponibles et sélectionnez ceux qui vous intéressent 
+                                <span style="color: #e74c3c; font-weight: bold;">(بحد أقصى 5 خيارات)</span>
+                            </p>
+                            
+                            <!-- Compteur de sélections -->
+                            <div id="selection-counter" style="background: #ecf0f1; padding: 0.8rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center;">
+                                <span style="font-size: 1.1rem; font-weight: bold; color: #2c3e50;">
+                                    المحدد: <span id="count-selected" style="color: #3498db;">0</span> / 5
+                                </span>
+                            </div>
+
+                            <!-- Département 1: Production -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept1')">
+                                    <span class="department-name">1️⃣ قسم الإنتاج</span>
+                                    <span class="department-badge">8 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept1" class="department-content">
+                                    <div class="positions-grid">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_1" name="choix_travail" value="رئيس قسم الإنتاج" onchange="updateSelectionCount()">
+                                        <label for="prod_1">رئيس قسم الإنتاج</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_2" name="choix_travail" value="مدير الإنتاج" onchange="updateSelectionCount()">
+                                        <label for="prod_2">مدير الإنتاج</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_3" name="choix_travail" value="مشرف الإنتاج" onchange="updateSelectionCount()">
+                                        <label for="prod_3">مشرف الإنتاج</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_4" name="choix_travail" value="مساعد إنتاج" onchange="updateSelectionCount()">
+                                        <label for="prod_4">مساعد إنتاج</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_5" name="choix_travail" value="عامل إنتاج" onchange="updateSelectionCount()">
+                                        <label for="prod_5">عامل إنتاج</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_6" name="choix_travail" value="عامل تغليف وتعبئة" onchange="updateSelectionCount()">
+                                        <label for="prod_6">عامل تغليف وتعبئة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_7" name="choix_travail" value="مشغل آلة تعبئة المياه" onchange="updateSelectionCount()">
+                                        <label for="prod_7">مشغل آلة تعبئة المياه</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="prod_8" name="choix_travail" value="فني تشغيل خطوط الإنتاج" onchange="updateSelectionCount()">
+                                        <label for="prod_8">فني تشغيل خطوط الإنتاج</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 2: Entrepôts et achats -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept2')">
+                                    <span class="department-name">2️⃣ قسم المخازن والمشتريات</span>
+                                    <span class="department-badge">7 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept2" class="department-content">
+                                    <div class="positions-grid">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="entrep_1" name="choix_travail" value="أمين مخزن المنتجات النهائية / مراقب المخزون" onchange="updateSelectionCount()">
+                                        <label for="entrep_1">أمين مخزن المنتجات النهائية / مراقب المخزون</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="entrep_2" name="choix_travail" value="أمين مخزن الأصول الثابتة" onchange="updateSelectionCount()">
+                                        <label for="entrep_2">أمين مخزن الأصول الثابتة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="entrep_3" name="choix_travail" value="أمين مخزن المواد الخام" onchange="updateSelectionCount()">
+                                        <label for="entrep_3">أمين مخزن المواد الخام</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="entrep_4" name="choix_travail" value="أمين مخزن قطع الغيار" onchange="updateSelectionCount()">
+                                        <label for="entrep_4">أمين مخزن قطع الغيار</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="entrep_5" name="choix_travail" value="مسؤول المخازن" onchange="updateSelectionCount()">
+                                        <label for="entrep_5">مسؤول المخازن</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="entrep_6" name="choix_travail" value="عامل تحميل وتفريغ" onchange="updateSelectionCount()">
+                                        <label for="entrep_6">عامل تحميل وتفريغ</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="entrep_7" name="choix_travail" value="سائق شاحنة توزيع" onchange="updateSelectionCount()">
+                                        <label for="entrep_7">سائق شاحنة توزيع</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 3: Unité des achats -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept3')">
+                                    <span class="department-name">3️⃣ وحدة المشتريات (خدمة التوريد)</span>
+                                    <span class="department-badge">5 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept3" class="department-content">
+                                    <div class="positions-grid">
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="achat_1" name="choix_travail" value="مشرف المشتريات" onchange="updateSelectionCount()">
+                                            <label for="achat_1">مشرف المشتريات</label>
+                                        </div>
+                                        <div class="checkbox-group">
+                                        <input type="checkbox" id="achat_2" name="choix_travail" value="مسؤول المشتريات المحلية" onchange="updateSelectionCount()">
+                                        <label for="achat_2">مسؤول المشتريات المحلية</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="achat_3" name="choix_travail" value="مسؤول المشتريات المحلية et administratifs" onchange="updateSelectionCount()">
+                                        <label for="achat_3">مسؤول المشتريات المحلية et administratifs</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="achat_4" name="choix_travail" value="موظف متابعة التسليم" onchange="updateSelectionCount()">
+                                        <label for="achat_4">موظف متابعة التسليم</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="achat_5" name="choix_travail" value="مراقب أو محلل المشتريات" onchange="updateSelectionCount()">
+                                        <label for="achat_5">مراقب أو محلل المشتريات</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 4: Administratif et comptable -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept4')">
+                                    <span class="department-name">4️⃣ القسم الإداري والمحاسبي</span>
+                                    <span class="department-badge">6 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept4" class="department-content">
+                                    <div class="positions-grid">
+                                        <div class="checkbox-group">
+                                        <input type="checkbox" id="admin_1" name="choix_travail" value="محاسب" onchange="updateSelectionCount()">
+                                        <label for="admin_1">محاسب</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="admin_2" name="choix_travail" value="مساعد إداري" onchange="updateSelectionCount()">
+                                        <label for="admin_2">مساعد إداري</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="admin_3" name="choix_travail" value="أمين صندوق" onchange="updateSelectionCount()">
+                                        <label for="admin_3">أمين صندوق</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="admin_4" name="choix_travail" value="موظف استقبال" onchange="updateSelectionCount()">
+                                        <label for="admin_4">موظف استقبال</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="admin_5" name="choix_travail" value="سكرتير تنفيذي" onchange="updateSelectionCount()">
+                                        <label for="admin_5">سكرتير تنفيذي</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="admin_6" name="choix_travail" value="مسؤول الموارد البشرية" onchange="updateSelectionCount()">
+                                        <label for="admin_6">مسؤول الموارد البشرية</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 5: Santé, sécurité et qualité -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept5')">
+                                    <span class="department-name">5️⃣ قسم الصحة والسلامة والجودة</span>
+                                    <span class="department-badge">10 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept5" class="department-content">
+                                    <div class="positions-grid">
+                                        <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_1" name="choix_travail" value="مدير الصحة والسلامة في العمل" onchange="updateSelectionCount()">
+                                        <label for="sante_1">مدير الصحة والسلامة في العمل</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_2" name="choix_travail" value="مسؤول الصحة والسلامة في العمل" onchange="updateSelectionCount()">
+                                        <label for="sante_2">مسؤول الصحة والسلامة في العمل</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_3" name="choix_travail" value="مشرف النظافة" onchange="updateSelectionCount()">
+                                        <label for="sante_3">مشرف النظافة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_4" name="choix_travail" value="مشرف الصحة" onchange="updateSelectionCount()">
+                                        <label for="sante_4">مشرف الصحة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_5" name="choix_travail" value="مشرف السلامة في العمل" onchange="updateSelectionCount()">
+                                        <label for="sante_5">مشرف السلامة في العمل</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_6" name="choix_travail" value="فني التعقيم ومعالجة المياه" onchange="updateSelectionCount()">
+                                        <label for="sante_6">فني التعقيم ومعالجة المياه</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_7" name="choix_travail" value="فني السلامة" onchange="updateSelectionCount()">
+                                        <label for="sante_7">فني السلامة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_8" name="choix_travail" value="مسؤول الطوارئ والتدخلات" onchange="updateSelectionCount()">
+                                        <label for="sante_8">مسؤول الطوارئ والتدخلات</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_9" name="choix_travail" value="مدرب السلامة" onchange="updateSelectionCount()">
+                                        <label for="sante_9">مدرب السلامة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="sante_10" name="choix_travail" value="مسعف صناعي / فني إسعافات أولية" onchange="updateSelectionCount()">
+                                        <label for="sante_10">مسعف صناعي / فني إسعافات أولية</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 6: Marketing et ventes -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept6')">
+                                    <span class="department-name">6️⃣ قسم التسويق والمبيعات</span>
+                                    <span class="department-badge">6 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept6" class="department-content">
+                                    <div class="positions-grid">
+                                        <div class="checkbox-group">
+                                        <input type="checkbox" id="market_1" name="choix_travail" value="رئيس قسم التسويق والمبيعات" onchange="updateSelectionCount()">
+                                        <label for="market_1">رئيس قسم التسويق والمبيعات</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="market_2" name="choix_travail" value="مساعد قسم التسويق والمبيعات" onchange="updateSelectionCount()">
+                                        <label for="market_2">مساعد قسم التسويق والمبيعات</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="market_3" name="choix_travail" value="مشرف المبيعات" onchange="updateSelectionCount()">
+                                        <label for="market_3">مشرف المبيعات</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="market_4" name="choix_travail" value="ممثل مبيعات ميداني" onchange="updateSelectionCount()">
+                                        <label for="market_4">ممثل مبيعات ميداني</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="market_5" name="choix_travail" value="مسؤول التسويق الرقمي" onchange="updateSelectionCount()">
+                                        <label for="market_5">مسؤول التسويق الرقمي</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="market_6" name="choix_travail" value="مسؤول علاقات العملاء" onchange="updateSelectionCount()">
+                                        <label for="market_6">مسؤول علاقات العملاء</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 7: Maintenance -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept7')">
+                                    <span class="department-name">7️⃣ قسم الصيانة</span>
+                                    <span class="department-badge">11 وظيفة</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept7" class="department-content">
+                                    <div class="positions-grid">
+                                        <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_1" name="choix_travail" value="رئيس قسم الصيانة" onchange="updateSelectionCount()">
+                                        <label for="maint_1">رئيس قسم الصيانة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_2" name="choix_travail" value="مهندس صيانة" onchange="updateSelectionCount()">
+                                        <label for="maint_2">مهندس صيانة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_3" name="choix_travail" value="فني صيانة كهربائية" onchange="updateSelectionCount()">
+                                        <label for="maint_3">فني صيانة كهربائية</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_4" name="choix_travail" value="فني صيانة إلكترونية / أتمتة" onchange="updateSelectionCount()">
+                                        <label for="maint_4">فني صيانة إلكترونية / أتمتة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_5" name="choix_travail" value="فني تبريد وتكييف" onchange="updateSelectionCount()">
+                                        <label for="maint_5">فني تبريد وتكييف</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_6" name="choix_travail" value="لحام / حداد صناعي" onchange="updateSelectionCount()">
+                                        <label for="maint_6">لحام / حداد صناعي</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_7" name="choix_travail" value="مخطط الصيانة" onchange="updateSelectionCount()">
+                                        <label for="maint_7">مخطط الصيانة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_8" name="choix_travail" value="فني صيانة ميكانيكية" onchange="updateSelectionCount()">
+                                        <label for="maint_8">فني صيانة ميكانيكية</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_9" name="choix_travail" value="كهربائي صناعي" onchange="updateSelectionCount()">
+                                        <label for="maint_9">كهربائي صناعي</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_10" name="choix_travail" value="مساعد فني صيانة" onchange="updateSelectionCount()">
+                                        <label for="maint_10">مساعد فني صيانة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="maint_11" name="choix_travail" value="فني المضخات وأنظمة المياه" onchange="updateSelectionCount()">
+                                        <label for="maint_11">فني المضخات وأنظمة المياه</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 8: Qualité et contrôle -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept8')">
+                                    <span class="department-name">8️⃣ قسم الجودة والرقابة</span>
+                                    <span class="department-badge">7 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept8" class="department-content">
+                                    <div class="positions-grid">
+                                        <div class="checkbox-group">
+                                        <input type="checkbox" id="qual_1" name="choix_travail" value="رئيس قسم الجودة / مراقبة الجودة" onchange="updateSelectionCount()">
+                                        <label for="qual_1">رئيس قسم الجودة / مراقبة الجودة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="qual_2" name="choix_travail" value="مهندس جودة" onchange="updateSelectionCount()">
+                                        <label for="qual_2">مهندس جودة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="qual_3" name="choix_travail" value="أخصائي ضمان الجودة" onchange="updateSelectionCount()">
+                                        <label for="qual_3">أخصائي ضمان الجودة</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="qual_4" name="choix_travail" value="مراقب الجودة (QA/QC)" onchange="updateSelectionCount()">
+                                        <label for="qual_4">مراقب الجودة (QA/QC)</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="qual_5" name="choix_travail" value="أخصائي سلامة غذائية" onchange="updateSelectionCount()">
+                                        <label for="qual_5">أخصائي سلامة غذائية</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="qual_6" name="choix_travail" value="فني مختبر (تحليل المياه)" onchange="updateSelectionCount()">
+                                        <label for="qual_6">فني مختبر (تحليل المياه)</label>
+                                    </div>
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="qual_7" name="choix_travail" value="مفتش جودة" onchange="updateSelectionCount()">
+                                        <label for="qual_7">مفتش جودة</label>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Département 9: Technologies de l'information (IT) -->
+                            <div class="department-accordion">
+                                <button type="button" class="department-header" onclick="toggleDepartment('dept9')">
+                                    <span class="department-name">9️⃣ قسم تكنولوجيا المعلومات</span>
+                                    <span class="department-badge">5 وظائف</span>
+                                    <span class="accordion-icon">▼</span>
+                                </button>
+                                <div id="dept9" class="department-content">
+                                    <div class="positions-grid">
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="it_1" name="choix_travail" value="مسؤول تقنية المعلومات / مدير نظم المعلومات" onchange="updateSelectionCount()">
+                                            <label for="it_1">مسؤول تقنية المعلومات / مدير نظم المعلومات</label>
+                                        </div>
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="it_2" name="choix_travail" value="مطور / مهندس برمجيات" onchange="updateSelectionCount()">
+                                            <label for="it_2">مطور / مهندس برمجيات</label>
+                                        </div>
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="it_3" name="choix_travail" value="مدير الشبكات والأنظمة" onchange="updateSelectionCount()">
+                                            <label for="it_3">مدير الشبكات والأنظمة</label>
+                                        </div>
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="it_4" name="choix_travail" value="فني دعم تقني" onchange="updateSelectionCount()">
+                                            <label for="it_4">فني دعم تقني</label>
+                                        </div>
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="it_5" name="choix_travail" value="أخصائي الأمن السيبراني" onchange="updateSelectionCount()">
+                                            <label for="it_5">أخصائي الأمن السيبراني</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Navigation Buttons Section 5 -->
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" onclick="prevSection(5)">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                    السابق
+                                </button>
+                                <button type="button" class="btn-next" onclick="nextSection(5)">
+                                    التالي
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Section {% if job.id == 0 %}6{% else %}5{% endif %}: Documents à fournir -->
+                        <div class="form-section" data-section="{% if job.id == 0 %}6{% else %}5{% endif %}">
+                            <h4 class="section-title">📁 المستندات المطلوبة</h4>
+
+                            <div class="form-group">
+                                <label for="photo">صورة شخصية *</label>
+                                <div class="photo-upload">
+                                    <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/jpg" required onchange="previewPhoto(event)">
+                                    <div class="photo-preview" id="photoPreview">
+                                        <div class="photo-placeholder">
+                                            <span class="photo-icon">📷</span>
+                                            <p>انقر لإضافة صورة</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <small>الصيغ المقبولة: JPG، JPEG، PNG | الحجم الأقصى: 5 ميجابايت</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cv">السيرة الذاتية *</label>
+                                <input type="file" id="cv" name="cv" accept=".pdf,.doc,.docx" required>
+                                <small>الصيغ: PDF، DOC، DOCX | الحجم الأقصى: 5 ميجابايت</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lettre_demande">رسالة الطلب</label>
+                                <div class="cover-letter-options">
+                                    <div class="option-tabs">
+                                        <button type="button" class="tab-btn active" onclick="showTab('write')">✍️ كتابة</button>
+                                        <button type="button" class="tab-btn" onclick="showTab('upload')">📎 رفع ملف</button>
+                                    </div>
+                                    
+                                    <div id="write-tab" class="tab-content active">
+                                        <textarea id="lettre_demande_text" name="lettre_demande_text" rows="8" placeholder="اكتب رسالة طلبك..."></textarea>
+                                    </div>
+                                    
+                                    <div id="upload-tab" class="tab-content">
+                                        <input type="file" id="lettre_demande" name="lettre_demande" accept=".pdf,.doc,.docx">
+                                        <small>Formats acceptés : PDF, DOC, DOCX | Taille max : 5 MB</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="carte_id">بطاقة الهوية الوطنية أو جواز السفر *</label>
+                                <input type="file" id="carte_id" name="carte_id" accept=".pdf,.jpg,.jpeg,.png" required>
+                                <small>الصيغ: PDF، JPG، PNG | الحجم الأقصى: 5 ميجابايت</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lettre_recommandation">خطاب توصية *</label>
+                                <input type="file" id="lettre_recommandation" name="lettre_recommandation" accept=".pdf,.doc,.docx" required>
+                                <small>الصيغ: PDF، DOC، DOCX | الحجم الأقصى: 5 ميجابايت</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="casier_judiciaire">السجل العدلي *</label>
+                                <input type="file" id="casier_judiciaire" name="casier_judiciaire" accept=".pdf,.jpg,.jpeg,.png" required>
+                                <small>الصيغ: PDF، JPG، PNG | الحجم الأقصى: 5 ميجابايت</small>
+                            </div>
+
+                            <h4 class="section-title">مستندات اختيارية</h4>
+
+                            <div class="form-group">
+                                <label for="diplome">الشهادة (إن أمكن)</label>
+                                <input type="file" id="diplome" name="diplome" accept=".pdf,.jpg,.jpeg,.png">
+                                <small>الصيغ: PDF، JPG، PNG | الحجم الأقصى: 5 ميجابايت</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="certificat_travail">شهادة العمل (إن أمكن)</label>
+                                <input type="file" id="certificat_travail" name="certificat_travail" accept=".pdf,.doc,.docx">
+                                <small>الصيغ: PDF، DOC، DOCX | الحجم الأقصى: 5 ميجابايت</small>
+                            </div>
+
+                            <div class="form-group checkbox-group">
+                                <input type="checkbox" id="terms" name="terms" required>
+                                <label for="terms">أوافق على معالجة بياناتي في إطار طلبي *</label>
+                            </div>
+
+                            <!-- Navigation Buttons Section {% if job.id == 0 %}6{% else %}5{% endif %} -->
+                            <div class="form-navigation">
+                                <button type="button" class="btn-prev" onclick="prevSection({% if job.id == 0 %}6{% else %}5{% endif %})">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                    السابق
+                                </button>
+                                <button type="submit" class="btn-submit">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 2L11 13"></path>
+                                        <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                                    </svg>
+                                    إرسال طلبي
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 منصة التوظيف. جميع الحقوق محفوظة.</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentSection = 1;
+        const totalSections = {% if job.id == 0 %}6{% else %}5{% endif %};
+
+        function showSection(sectionNumber) {
+            // Masquer toutes les sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Afficher la section active
+            const activeSection = document.querySelector(`.form-section[data-section="${sectionNumber}"]`);
+            if (activeSection) {
+                activeSection.classList.add('active');
+            }
+            
+            // Mettre à jour les steps
+            document.querySelectorAll('.step').forEach(step => {
+                const stepNumber = parseInt(step.getAttribute('data-step'));
+                step.classList.remove('active', 'completed');
+                
+                if (stepNumber === sectionNumber) {
+                    step.classList.add('active');
+                } else if (stepNumber < sectionNumber) {
+                    step.classList.add('completed');
+                }
+            });
+            
+            // Scroll en haut de la page
+            window.scrollTo({
+                top: document.querySelector('.application-form').offsetTop - 100,
+                behavior: 'smooth'
+            });
+        }
+
+        function validateSection(sectionNumber) {
+            const section = document.querySelector(`.form-section[data-section="${sectionNumber}"]`);
+            if (!section) return true;
+            
+            // Validation spéciale pour Section 5 (Choix de travail) - au moins 1 poste, maximum 5
+            if (sectionNumber === 5) {
+                const selectedCheckboxes = document.querySelectorAll('input[name="choix_travail"]:checked');
+                
+                if (selectedCheckboxes.length === 0) {
+                    alert('يرجى اختيار وظيفة واحدة على الأقل (بحد أقصى 5).');
+                    return false;
+                }
+                
+                if (selectedCheckboxes.length > 5) {
+                    alert('يمكنك اختيار 5 وظائف كحد أقصى.');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // Récupérer tous les champs requis visibles de la section
+            const requiredFields = section.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                // Vérifier seulement les champs visibles
+                if (field.offsetParent !== null) {
+                    if (!field.value || (field.type === 'checkbox' && !field.checked)) {
+                        isValid = false;
+                        field.classList.add('error');
+                        
+                        // Afficher le message d'erreur natif
+                        if (!field.validity.valid) {
+                            field.reportValidity();
+                        }
+                    } else {
+                        field.classList.remove('error');
+                    }
+                }
+            });
+            
+            return isValid;
+        }
+
+        function nextSection(current) {
+            if (validateSection(current)) {
+                if (current < totalSections) {
+                    currentSection = current + 1;
+                    showSection(currentSection);
+                }
+            }
+        }
+
+        function prevSection(current) {
+            if (current > 1) {
+                currentSection = current - 1;
+                showSection(currentSection);
+            }
+        }
+
+        // Initialiser la première section au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection(1);
+        });
+
+        function toggleWorkFields() {
+            var select = document.getElementById('travaille_actuellement');
+            var workFields = document.getElementById('work-fields');
+            
+            if (select.value === 'Oui') {
+                workFields.style.display = 'block';
+                // Rendre les champs requis si "Oui" est sélectionné
+                document.getElementById('dernier_lieu_travail').required = true;
+                document.getElementById('raison_depart').required = true;
+            } else {
+                workFields.style.display = 'none';
+                // Retirer l'exigence si "Non" est sélectionné
+                document.getElementById('dernier_lieu_travail').required = false;
+                document.getElementById('raison_depart').required = false;
+                // Vider les champs
+                document.getElementById('dernier_lieu_travail').value = '';
+                document.getElementById('raison_depart').value = '';
+            }
+        }
+
+        // Fonction pour compter et limiter les sélections de postes
+        function updateSelectionCount() {
+            const checkboxes = document.querySelectorAll('input[name="choix_travail"]');
+            const checkedCount = document.querySelectorAll('input[name="choix_travail"]:checked').length;
+            const countDisplay = document.getElementById('count-selected');
+            const counter = document.getElementById('selection-counter');
+            
+            // Mettre à jour le compteur
+            if (countDisplay) {
+                countDisplay.textContent = checkedCount;
+                
+                // Changer la couleur selon le nombre de sélections
+                if (checkedCount === 0) {
+                    counter.style.background = '#ecf0f1';
+                    countDisplay.style.color = '#3498db';
+                } else if (checkedCount < 5) {
+                    counter.style.background = '#d5f4e6';
+                    countDisplay.style.color = '#27ae60';
+                } else if (checkedCount === 5) {
+                    counter.style.background = '#ffe6e6';
+                    countDisplay.style.color = '#e74c3c';
+                }
+            }
+            
+            // Désactiver les autres checkboxes si 5 sont déjà sélectionnés
+            if (checkedCount >= 5) {
+                checkboxes.forEach(checkbox => {
+                    if (!checkbox.checked) {
+                        checkbox.disabled = true;
+                    }
+                });
+            } else {
+                // Réactiver tous les checkboxes
+                checkboxes.forEach(checkbox => {
+                    checkbox.disabled = false;
+                });
+            }
+        }
+
+        // Fonction pour ouvrir/fermer les départements (accordéon)
+        function toggleDepartment(deptId) {
+            const content = document.getElementById(deptId);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.accordion-icon');
+            
+            // Toggle l'affichage
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.style.transform = 'rotate(0deg)';
+                header.classList.remove('active');
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.style.transform = 'rotate(180deg)';
+                header.classList.add('active');
+            }
+        }
+
+        function toggleSpecialisation() {
+            var select = document.getElementById('niveau_instruction');
+            var specialisationField = document.getElementById('specialisation-field');
+            var specialisationSelect = document.getElementById('specialisation');
+            
+            if (select.value === 'Diplôme d\'institut') {
+                specialisationField.style.display = 'block';
+                specialisationSelect.required = true;
+            } else {
+                specialisationField.style.display = 'none';
+                specialisationSelect.required = false;
+                specialisationSelect.value = '';
+                document.getElementById('autre-specialisation-field').style.display = 'none';
+                document.getElementById('specialisation_autre').value = '';
+            }
+        }
+
+        function toggleAutreSpecialisation() {
+            var select = document.getElementById('specialisation');
+            var autreField = document.getElementById('autre-specialisation-field');
+            var autreInput = document.getElementById('specialisation_autre');
+            
+            if (select.value === 'Autre') {
+                autreField.style.display = 'block';
+                autreInput.required = true;
+            } else {
+                autreField.style.display = 'none';
+                autreInput.required = false;
+                autreInput.value = '';
+            }
+        }
+
+        function toggleAutreLangue() {
+            var checkbox = document.getElementById('autre_langue_toggle');
+            var autreLangueFields = document.getElementById('autre-langue-fields');
+            var langueNom = document.getElementById('autre_langue_nom');
+            var langueNiveau = document.getElementById('autre_langue_niveau');
+            
+            if (checkbox.checked) {
+                autreLangueFields.style.display = 'block';
+                langueNom.required = true;
+                langueNiveau.required = true;
+            } else {
+                autreLangueFields.style.display = 'none';
+                langueNom.required = false;
+                langueNiveau.required = false;
+                langueNom.value = '';
+                langueNiveau.value = '';
+            }
+        }
+
+        function toggleNatureMaladie() {
+            var select = document.getElementById('problemes_sante');
+            var natureMaladieField = document.getElementById('nature-maladie-field');
+            var natureMaladieInput = document.getElementById('nature_maladie');
+            
+            if (select.value === 'Oui') {
+                natureMaladieField.style.display = 'block';
+                natureMaladieInput.required = true;
+            } else {
+                natureMaladieField.style.display = 'none';
+                natureMaladieInput.required = false;
+                natureMaladieInput.value = '';
+            }
+        }
+
+        // Fonction pour afficher/masquer le champ "Autre" dans Choix de travail
+        function toggleAutreTravail() {
+            const autreCheckbox = document.getElementById('travail_autre');
+            const autreTravailField = document.getElementById('autre-travail-field');
+            const autrePrecision = document.getElementById('autre_travail_precision');
+            
+            if (autreCheckbox && autreCheckbox.checked) {
+                autreTravailField.style.display = 'block';
+                autrePrecision.required = true;
+            } else {
+                autreTravailField.style.display = 'none';
+                autrePrecision.required = false;
+                autrePrecision.value = '';
+            }
+        }
+
+        // Fonction pour mettre à jour les régions selon le pays sélectionné
+        function updateRegions() {
+            const paysSelect = document.getElementById('pays');
+            const regionSelect = document.getElementById('region');
+            const selectedPays = paysSelect.value;
+            
+            // Définir les régions par île
+            const regions = {
+                'Grande Comore': [
+                    'Bambao',
+                    'Hambou',
+                    'Hamahamet',
+                    'Itsandra',
+                    'Mitsamiouli',
+                    'Moroni',
+                    'Oichili',
+                    'Dimani',
+                    'Mboikou',
+                    'Mboudé'
+                ],
+                'Anjouan': [
+                    'Domoni',
+                    'Mutsamudu',
+                    'Ouani',
+                    'Sima',
+                    'Adda-Douéni',
+                    'Barakani',
+                    'Noumakélé',
+                    'Moya',
+                    'Nioumachoua',
+                    'Pomoni',
+                    'Tsembehou'
+                ],
+                'Mohéli': [
+                    'Fomboni',
+                    'Djando',
+                    'Hoani',
+                    'Nioumachoua',
+                    'Ouallah'
+                ]
+            };
+            
+            // Vider le select des régions
+            regionSelect.innerHTML = '<option value="">-- Sélectionnez une région --</option>';
+            
+            // Si un pays est sélectionné
+            if (selectedPays && regions[selectedPays]) {
+                // Activer le select des régions
+                regionSelect.disabled = false;
+                
+                // Ajouter les régions correspondantes
+                regions[selectedPays].forEach(region => {
+                    const option = document.createElement('option');
+                    option.value = region;
+                    option.textContent = region;
+                    regionSelect.appendChild(option);
+                });
+            } else {
+                // Désactiver le select si aucun pays n'est sélectionné
+                regionSelect.disabled = true;
+                regionSelect.innerHTML = '<option value="">-- Sélectionnez d\'abord un pays --</option>';
+            }
+            
+            // Réinitialiser la valeur sélectionnée
+            regionSelect.value = '';
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            
+            if (tabName === 'write') {
+                document.getElementById('write-tab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('lettre_demande').value = '';
+            } else {
+                document.getElementById('upload-tab').classList.add('active');
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('lettre_demande_text').value = '';
+            }
+        }
+
+        function previewPhoto(event) {
+            var file = event.target.files[0];
+            var preview = document.getElementById('photoPreview');
+            
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('الصورة كبيرة جداً. الحجم الأقصى: 5 ميجابايت');
+                    event.target.value = '';
+                    return;
+                }
+                
+                if (!file.type.match('image.*')) {
+                    alert('يرجى اختيار صورة صالحة (JPG، JPEG، PNG)');
+                    event.target.value = '';
+                    return;
+                }
+                
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = '<img src="' + e.target.result + '" alt="Photo d\'identité"><button type="button" class="remove-photo" onclick="removePhoto()">✕</button>';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removePhoto() {
+            var photoInput = document.getElementById('photo');
+            var preview = document.getElementById('photoPreview');
+            
+            photoInput.value = '';
+            preview.innerHTML = '<div class="photo-placeholder"><span class="photo-icon">📷</span><p>انقر لإضافة صورة</p></div>';
+        }
+
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const menuToggle = document.querySelector('.menu-toggle');
+            navLinks.classList.toggle('active');
+            menuToggle.classList.toggle('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbar = document.querySelector('.navbar');
+            const navLinks = document.getElementById('navLinks');
+            const menuToggle = document.querySelector('.menu-toggle');
+            
+            if (!navbar.contains(event.target) && navLinks.classList.contains('active')) {
+                navLinks.classList.remove('active');
+                menuToggle.classList.remove('active');
+            }
+        });
+
+        // Toggle dropdown on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const dropdown = this.closest('.dropdown');
+                        const isActive = dropdown.classList.contains('active');
+                        
+                        // Fermer tous les autres dropdowns
+                        document.querySelectorAll('.dropdown').forEach(d => {
+                            d.classList.remove('active');
+                        });
+                        
+                        // Toggle le dropdown actuel
+                        if (!isActive) {
+                            dropdown.classList.add('active');
+                        }
+                    }
+                });
+            });
+        });
+
+        // Fonction pour mettre à jour les postes en fonction du département sélectionné
+        function updatePositions() {
+            const departement = document.getElementById('departement').value;
+            const posteSelect = document.getElementById('poste');
+            const posteGroup = document.getElementById('poste-group');
+            const posteHint = document.getElementById('poste-hint');
+            
+            // Définition des postes par département
+            const postes = {
+                'production': [
+                    'رئيس قسم الإنتاج',
+                    'مدير الإنتاج',
+                    'مشرف الإنتاج',
+                    'مساعد إنتاج',
+                    'عامل إنتاج',
+                    'Ouvrier d\'emballage et de conditionnement',
+                    'Opérateur de machine de remplissage d\'eau',
+                    'Technicien d\'exploitation des lignes de production'
+                ],
+                'entrepots': [
+                    'أمين مخزن المنتجات النهائية / مراقب المخزون',
+                    'أمين مخزن الأصول الثابتة',
+                    'أمين مخزن المواد الخام',
+                    'أمين مخزن قطع الغيار',
+                    'مسؤول المخازن',
+                    'عامل تحميل وتفريغ',
+                    'سائق شاحنة توزيع'
+                ],
+                'achats': [
+                    'مشرف المشتريات',
+                    'مسؤول المشتريات المحلية',
+                    'مسؤول المشتريات المحلية et administratifs',
+                    'موظف متابعة التسليم',
+                    'مراقب أو محلل المشتريات'
+                ],
+                'administratif': [
+                    'محاسب',
+                    'مساعد إداري',
+                    'أمين صندوق',
+                    'موظف استقبال',
+                    'سكرتير تنفيذي',
+                    'مسؤول الموارد البشرية'
+                ],
+                'sante_securite': [
+                    'مدير الصحة والسلامة في العمل',
+                    'مسؤول الصحة والسلامة في العمل',
+                    'مشرف النظافة',
+                    'مشرف الصحة',
+                    'مشرف السلامة في العمل',
+                    'Technicien en stérilisation et traitement de l\'eau',
+                    'فني السلامة',
+                    'مسؤول الطوارئ والتدخلات',
+                    'مدرب السلامة',
+                    'مسعف صناعي / فني إسعافات أولية'
+                ],
+                'marketing': [
+                    'رئيس قسم التسويق والمبيعات',
+                    'مساعد قسم التسويق والمبيعات',
+                    'مشرف المبيعات',
+                    'ممثل مبيعات ميداني',
+                    'مسؤول التسويق الرقمي',
+                    'مسؤول علاقات العملاء'
+                ],
+                'maintenance': [
+                    'رئيس قسم الصيانة',
+                    'مهندس صيانة',
+                    'فني صيانة كهربائية',
+                    'فني صيانة إلكترونية / أتمتة',
+                    'فني تبريد وتكييف',
+                    'لحام / حداد صناعي',
+                    'مخطط الصيانة',
+                    'فني صيانة ميكانيكية',
+                    'كهربائي صناعي',
+                    'مساعد فني صيانة',
+                    'Technicien des pompes et systèmes d\'eau'
+                ],
+                'qualite': [
+                    'رئيس قسم الجودة / مراقبة الجودة',
+                    'مهندس جودة',
+                    'أخصائي ضمان الجودة',
+                    'مراقب الجودة (QA/QC)',
+                    'أخصائي سلامة غذائية',
+                    'Technicien de laboratoire (analyse de l\'eau)',
+                    'مفتش جودة'
+                ]
+            };
+            
+            // Réinitialiser le select des postes
+            posteSelect.innerHTML = '<option value="">-- Sélectionnez un poste --</option>';
+            
+            if (departement && postes[departement]) {
+                // Afficher le groupe de postes
+                posteGroup.style.display = 'block';
+                
+                // Ajouter les postes du département sélectionné
+                postes[departement].forEach(poste => {
+                    const option = document.createElement('option');
+                    option.value = poste;
+                    option.textContent = poste;
+                    posteSelect.appendChild(option);
+                });
+                
+                // Mettre à jour le hint
+                posteHint.textContent = `${postes[departement].length} poste(s) disponible(s) dans ce département`;
+                
+                // Rendre le champ obligatoire
+                posteSelect.required = true;
+            } else {
+                // Cacher le groupe de postes
+                posteGroup.style.display = 'none';
+                posteSelect.required = false;
+                posteHint.textContent = '';
+            }
+        }
+    </script>
+</body>
+</html>
