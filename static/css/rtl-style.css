@@ -1,0 +1,534 @@
+/* ========================================
+   RTL STYLES - Pour pages arabes
+   Base: Garde tous les styles de style.css
+   Ajout: Direction RTL uniquement
+   ======================================== */
+
+/* Direction RTL globale */
+body {
+    direction: rtl !important;
+    text-align: right !important;
+}
+
+/* Container - ajustements RTL */
+.container {
+    direction: rtl;
+    text-align: right;
+}
+
+/* ==========================================
+   NAVBAR - RTL Desktop et Mobile
+   ========================================== */
+
+/* Desktop Navbar */
+.navbar-container {
+    direction: rtl;
+}
+
+.nav-links {
+    flex-direction: row-reverse;
+    text-align: right;
+}
+
+.nav-links li {
+    text-align: right;
+}
+
+.nav-link {
+    text-align: right;
+}
+
+/* Dropdown Desktop */
+.dropdown-toggle {
+    flex-direction: row-reverse;
+}
+
+.dropdown-icon {
+    margin-left: 0;
+    margin-right: 0.5rem;
+}
+
+.dropdown-menu {
+    right: 0;
+    left: auto;
+    text-align: right;
+}
+
+.dropdown-item {
+    text-align: right;
+}
+
+/* ==========================================
+   MOBILE MENU - RTL
+   ========================================== */
+
+@media (max-width: 768px) {
+    /* Navbar Container */
+    .navbar-container {
+        flex-direction: row-reverse !important;
+        justify-content: space-between !important;
+        display: flex !important;
+    }
+    
+    /* Menu Toggle - À GAUCHE en RTL */
+    .menu-toggle {
+        order: 1 !important;
+        position: static !important;
+        left: auto !important;
+        right: auto !important;
+        margin: 0 !important;
+    }
+    
+    /* Logo - À DROITE en RTL */
+    .logo-link,
+    .logo {
+        order: 2 !important;
+        margin-left: auto !important;
+        margin-right: 0.5rem !important;
+    }
+    
+    /* Navigation Links - Sidebar à DROITE */
+    .nav-links {
+        position: fixed !important;
+        top: 60px !important;
+        right: 0 !important;
+        left: auto !important;
+        width: 280px !important;
+        height: calc(100vh - 60px) !important;
+        background: white !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 2rem 1.5rem !important;
+        box-shadow: -4px 0 15px rgba(0, 0, 0, 0.15) !important;
+        transform: translateX(100%) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        overflow-y: auto !important;
+        z-index: 999 !important;
+        direction: rtl !important;
+    }
+    
+    /* Menu ouvert */
+    .nav-links.active {
+        transform: translateX(0) !important;
+    }
+    
+    /* Items du menu */
+    .nav-links li {
+        width: 100% !important;
+        text-align: right !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-bottom: 1px solid #f0f0f0 !important;
+        direction: rtl !important;
+    }
+    
+    .nav-links li:last-child {
+        border-bottom: none !important;
+    }
+    
+    /* Links */
+    .nav-link {
+        display: block !important;
+        width: 100% !important;
+        padding: 1rem 0 !important;
+        text-align: right !important;
+        color: #333 !important;
+        font-size: 1rem !important;
+        direction: rtl !important;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+        color: #667eea !important;
+        background: none !important;
+    }
+    
+    /* Dropdown Mobile */
+    .dropdown {
+        position: relative !important;
+        width: 100% !important;
+    }
+    
+    .dropdown-toggle {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-direction: row !important;
+        width: 100% !important;
+        text-align: right !important;
+        direction: rtl !important;
+    }
+    
+    .dropdown-icon {
+        margin-left: 0 !important;
+        margin-right: 0.5rem !important;
+        order: -1 !important;
+    }
+    
+    /* Dropdown Menu Mobile */
+    .dropdown-menu {
+        position: static !important;
+        width: 100% !important;
+        background: #f8f9fa !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        transition: max-height 0.3s ease !important;
+        direction: rtl !important;
+    }
+    
+    .dropdown.active .dropdown-menu {
+        max-height: 500px !important;
+    }
+    
+    .dropdown-item {
+        display: block !important;
+        padding: 0.75rem 1.5rem !important;
+        text-align: right !important;
+        color: #666 !important;
+        font-size: 0.9rem !important;
+        border-bottom: 1px solid #e0e0e0 !important;
+        direction: rtl !important;
+    }
+    
+    .dropdown-item:hover {
+        background: #e9ecef !important;
+        color: #667eea !important;
+    }
+    
+    /* Language switcher */
+    .nav-links li:last-child .nav-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        padding: 0.75rem 1rem !important;
+        border-radius: 8px !important;
+        margin-top: 1rem !important;
+        text-align: center !important;
+    }
+    
+    .nav-links li:last-child .nav-link:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+        color: white !important;
+    }
+}
+
+/* ==========================================
+   CONTENT - RTL Adjustments
+   ========================================== */
+
+/* Titles and headings */
+h1, h2, h3, h4, h5, h6 {
+    text-align: right !important;
+}
+
+/* Paragraphs */
+p {
+    text-align: right !important;
+}
+
+/* Lists */
+ul, ol {
+    padding-right: 1.5rem;
+    padding-left: 0;
+}
+
+ul li, ol li {
+    text-align: right;
+}
+
+/* ==========================================
+   JOBS PAGE - RTL
+   ========================================== */
+
+.jobs-section {
+    direction: rtl;
+    text-align: right;
+}
+
+.section-header {
+    text-align: right;
+}
+
+.job-card {
+    text-align: right;
+}
+
+.job-title {
+    text-align: right;
+}
+
+.job-meta {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}
+
+.job-description {
+    text-align: right;
+}
+
+.job-footer {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+}
+
+/* Filters */
+.filters {
+    direction: rtl;
+}
+
+.filter-group {
+    text-align: right;
+}
+
+.filter-group label {
+    text-align: right;
+}
+
+/* Search */
+.search-box {
+    direction: rtl;
+}
+
+.search-box input {
+    text-align: right;
+    padding-right: 1rem;
+    padding-left: 3rem;
+}
+
+.search-icon {
+    right: auto;
+    left: 1rem;
+}
+
+/* ==========================================
+   APPLY PAGE - RTL
+   ========================================== */
+
+.apply-section {
+    direction: rtl;
+}
+
+.apply-header {
+    text-align: right;
+}
+
+.job-info {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}
+
+.job-summary {
+    text-align: right;
+}
+
+.job-summary ul {
+    padding-right: 1.5rem;
+    padding-left: 0;
+}
+
+.job-summary li {
+    text-align: right;
+}
+
+/* Form */
+.application-form {
+    text-align: right;
+}
+
+.form-section {
+    text-align: right;
+}
+
+.section-title {
+    text-align: right;
+}
+
+.form-group {
+    text-align: right;
+}
+
+.form-group label {
+    text-align: right;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    text-align: right;
+    direction: rtl;
+}
+
+.form-group small {
+    text-align: right;
+}
+
+/* Progress Steps */
+.progress-steps {
+    direction: rtl;
+    flex-direction: row-reverse;
+}
+
+.step {
+    text-align: center;
+}
+
+.step-label {
+    text-align: center;
+}
+
+/* Navigation Buttons */
+.form-navigation {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+}
+
+.btn-prev {
+    order: 2;
+}
+
+.btn-next,
+.btn-submit {
+    order: 1;
+}
+
+.btn-prev svg {
+    margin-right: 0;
+    margin-left: 0.5rem;
+    transform: rotate(180deg);
+}
+
+.btn-next svg,
+.btn-submit svg {
+    margin-left: 0;
+    margin-right: 0.5rem;
+    transform: rotate(180deg);
+}
+
+/* Checkboxes and Radio */
+.checkbox-group,
+.radio-group {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.checkbox-group input,
+.radio-group input {
+    margin-left: 0.5rem;
+    margin-right: 0;
+}
+
+.checkbox-group label,
+.radio-group label {
+    text-align: right;
+}
+
+/* Department Accordion */
+.department-accordion {
+    text-align: right;
+}
+
+.department-header {
+    flex-direction: row-reverse;
+    text-align: right;
+}
+
+.department-name {
+    text-align: right;
+}
+
+.department-badge {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.accordion-icon {
+    margin-left: 0;
+    margin-right: 1rem;
+}
+
+.department-content {
+    text-align: right;
+}
+
+.positions-grid {
+    direction: rtl;
+}
+
+/* Language Tags */
+.language-tags-apply {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}
+
+.language-tag-apply {
+    margin-left: 0;
+    margin-right: 0.5rem;
+}
+
+/* Photo Upload */
+.photo-upload {
+    text-align: center;
+}
+
+.photo-preview {
+    text-align: center;
+}
+
+/* Cover Letter Tabs */
+.option-tabs {
+    flex-direction: row-reverse;
+}
+
+/* ==========================================
+   FOOTER - RTL
+   ========================================== */
+
+footer {
+    text-align: center;
+}
+
+footer p {
+    text-align: center !important;
+}
+
+/* ==========================================
+   MOBILE RESPONSIVE - Additional RTL
+   ========================================== */
+
+@media (max-width: 768px) {
+    /* Jobs Grid */
+    .jobs-grid {
+        direction: rtl;
+    }
+    
+    .job-card {
+        text-align: right;
+    }
+    
+    /* Filters Mobile */
+    .filters {
+        direction: rtl;
+        text-align: right;
+    }
+    
+    /* Form Mobile */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        text-align: right;
+    }
+    
+    /* Progress Steps Mobile */
+    .progress-steps {
+        overflow-x: auto;
+        direction: rtl;
+    }
+    
+    /* Navigation Buttons Mobile */
+    .form-navigation {
+        flex-direction: row-reverse;
+    }
+}

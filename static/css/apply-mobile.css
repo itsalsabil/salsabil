@@ -1,0 +1,502 @@
+/* ============================================
+   CSS MOBILE pour Formulaire Apply
+   ============================================
+   
+   Ajus    
+    .form-group textarea {
+        min-height: 120px !important;
+        resize: vertical !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* File upload */
+    .file-upload-box {
+        padding: 1.25rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }esponsive pour apply.html et apply_ar.html
+============================================ */
+
+/* ===== Corrections pour empêcher le débordement ===== */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+* {
+    box-sizing: border-box !important;
+}
+
+/* ===== Mobile Général (max-width: 768px) ===== */
+@media (max-width: 768px) {
+    /* Forcer la largeur à 100% de l'écran */
+    body, html {
+        width: 100vw !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Container principal */
+    .apply-container {
+        padding: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+    
+    .apply-content {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Job info sidebar en haut sur mobile */
+    .job-info-sidebar {
+        order: -1 !important;
+        padding: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .job-info-sidebar h3 {
+        font-size: 1.3rem !important;
+        word-wrap: break-word !important;
+    }
+    
+    .job-info-sidebar p,
+    .job-info-sidebar ul li {
+        font-size: 0.9rem !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Formulaire principal */
+    .application-form {
+        padding: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Wizard steps */
+    .progress-steps {
+        padding: 0 0.5rem !important;
+        margin-bottom: 2rem !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .step {
+        min-width: 80px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .step-number {
+        width: 35px !important;
+        height: 35px !important;
+        font-size: 1rem !important;
+    }
+    
+    .step-label {
+        font-size: 0.75rem !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Sections du formulaire */
+    .form-section {
+        padding: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+    }
+    
+    .section-title {
+        font-size: 1.2rem !important;
+        margin-bottom: 1.5rem !important;
+        padding-bottom: 0.75rem !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Form groups */
+    .form-row {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .form-group label {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+        word-wrap: break-word !important;
+        display: block !important;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.85rem !important;
+        font-size: 16px !important; /* Évite le zoom sur iOS */
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .form-group textarea {
+        min-height: 120px !important;
+    }
+    
+    /* File upload */
+    .file-upload-box {
+        padding: 1.5rem 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    
+    .file-upload-icon {
+        font-size: 2rem !important;
+    }
+    
+    .file-upload-text {
+        font-size: 0.85rem !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Checkbox group (conditions d'acceptation) */
+    .checkbox-group {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        gap: 0.75rem !important;
+        padding: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        background-color: #f8f9fa !important;
+        border-radius: 8px !important;
+        border: 2px solid #e0e0e0 !important;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        flex-shrink: 0 !important;
+        margin-top: 0.2rem !important;
+        width: 24px !important;
+        height: 24px !important;
+        min-width: 24px !important;
+        min-height: 24px !important;
+    }
+    
+    .checkbox-group label {
+        flex: 1 !important;
+        font-size: 0.9rem !important;
+        line-height: 1.5 !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        margin: 0 !important;
+        cursor: pointer !important;
+    }
+    
+    /* Department selection (Section 5) */
+    .departments-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .department-header {
+        padding: 1rem !important;
+        font-size: 1rem !important;
+        word-wrap: break-word !important;
+    }
+    
+    .department-content {
+        padding: 1rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .job-checkbox {
+        padding: 0.75rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .job-checkbox label {
+        font-size: 0.9rem !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Navigation buttons */
+    .form-navigation {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        padding: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .form-navigation .btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        justify-content: center !important;
+        padding: 1rem !important;
+        font-size: 1rem !important;
+        box-sizing: border-box !important;
+    }
+    
+    .btn-back,
+    .btn-next,
+    .btn-submit {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Error messages */
+    .error-message {
+        font-size: 0.85rem !important;
+        padding: 0.5rem !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    /* Success modal */
+    .modal-content {
+        width: 95% !important;
+        max-width: 400px !important;
+        padding: 2rem 1.5rem !important;
+    }
+    
+    .modal-content h3 {
+        font-size: 1.3rem !important;
+    }
+    
+    .modal-content p {
+        font-size: 0.9rem !important;
+    }
+}
+
+/* ===== Petit mobile (max-width: 480px) ===== */
+@media (max-width: 480px) {
+    .apply-container {
+        padding: 0.5rem !important;
+    }
+    
+    .job-info-sidebar {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .application-form {
+        padding: 1rem !important;
+    }
+    
+    .form-section {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .section-title {
+        font-size: 1.1rem !important;
+    }
+    
+    .progress-steps {
+        padding: 0 0.25rem !important;
+    }
+    
+    .step {
+        min-width: 70px !important;
+    }
+    
+    .step-number {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .step-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .form-group label {
+        font-size: 0.85rem !important;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.75rem !important;
+    }
+    
+    .department-header {
+        padding: 0.85rem !important;
+        font-size: 0.95rem !important;
+    }
+    
+    .job-checkbox {
+        padding: 0.6rem !important;
+    }
+    
+    .job-checkbox label {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Checkbox group pour petit mobile */
+    .checkbox-group {
+        padding: 0.85rem !important;
+    }
+    
+    .checkbox-group label {
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        width: 22px !important;
+        height: 22px !important;
+        min-width: 22px !important;
+        min-height: 22px !important;
+    }
+    
+    .form-navigation {
+        padding: 1rem !important;
+    }
+    
+    .form-navigation .btn {
+        padding: 0.85rem !important;
+        font-size: 0.95rem !important;
+    }
+}
+
+/* ===== RTL Specific Mobile Adjustments ===== */
+@media (max-width: 768px) {
+    [dir="rtl"] .apply-container,
+    [dir="rtl"] .job-info-sidebar,
+    [dir="rtl"] .application-form,
+    [dir="rtl"] .form-section {
+        text-align: right !important;
+    }
+    
+    [dir="rtl"] .form-group {
+        text-align: right !important;
+    }
+    
+    [dir="rtl"] .form-group label {
+        text-align: right !important;
+        display: block !important;
+    }
+    
+    [dir="rtl"] input,
+    [dir="rtl"] select,
+    [dir="rtl"] textarea {
+        text-align: right !important;
+        direction: rtl !important;
+    }
+    
+    [dir="rtl"] .job-checkbox {
+        flex-direction: row-reverse !important;
+    }
+    
+    [dir="rtl"] .job-checkbox input[type="checkbox"] {
+        margin-left: 0.75rem !important;
+        margin-right: 0 !important;
+    }
+    
+    [dir="rtl"] .department-header {
+        text-align: right !important;
+    }
+    
+    [dir="rtl"] .department-icon {
+        margin-left: 0.75rem !important;
+        margin-right: 0 !important;
+    }
+    
+    [dir="rtl"] .btn-back svg {
+        margin-left: 0.5rem !important;
+        margin-right: 0 !important;
+        transform: rotate(180deg) !important;
+    }
+    
+    [dir="rtl"] .btn-next svg {
+        margin-right: 0.5rem !important;
+        margin-left: 0 !important;
+        transform: rotate(180deg) !important;
+    }
+    
+    [dir="rtl"] .file-upload-icon {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    [dir="rtl"] .error-message {
+        text-align: right !important;
+    }
+}
+
+/* ===== Landscape mobile optimization ===== */
+@media (max-width: 926px) and (orientation: landscape) {
+    .progress-steps {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .form-section {
+        padding: 1rem !important;
+    }
+    
+    .form-navigation {
+        padding: 1rem !important;
+    }
+}
+
+/* ===== Touch optimizations ===== */
+@media (hover: none) and (pointer: coarse) {
+    /* Augmenter la zone tactile pour les boutons */
+    .btn,
+    .job-checkbox,
+    .department-header {
+        min-height: 44px !important; /* Recommandation Apple */
+    }
+    
+    /* Améliorer le feedback tactile */
+    .btn:active {
+        transform: scale(0.98) !important;
+    }
+    
+    .job-checkbox:active {
+        background-color: rgba(52, 152, 219, 0.1) !important;
+    }
+}
+
+/* ===== Fix pour iOS Safari ===== */
+@supports (-webkit-touch-callout: none) {
+    /* Éviter le zoom sur les inputs */
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+    
+    /* Fix pour le clavier qui pousse le contenu */
+    .form-section {
+        position: relative !important;
+    }
+}

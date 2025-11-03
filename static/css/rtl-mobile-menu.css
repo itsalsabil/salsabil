@@ -1,0 +1,292 @@
+/* ============================================
+   CSS COMPLET pour Mobile RTL - Salsabil
+   ============================================
+   
+   Corrections complètes pour l'affichage mobile
+   des pages arabes avec direction RTL
+============================================ */
+
+/* ===== Corrections générales RTL ===== */
+[dir="rtl"] {
+    text-align: right;
+}
+
+[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
+}
+
+/* ===== Menu Mobile RTL - Base ===== */
+@media (max-width: 1200px) {
+    /* Menu toggle à droite pour RTL */
+    [dir="rtl"] .menu-toggle {
+        position: absolute !important;
+        right: 1rem !important;
+        left: auto !important;
+        order: 3 !important;
+    }
+    
+    /* Logo au centre */
+    [dir="rtl"] .logo-link {
+        order: 2 !important;
+        flex: 1 !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+    
+    [dir="rtl"] .logo {
+        margin: 0 auto !important;
+    }
+    
+    /* Menu qui glisse depuis la droite */
+    [dir="rtl"] .nav-links {
+        left: auto !important;
+        right: -100% !important;
+        transition: right 0.3s ease !important;
+    }
+
+    [dir="rtl"] .nav-links.active {
+        right: 0 !important;
+        left: auto !important;
+    }
+    
+    /* Alignement du texte dans le menu */
+    [dir="rtl"] .nav-link {
+        text-align: right !important;
+        justify-content: flex-start !important;
+        flex-direction: row-reverse !important;
+    }
+    
+    /* Icônes à droite */
+    [dir="rtl"] .nav-link .icon {
+        margin-left: 0.5rem !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Dropdown icon */
+    [dir="rtl"] .dropdown-toggle {
+        flex-direction: row-reverse !important;
+    }
+    
+    [dir="rtl"] .dropdown-icon {
+        margin-right: auto !important;
+        margin-left: 0.3rem !important;
+    }
+}
+
+/* ===== Menu Mobile RTL - Tablettes ===== */
+@media (max-width: 768px) {
+    /* Container responsive */
+    [dir="rtl"] .navbar-container {
+        position: relative !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    /* Menu toggle */
+    [dir="rtl"] .menu-toggle {
+        position: absolute !important;
+        right: 0.5rem !important;
+        left: auto !important;
+        z-index: 1001 !important;
+    }
+    
+    /* Logo centré */
+    [dir="rtl"] .logo-link {
+        flex: 1 !important;
+        display: flex !important;
+        justify-content: center !important;
+        padding: 0 3.5rem !important;
+    }
+    
+    [dir="rtl"] .logo {
+        margin: 0 auto !important;
+    }
+    
+    /* Menu lateral */
+    [dir="rtl"] .nav-links {
+        left: auto !important;
+        right: -100% !important;
+        width: min(280px, 85vw) !important;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.3) !important;
+    }
+    
+    [dir="rtl"] .nav-links.active {
+        right: 0 !important;
+        left: auto !important;
+    }
+    
+    /* Dropdown items */
+    [dir="rtl"] .dropdown-item {
+        text-align: right !important;
+        padding-right: 1rem !important;
+        padding-left: 1rem !important;
+    }
+    
+    [dir="rtl"] .dropdown-item:hover {
+        padding-right: 1.25rem !important;
+        padding-left: 1rem !important;
+    }
+    
+    /* Container padding */
+    [dir="rtl"] .container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    
+    /* Page title */
+    [dir="rtl"] .page-title {
+        text-align: right !important;
+    }
+    
+    /* Job cards */
+    [dir="rtl"] .job-card {
+        text-align: right !important;
+    }
+    
+    [dir="rtl"] .job-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    [dir="rtl"] .job-badges {
+        align-items: flex-start !important;
+        width: 100% !important;
+    }
+    
+    /* Job requirements */
+    [dir="rtl"] .job-requirements li {
+        padding-right: 1.5rem !important;
+        padding-left: 0 !important;
+    }
+    
+    [dir="rtl"] .job-requirements li:before {
+        right: 0 !important;
+        left: auto !important;
+    }
+    
+    /* Formulaires */
+    [dir="rtl"] .form-group {
+        text-align: right !important;
+    }
+    
+    [dir="rtl"] .form-group label {
+        text-align: right !important;
+        display: block !important;
+    }
+    
+    [dir="rtl"] input,
+    [dir="rtl"] select,
+    [dir="rtl"] textarea {
+        text-align: right !important;
+    }
+    
+    /* Boutons */
+    [dir="rtl"] .form-actions {
+        flex-direction: column !important;
+    }
+    
+    [dir="rtl"] .btn-back svg {
+        margin-left: 0.5rem !important;
+        margin-right: 0 !important;
+        transform: rotate(180deg) !important;
+    }
+}
+
+/* ===== Menu Mobile RTL - Petits écrans ===== */
+@media (max-width: 480px) {
+    /* Menu toggle */
+    [dir="rtl"] .menu-toggle {
+        right: 0.5rem !important;
+        left: auto !important;
+    }
+    
+    /* Logo ajusté */
+    [dir="rtl"] .logo-link {
+        padding: 0 3rem !important;
+    }
+    
+    [dir="rtl"] .logo-img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    [dir="rtl"] .logo-text {
+        font-size: 1rem !important;
+    }
+    
+    [dir="rtl"] .logo-subtitle {
+        font-size: 0.65rem !important;
+    }
+    
+    /* Menu encore plus étroit */
+    [dir="rtl"] .nav-links {
+        width: min(260px, 90vw) !important;
+        right: -100% !important;
+        left: auto !important;
+    }
+    
+    [dir="rtl"] .nav-links.active {
+        right: 0 !important;
+    }
+    
+    /* Container */
+    [dir="rtl"] .container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+}
+
+/* ===== Overlay pour fermer le menu ===== */
+[dir="rtl"] .nav-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    z-index: 999 !important;
+    display: none !important;
+}
+
+[dir="rtl"] .nav-overlay.active {
+    display: block !important;
+}
+
+/* ===== Corrections supplémentaires ===== */
+
+/* Recherche et filtres */
+@media (max-width: 768px) {
+    [dir="rtl"] .search-box input {
+        text-align: right !important;
+        padding-right: 1rem !important;
+        padding-left: 3rem !important;
+    }
+    
+    [dir="rtl"] .search-icon {
+        right: auto !important;
+        left: 1rem !important;
+    }
+}
+
+/* Progress steps wizard */
+@media (max-width: 768px) {
+    [dir="rtl"] .step {
+        text-align: center !important;
+    }
+    
+    [dir="rtl"] .step-number {
+        margin: 0 auto !important;
+    }
+}
+
+/* Admin panel si nécessaire */
+@media (max-width: 768px) {
+    [dir="rtl"] .admin-sidebar {
+        right: -280px !important;
+        left: auto !important;
+    }
+    
+    [dir="rtl"] .admin-sidebar.active {
+        right: 0 !important;
+    }
+}

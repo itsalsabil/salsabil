@@ -1,0 +1,152 @@
+/* Confirmation Page Styles - Responsive */
+
+/* Base styles are in the HTML templates */
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .confirmation-container {
+        padding: 1rem !important;
+    }
+    
+    .confirmation-card {
+        padding: 2rem 1.5rem !important;
+        border-radius: 15px !important;
+    }
+    
+    .success-icon {
+        width: 80px !important;
+        height: 80px !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .success-icon svg {
+        width: 45px !important;
+        height: 45px !important;
+    }
+    
+    .confirmation-card h1 {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+    }
+    
+    .confirmation-card .job-title {
+        font-size: 1.1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .confirmation-message {
+        font-size: 1rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .detail-section {
+        padding: 1rem !important;
+        margin: 1.5rem 0 !important;
+    }
+    
+    .detail-row {
+        flex-direction: column !important;
+        gap: 0.25rem !important;
+        padding: 0.5rem 0 !important;
+    }
+    
+    .detail-label {
+        font-size: 0.85rem !important;
+    }
+    
+    .detail-value {
+        font-size: 0.95rem !important;
+        word-break: break-word !important;
+    }
+    
+    .info-box {
+        padding: 1rem !important;
+        margin: 1rem 0 !important;
+    }
+    
+    .info-box h3 {
+        font-size: 1rem !important;
+    }
+    
+    .info-box p {
+        font-size: 0.9rem !important;
+    }
+    
+    .action-buttons {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        margin-top: 1.5rem !important;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: 100% !important;
+        padding: 0.9rem 1.5rem !important;
+        font-size: 0.95rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .confirmation-card {
+        padding: 1.5rem 1rem !important;
+    }
+    
+    .confirmation-card h1 {
+        font-size: 1.3rem !important;
+    }
+    
+    .confirmation-card .job-title {
+        font-size: 1rem !important;
+    }
+    
+    .info-box h3 {
+        font-size: 0.95rem !important;
+    }
+    
+    .info-box p {
+        font-size: 0.85rem !important;
+    }
+}
+
+/* RTL specific adjustments */
+[dir="rtl"] .detail-row {
+    flex-direction: column !important;
+}
+
+[dir="rtl"] .detail-label,
+[dir="rtl"] .detail-value {
+    text-align: right !important;
+}
+
+[dir="rtl"] .info-box {
+    border-right: 4px solid #667eea !important;
+    border-left: none !important;
+}
+
+/* Animation improvements for mobile */
+@media (max-width: 768px) {
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* Prevent horizontal scroll */
+body, html {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+.confirmation-container,
+.confirmation-card,
+.detail-section,
+.info-box,
+.action-buttons {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
