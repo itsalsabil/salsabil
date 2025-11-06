@@ -105,23 +105,29 @@ def get_file_url(filename_or_url):
     """
     Retourne l'URL correcte pour un fichier (LOCAL prioritaire, Cloudinary en fallback)
     
+    Cette fonction passe TOUJOURS par la route /serve-file/ qui gère automatiquement :
+    1. Essai de servir le fichier local d'abord (PRIORITÉ)
+    2. Fallback vers Cloudinary si le fichier local n'existe pas
+    3. Erreur 404 si aucune source disponible
+    
     Args:
         filename_or_url: Soit un nom de fichier local, soit une URL Cloudinary (cas rare/legacy)
     
     Returns:
-        str: URL complète du fichier (local d'abord, sinon Cloudinary)
+        str: URL complète du fichier qui passera par le système de fallback
     """
     if not filename_or_url:
         return None
     
-    # PRIORITÉ 1 : Fichier local (cas normal)
-    # Si c'est un nom de fichier (pas une URL), utiliser la route locale
+    # PRIORITÉ 1 : Fichier local (cas normal - 99% des cas)
+    # Si c'est un nom de fichier (pas une URL), utiliser la route /serve-file/ 
+    # qui gère automatiquement le fallback Local → Cloudinary
     if not (filename_or_url.startswith('http://') or filename_or_url.startswith('https://')):
-        # C'est un fichier local - construire l'URL via url_for
-        return url_for('static', filename='uploads/' + filename_or_url)
+        # Passer par /serve-file/ pour bénéficier du fallback automatique
+        return url_for('serve_file', filename=filename_or_url)
     
-    # PRIORITÉ 2 : URL Cloudinary (cas legacy ou si fichier local perdu)
-    # Si c'est une URL Cloudinary, l'utiliser directement (backup)
+    # PRIORITÉ 2 : URL Cloudinary (cas legacy ou anciennes entrées DB)
+    # Si c'est déjà une URL Cloudinary, l'utiliser directement
     if 'cloudinary.com' in filename_or_url:
         return filename_or_url
     
