@@ -34,11 +34,13 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 USE_CLOUDINARY = is_cloudinary_configured()
 if USE_CLOUDINARY:
     cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME')
-    print(f"☁️  Cloudinary configuré - Cloud: {cloud_name}")
-    print("   Les fichiers seront stockés dans le cloud")
+    print(f"☁️  Cloudinary configuré (backup) - Cloud: {cloud_name}")
+    print("   📂 PRIORITÉ LOCAL : Fichiers locaux = source principale")
+    print("   ☁️  Cloudinary = backup de secours (en cas de perte des fichiers locaux)")
 else:
-    print("⚠️  Cloudinary NON configuré - Les fichiers seront stockés localement (non persistant sur Render)")
-    print("   Pour activer Cloudinary, définir: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET")
+    print("⚠️  Cloudinary NON configuré - Fichiers locaux uniquement")
+    print("   📂 Les fichiers seront stockés localement sans backup cloud")
+    print("   ⚠️  Attention : Les fichiers seront perdus lors d'un redéploiement Render")
 
 # Définition des permissions par rôle
 ROLE_PERMISSIONS = {
@@ -101,26 +103,30 @@ def is_closing_soon(deadline_str):
 
 def get_file_url(filename_or_url):
     """
-    Retourne l'URL correcte pour un fichier (Cloudinary ou local)
+    Retourne l'URL correcte pour un fichier (LOCAL prioritaire, Cloudinary en fallback)
     
     Args:
-        filename_or_url: Soit un nom de fichier local, soit une URL Cloudinary
+        filename_or_url: Soit un nom de fichier local, soit une URL Cloudinary (cas rare/legacy)
     
     Returns:
-        str: URL complète du fichier (via route proxy pour Cloudinary)
+        str: URL complète du fichier (local d'abord, sinon Cloudinary)
     """
     if not filename_or_url:
         return None
     
-    # Si c'est une URL Cloudinary, utiliser la route proxy
-    if filename_or_url.startswith('http://') or filename_or_url.startswith('https://'):
-        # Encoder l'URL pour la passer en paramètre
-        import urllib.parse
-        encoded_url = urllib.parse.quote(filename_or_url, safe='')
-        return url_for('serve_file', file_url=encoded_url)
+    # PRIORITÉ 1 : Fichier local (cas normal)
+    # Si c'est un nom de fichier (pas une URL), utiliser la route locale
+    if not (filename_or_url.startswith('http://') or filename_or_url.startswith('https://')):
+        # C'est un fichier local - construire l'URL via url_for
+        return url_for('static', filename='uploads/' + filename_or_url)
     
-    # Sinon, c'est un fichier local - construire l'URL via url_for
-    return url_for('static', filename='uploads/' + filename_or_url)
+    # PRIORITÉ 2 : URL Cloudinary (cas legacy ou si fichier local perdu)
+    # Si c'est une URL Cloudinary, l'utiliser directement (backup)
+    if 'cloudinary.com' in filename_or_url:
+        return filename_or_url
+    
+    # Autre URL inconnue (ne devrait pas arriver)
+    return filename_or_url
 
 # Enregistrer le filtre Jinja pour les templates
 app.jinja_env.filters['file_url'] = get_file_url
@@ -194,57 +200,58 @@ def get_redirect_with_lang(route_name, **kwargs):
     
     return redirect(url_for(route_name, **kwargs))
 
-@app.route('/serve-file')
-def serve_file():
+@app.route('/serve-file/<filename>')
+def serve_file(filename):
     """
-    Route proxy pour servir les fichiers depuis Cloudinary
-    Permet de télécharger les fichiers via l'application au lieu de rediriger vers Cloudinary
+    Route pour servir les fichiers locaux en priorité
+    Fallback vers Cloudinary si le fichier local n'existe pas (après redéploiement Render)
     """
-    import urllib.parse
-    import requests
-    from flask import Response, stream_with_context
+    import os
+    from flask import send_file, abort
     
-    # Récupérer l'URL encodée
-    encoded_url = request.args.get('file_url')
-    if not encoded_url:
-        return "URL du fichier manquante", 400
+    # 1. PRIORITÉ : Chercher en local d'abord
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     
-    # Décoder l'URL
-    file_url = urllib.parse.unquote(encoded_url)
+    if os.path.exists(filepath):
+        # Fichier local trouvé - le servir directement
+        print(f"📂 Serving local file: {filename}")
+        return send_file(filepath)
     
-    # Vérifier que c'est bien une URL Cloudinary
-    if 'cloudinary.com' not in file_url:
-        return "URL invalide", 400
+    # 2. FALLBACK : Si fichier local absent, chercher sur Cloudinary
+    print(f"⚠️  Fichier local absent: {filename}, recherche sur Cloudinary...")
     
-    try:
-        # Télécharger le fichier depuis Cloudinary
-        response = requests.get(file_url, stream=True)
-        response.raise_for_status()
+    # Chercher l'URL Cloudinary en base de données
+    from database import get_db_connection
+    conn = get_db_connection()
+    
+    # Chercher dans toutes les colonnes de fichiers
+    file_columns = ['photo', 'cv', 'lettre_demande', 'carte_id', 
+                   'lettre_recommandation', 'casier_judiciaire', 'diplome']
+    
+    cloudinary_url = None
+    for column in file_columns:
+        result = conn.execute(
+            f'SELECT {column} FROM applications WHERE {column} LIKE ? OR {column} = ?',
+            (f'%{filename}%', filename)
+        ).fetchone()
         
-        # Extraire le nom du fichier depuis l'URL
-        filename = file_url.split('/')[-1].split('?')[0]
-        
-        # Déterminer le type de contenu
-        content_type = response.headers.get('Content-Type', 'application/octet-stream')
-        
-        # Créer une réponse en streaming
-        def generate():
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    yield chunk
-        
-        # Retourner le fichier avec les bons headers
-        flask_response = Response(
-            stream_with_context(generate()),
-            content_type=content_type
-        )
-        flask_response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
-        
-        return flask_response
-        
-    except requests.RequestException as e:
-        print(f"❌ Erreur téléchargement fichier depuis Cloudinary: {e}")
-        return "Erreur lors du téléchargement du fichier", 500
+        if result:
+            value = result[column] if isinstance(result, dict) else result[0]
+            # Si c'est une URL Cloudinary, l'utiliser
+            if value and ('cloudinary.com' in str(value)):
+                cloudinary_url = value
+                break
+    
+    conn.close()
+    
+    if cloudinary_url:
+        print(f"☁️  Redirection vers Cloudinary backup: {cloudinary_url[:80]}...")
+        from flask import redirect
+        return redirect(cloudinary_url)
+    
+    # 3. Fichier introuvable
+    print(f"❌ Fichier introuvable: {filename} (ni local ni Cloudinary)")
+    abort(404)
 
 @app.route('/')
 def home():
@@ -383,47 +390,41 @@ def apply(job_id):
             for file_field in files_to_upload:
                 file = request.files.get(file_field)
                 if file and file.filename and allowed_file(file.filename):
+                    # 💾 DOUBLE SAUVEGARDE: Local (backup) + Cloudinary (principal)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    
+                    # 1. Toujours sauvegarder localement d'abord (backup)
+                    file.save(filepath)
+                    print(f"   💾 {file_field}: Sauvegardé localement → {filename}")
+                    
+                    # 2. Si Cloudinary configuré, uploader aussi là-bas (backup)
+                    # PRIORITÉ LOCAL : On stocke toujours le nom de fichier local
+                    uploaded_files[file_field] = filename
+                    
                     if USE_CLOUDINARY:
-                        # Upload vers Cloudinary avec fallback local
-                        print(f"   ☁️  Upload de {file_field} vers Cloudinary...")
+                        print(f"   ☁️  Backup vers Cloudinary de {file_field}...")
                         try:
-                            result = upload_file_to_cloudinary(file, folder="salsabil_uploads")
+                            # Réouvrir le fichier pour l'upload Cloudinary (backup)
+                            with open(filepath, 'rb') as f:
+                                result = upload_file_to_cloudinary(f, folder="salsabil_uploads")
+                            
                             if result['success']:
-                                # Stocker l'URL Cloudinary au lieu du nom de fichier local
-                                uploaded_files[file_field] = result['url']
-                                print(f"   ✓ {file_field}: Cloudinary OK")
+                                print(f"   ✓ {file_field}: Backup Cloudinary OK → {result['url'][:50]}...")
                                 successful_uploads += 1
+                                # Note: On continue d'utiliser le fichier local comme référence principale
                             else:
-                                # Fallback: stockage local si Cloudinary échoue
-                                print(f"   ⚠️  Cloudinary échec pour {file_field}, fallback local...")
-                                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                                filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                                file.seek(0)  # Reset file pointer
-                                file.save(filepath)
-                                uploaded_files[file_field] = filename
-                                print(f"   ✓ {file_field}: Sauvegardé localement (fallback)")
+                                print(f"   ⚠️  Backup Cloudinary échec, fichier local reste principal")
                                 failed_uploads += 1
                         except Exception as e:
-                            # En cas d'erreur, sauvegarder localement
-                            print(f"   ❌ Erreur upload {file_field}: {str(e)}")
-                            print(f"   💾 Fallback: sauvegarde locale...")
-                            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                            filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                            file.seek(0)
-                            file.save(filepath)
-                            uploaded_files[file_field] = filename
-                            print(f"   ✓ {file_field}: Sauvegardé localement après erreur")
+                            # En cas d'erreur, le fichier local reste valide
+                            print(f"   ❌ Erreur backup Cloudinary {file_field}: {str(e)}")
+                            print(f"   ✓ Fichier local reste principal (backup Cloudinary non disponible)")
                             failed_uploads += 1
                     else:
-                        # Fallback: stockage local (non persistant sur Render)
-                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                        filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                        file.save(filepath)
-                        uploaded_files[file_field] = filename
-                        print(f"   ✓ {file_field}: {filename} (local)")
+                        # Si Cloudinary non configuré, fichier local uniquement
+                        print(f"   ✓ {file_field}: Local uniquement (Cloudinary non configuré)")
                 else:
                     uploaded_files[file_field] = None
                     print(f"   ✗ {file_field}: Non fourni")
@@ -622,45 +623,41 @@ def apply_ar(job_id):
             for file_field in files_to_upload:
                 file = request.files.get(file_field)
                 if file and file.filename and allowed_file(file.filename):
+                    # 💾 حفظ مزدوج: محلي (نسخة احتياطية) + Cloudinary (رئيسي)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    
+                    # 1. دائماً احفظ محلياً أولاً (نسخة احتياطية)
+                    file.save(filepath)
+                    print(f"   💾 {file_field}: تم الحفظ محلياً → {filename}")
+                    
+                    # 2. إذا تم تكوين Cloudinary، نسخة احتياطية على Cloudinary
+                    # أولوية محلية: نحتفظ دائمًا باسم الملف المحلي
+                    uploaded_files[file_field] = filename
+                    
                     if USE_CLOUDINARY:
-                        # Upload vers Cloudinary avec fallback local
-                        print(f"   ☁️  رفع {file_field} إلى Cloudinary...")
+                        print(f"   ☁️  نسخ احتياطي على Cloudinary لـ {file_field}...")
                         try:
-                            result = upload_file_to_cloudinary(file, folder="salsabil_uploads")
+                            # إعادة فتح الملف لرفع Cloudinary (نسخة احتياطية)
+                            with open(filepath, 'rb') as f:
+                                result = upload_file_to_cloudinary(f, folder="salsabil_uploads")
+                            
                             if result['success']:
-                                uploaded_files[file_field] = result['url']
-                                print(f"   ✓ {file_field}: Cloudinary OK")
+                                print(f"   ✓ {file_field}: نسخة Cloudinary الاحتياطية نجحت → {result['url'][:50]}...")
                                 successful_uploads += 1
+                                # ملاحظة: نواصل استخدام الملف المحلي كمرجع رئيسي
                             else:
-                                # Fallback local
-                                print(f"   ⚠️  فشل Cloudinary لـ {file_field}, حفظ محلي...")
-                                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                                filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                                file.seek(0)
-                                file.save(filepath)
-                                uploaded_files[file_field] = filename
-                                print(f"   ✓ {file_field}: تم الحفظ محلياً (fallback)")
+                                print(f"   ⚠️  فشل النسخ الاحتياطي Cloudinary، الملف المحلي يبقى رئيسياً")
                                 failed_uploads += 1
                         except Exception as e:
-                            print(f"   ❌ خطأ في رفع {file_field}: {str(e)}")
-                            print(f"   💾 Fallback: حفظ محلي...")
-                            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                            filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                            file.seek(0)
-                            file.save(filepath)
-                            uploaded_files[file_field] = filename
-                            print(f"   ✓ {file_field}: تم الحفظ محلياً بعد الخطأ")
+                            # في حالة الخطأ، الملف المحلي يبقى صالحاً
+                            print(f"   ❌ خطأ في النسخ الاحتياطي Cloudinary {file_field}: {str(e)}")
+                            print(f"   ✓ الملف المحلي يبقى رئيسياً (النسخة الاحتياطية Cloudinary غير متاحة)")
                             failed_uploads += 1
                     else:
-                        # Stockage local uniquement
-                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                        filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                        file.save(filepath)
-                        uploaded_files[file_field] = filename
-                        print(f"   ✓ {file_field}: {filename} (محلي)")
+                        # إذا لم يتم تكوين Cloudinary، الملف المحلي فقط
+                        print(f"   ✓ {file_field}: محلي فقط (Cloudinary غير مكون)")
                 else:
                     uploaded_files[file_field] = None
             
