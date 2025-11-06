@@ -230,7 +230,7 @@
                     <div class="card-body">
                         <div class="candidate-profile">
                             {% if application.photo %}
-                            <img src="{{ url_for('static', filename='uploads/' + application.photo) }}" alt="{% if lang == 'ar' %}صورة{% else %}Photo{% endif %}" class="profile-photo">
+                            <img src="{{ application.photo | file_url }}" alt="{% if lang == 'ar' %}صورة{% else %}Photo{% endif %}" class="profile-photo">
                             {% else %}
                             <div class="profile-avatar">
                                 {{ application.prenom[0] }}{{ application.nom[0] }}
@@ -632,14 +632,14 @@
                                     <span class="document-filename">{{ application.photo }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.photo) }}', 'Photo d\'identité')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.photo | file_url }}', 'Photo d\'identité')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.photo) }}" download class="btn-download">
+                                    <a href="{{ application.photo | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -665,14 +665,14 @@
                                     <span class="document-filename">{{ application.cv }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.cv) }}', 'CV')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.cv | file_url }}', 'CV')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.cv) }}" download class="btn-download">
+                                    <a href="{{ application.cv | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -695,14 +695,14 @@
                                     <span class="document-filename">{{ application.lettre_demande }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.lettre_demande) }}', 'Lettre de Demande')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.lettre_demande | file_url }}', 'Lettre de Demande')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.lettre_demande) }}" download class="btn-download">
+                                    <a href="{{ application.lettre_demande | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -725,14 +725,14 @@
                                     <span class="document-filename">{{ application.carte_id }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.carte_id) }}', 'Carte d\'identité / Passport')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.carte_id | file_url }}', 'Carte d\'identité / Passport')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.carte_id) }}" download class="btn-download">
+                                    <a href="{{ application.carte_id | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -755,14 +755,14 @@
                                     <span class="document-filename">{{ application.lettre_recommandation }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.lettre_recommandation) }}', 'Lettre de Recommandation')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.lettre_recommandation | file_url }}', 'Lettre de Recommandation')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.lettre_recommandation) }}" download class="btn-download">
+                                    <a href="{{ application.lettre_recommandation | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -785,14 +785,14 @@
                                     <span class="document-filename">{{ application.casier_judiciaire }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.casier_judiciaire) }}', 'Casier Judiciaire')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.casier_judiciaire | file_url }}', 'Casier Judiciaire')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.casier_judiciaire) }}" download class="btn-download">
+                                    <a href="{{ application.casier_judiciaire | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -815,14 +815,14 @@
                                     <span class="document-filename">{{ application.diplome }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.diplome) }}', 'Diplôme')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.diplome | file_url }}', 'Diplôme')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.diplome) }}" download class="btn-download">
+                                    <a href="{{ application.diplome | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -845,14 +845,14 @@
                                     <span class="document-filename">{{ application.certificat_travail }}</span>
                                 </div>
                                 <div class="document-actions">
-                                    <button onclick="openPreview('{{ url_for('static', filename='uploads/' + application.certificat_travail) }}', 'Certificat de Travail')" class="btn-preview">
+                                    <button onclick="openPreview('{{ application.certificat_travail | file_url }}', 'Certificat de Travail')" class="btn-preview">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                         {% if lang == 'ar' %}معاينة{% else %}Aperçu{% endif %}
                                     </button>
-                                    <a href="{{ url_for('static', filename='uploads/' + application.certificat_travail) }}" download class="btn-download">
+                                    <a href="{{ application.certificat_travail | file_url }}" download class="btn-download">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="7 10 12 15 17 10"></polyline>
