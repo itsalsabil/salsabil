@@ -32,7 +32,7 @@ def configure_cloudinary():
 
 def upload_file_to_cloudinary(file, folder="salsabil_uploads"):
     """
-    Upload un fichier vers Cloudinary
+    Upload un fichier vers Cloudinary avec optimisations et timeout
     
     Args:
         file: Fichier Flask (request.files)
@@ -49,14 +49,22 @@ def upload_file_to_cloudinary(file, folder="salsabil_uploads"):
         # Sécuriser le nom de fichier
         filename = secure_filename(file.filename)
         
-        # Upload vers Cloudinary
+        # Lire le fichier en mémoire pour éviter les problèmes de pointeur
+        file.seek(0)
+        file_content = file.read()
+        file.seek(0)  # Reset pour usage ultérieur si nécessaire
+        
+        # Upload vers Cloudinary avec timeout et optimisations
         result = cloudinary.uploader.upload(
-            file,
+            file_content,
             folder=folder,
             resource_type="auto",  # Détection automatique (image, pdf, etc.)
             use_filename=True,
             unique_filename=True,
-            overwrite=False
+            overwrite=False,
+            timeout=60,  # Timeout de 60 secondes par fichier
+            chunk_size=6000000,  # 6MB chunks pour uploads plus rapides
+            eager_async=True  # Upload asynchrone des transformations
         )
         
         return {
@@ -66,10 +74,11 @@ def upload_file_to_cloudinary(file, folder="salsabil_uploads"):
         }
         
     except Exception as e:
-        print(f"❌ Erreur upload Cloudinary: {str(e)}")
+        error_msg = str(e)
+        print(f"❌ Erreur upload Cloudinary: {error_msg}")
         return {
             'success': False,
-            'error': str(e)
+            'error': error_msg
         }
 
 def delete_file_from_cloudinary(public_id):

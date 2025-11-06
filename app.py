@@ -33,7 +33,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Vérifier la configuration Cloudinary
 USE_CLOUDINARY = is_cloudinary_configured()
 if USE_CLOUDINARY:
-    print("☁️  Cloudinary configuré - Les fichiers seront stockés dans le cloud")
+    cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME')
+    print(f"☁️  Cloudinary configuré - Cloud: {cloud_name}")
+    print("   Les fichiers seront stockés dans le cloud")
 else:
     print("⚠️  Cloudinary NON configuré - Les fichiers seront stockés localement (non persistant sur Render)")
     print("   Pour activer Cloudinary, définir: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET")
@@ -319,20 +321,46 @@ def apply(job_id):
                              'lettre_recommandation', 'casier_judiciaire', 'diplome']
             
             print("📎 Traitement des fichiers...")
+            upload_start_time = datetime.now()
+            successful_uploads = 0
+            failed_uploads = 0
+            
             for file_field in files_to_upload:
                 file = request.files.get(file_field)
                 if file and file.filename and allowed_file(file.filename):
                     if USE_CLOUDINARY:
-                        # Upload vers Cloudinary
+                        # Upload vers Cloudinary avec fallback local
                         print(f"   ☁️  Upload de {file_field} vers Cloudinary...")
-                        result = upload_file_to_cloudinary(file, folder="salsabil_uploads")
-                        if result['success']:
-                            # Stocker l'URL Cloudinary au lieu du nom de fichier local
-                            uploaded_files[file_field] = result['url']
-                            print(f"   ✓ {file_field}: {result['url']}")
-                        else:
-                            uploaded_files[file_field] = None
-                            print(f"   ✗ {file_field}: Erreur upload - {result.get('error', 'Unknown')}")
+                        try:
+                            result = upload_file_to_cloudinary(file, folder="salsabil_uploads")
+                            if result['success']:
+                                # Stocker l'URL Cloudinary au lieu du nom de fichier local
+                                uploaded_files[file_field] = result['url']
+                                print(f"   ✓ {file_field}: Cloudinary OK")
+                                successful_uploads += 1
+                            else:
+                                # Fallback: stockage local si Cloudinary échoue
+                                print(f"   ⚠️  Cloudinary échec pour {file_field}, fallback local...")
+                                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                                filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                                file.seek(0)  # Reset file pointer
+                                file.save(filepath)
+                                uploaded_files[file_field] = filename
+                                print(f"   ✓ {file_field}: Sauvegardé localement (fallback)")
+                                failed_uploads += 1
+                        except Exception as e:
+                            # En cas d'erreur, sauvegarder localement
+                            print(f"   ❌ Erreur upload {file_field}: {str(e)}")
+                            print(f"   💾 Fallback: sauvegarde locale...")
+                            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                            filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                            file.seek(0)
+                            file.save(filepath)
+                            uploaded_files[file_field] = filename
+                            print(f"   ✓ {file_field}: Sauvegardé localement après erreur")
+                            failed_uploads += 1
                     else:
                         # Fallback: stockage local (non persistant sur Render)
                         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -344,6 +372,9 @@ def apply(job_id):
                 else:
                     uploaded_files[file_field] = None
                     print(f"   ✗ {file_field}: Non fourni")
+            
+            upload_duration = (datetime.now() - upload_start_time).total_seconds()
+            print(f"⏱️  Uploads terminés en {upload_duration:.1f}s ({successful_uploads} réussis, {failed_uploads} fallback local)")
             
             # Gérer la lettre de demande : textarea OU fichier uploadé
             lettre_demande_value = None
@@ -529,17 +560,57 @@ def apply_ar(job_id):
                              'lettre_recommandation', 'casier_judiciaire', 'diplome']
             
             print("📎 معالجة الملفات...")
+            upload_start_time = datetime.now()
+            successful_uploads = 0
+            failed_uploads = 0
+            
             for file_field in files_to_upload:
                 file = request.files.get(file_field)
                 if file and file.filename and allowed_file(file.filename):
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(filepath)
-                    uploaded_files[file_field] = filename
-                    print(f"   ✓ {file_field}: {filename}")
+                    if USE_CLOUDINARY:
+                        # Upload vers Cloudinary avec fallback local
+                        print(f"   ☁️  رفع {file_field} إلى Cloudinary...")
+                        try:
+                            result = upload_file_to_cloudinary(file, folder="salsabil_uploads")
+                            if result['success']:
+                                uploaded_files[file_field] = result['url']
+                                print(f"   ✓ {file_field}: Cloudinary OK")
+                                successful_uploads += 1
+                            else:
+                                # Fallback local
+                                print(f"   ⚠️  فشل Cloudinary لـ {file_field}, حفظ محلي...")
+                                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                                filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                                file.seek(0)
+                                file.save(filepath)
+                                uploaded_files[file_field] = filename
+                                print(f"   ✓ {file_field}: تم الحفظ محلياً (fallback)")
+                                failed_uploads += 1
+                        except Exception as e:
+                            print(f"   ❌ خطأ في رفع {file_field}: {str(e)}")
+                            print(f"   💾 Fallback: حفظ محلي...")
+                            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                            filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                            file.seek(0)
+                            file.save(filepath)
+                            uploaded_files[file_field] = filename
+                            print(f"   ✓ {file_field}: تم الحفظ محلياً بعد الخطأ")
+                            failed_uploads += 1
+                    else:
+                        # Stockage local uniquement
+                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                        filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        file.save(filepath)
+                        uploaded_files[file_field] = filename
+                        print(f"   ✓ {file_field}: {filename} (محلي)")
                 else:
                     uploaded_files[file_field] = None
+            
+            upload_duration = (datetime.now() - upload_start_time).total_seconds()
+            print(f"⏱️  اكتملت الرفوعات في {upload_duration:.1f}s ({successful_uploads} نجحت, {failed_uploads} fallback محلي)")
             
             # Gérer la lettre de demande
             lettre_demande_value = None
