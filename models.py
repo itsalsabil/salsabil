@@ -36,8 +36,9 @@ def delete_file_if_exists(filename):
     return False
 
 def delete_application_files(application):
-    """Supprimer tous les fichiers associés à une candidature"""
+    """Supprimer tous les fichiers associés à une candidature (locaux et Cloudinary)"""
     import os
+    from cloudinary_config import delete_file_from_cloudinary
     
     files_to_delete = [
         application.get('photo'),
@@ -50,9 +51,40 @@ def delete_application_files(application):
     ]
     
     deleted_count = 0
-    for filename in files_to_delete:
-        if delete_file_if_exists(filename):
-            deleted_count += 1
+    for file_url_or_name in files_to_delete:
+        if not file_url_or_name:
+            continue
+            
+        # Vérifier si c'est une URL Cloudinary
+        if file_url_or_name.startswith('http://') or file_url_or_name.startswith('https://'):
+            # C'est une URL Cloudinary - extraire le public_id
+            if 'cloudinary.com' in file_url_or_name:
+                try:
+                    # Format URL Cloudinary: https://res.cloudinary.com/cloud/image/upload/v123/folder/filename.ext
+                    # Public ID = folder/filename (sans extension pour les images)
+                    parts = file_url_or_name.split('/upload/')
+                    if len(parts) > 1:
+                        # Extraire le chemin après /upload/
+                        path_parts = parts[1].split('/')
+                        # Ignorer le v123456 (version) et reconstruire le public_id
+                        if len(path_parts) > 1:
+                            # Retirer l'extension du dernier élément
+                            filename_with_ext = path_parts[-1]
+                            filename_without_ext = '.'.join(filename_with_ext.split('.')[:-1])
+                            # Reconstruire le public_id
+                            public_id = '/'.join(path_parts[1:-1] + [filename_without_ext])
+                            
+                            if delete_file_from_cloudinary(public_id):
+                                deleted_count += 1
+                                print(f"☁️ Fichier Cloudinary supprimé: {public_id}")
+                            else:
+                                print(f"⚠️ Échec suppression Cloudinary: {public_id}")
+                except Exception as e:
+                    print(f"⚠️ Erreur lors de la suppression Cloudinary: {e}")
+        else:
+            # C'est un fichier local
+            if delete_file_if_exists(file_url_or_name):
+                deleted_count += 1
     
     # Supprimer le PDF de convocation s'il existe
     pdf_filename = application.get('interview_invitation_pdf')

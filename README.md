@@ -302,10 +302,3 @@ git push
 **Auteur :** Équipe Salsabil
 
 🎉 **Application 100% fonctionnelle et prête pour le déploiement !**
-
-# salsabil
-# salsabil
-# salsabil
-# salsabil
-# salsabil
-# salsabil

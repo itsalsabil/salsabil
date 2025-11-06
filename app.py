@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 # Importer les fonctions de la base de données
 from models import *
 from database import init_db
+# Importer la configuration Cloudinary
+from cloudinary_config import upload_file_to_cloudinary, is_cloudinary_configured
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -25,8 +27,16 @@ ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
-# Créer le dossier uploads s'il n'existe pas
+# Créer le dossier uploads s'il n'existe pas (fallback si Cloudinary non configuré)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Vérifier la configuration Cloudinary
+USE_CLOUDINARY = is_cloudinary_configured()
+if USE_CLOUDINARY:
+    print("☁️  Cloudinary configuré - Les fichiers seront stockés dans le cloud")
+else:
+    print("⚠️  Cloudinary NON configuré - Les fichiers seront stockés localement (non persistant sur Render)")
+    print("   Pour activer Cloudinary, définir: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET")
 
 # Définition des permissions par rôle
 ROLE_PERMISSIONS = {
@@ -86,6 +96,29 @@ def is_closing_soon(deadline_str):
     today = datetime.now()
     days_remaining = (deadline - today).days
     return days_remaining <= 7 and days_remaining >= 0
+
+def get_file_url(filename_or_url):
+    """
+    Retourne l'URL correcte pour un fichier (Cloudinary ou local)
+    
+    Args:
+        filename_or_url: Soit un nom de fichier local, soit une URL Cloudinary
+    
+    Returns:
+        str: URL complète du fichier
+    """
+    if not filename_or_url:
+        return None
+    
+    # Si c'est déjà une URL Cloudinary (commence par http), la retourner telle quelle
+    if filename_or_url.startswith('http://') or filename_or_url.startswith('https://'):
+        return filename_or_url
+    
+    # Sinon, c'est un fichier local - construire l'URL via url_for
+    return url_for('static', filename='uploads/' + filename_or_url)
+
+# Enregistrer le filtre Jinja pour les templates
+app.jinja_env.filters['file_url'] = get_file_url
 
 def allowed_file(filename):
     """Vérifie si le fichier a une extension autorisée"""
@@ -289,12 +322,25 @@ def apply(job_id):
             for file_field in files_to_upload:
                 file = request.files.get(file_field)
                 if file and file.filename and allowed_file(file.filename):
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(filepath)
-                    uploaded_files[file_field] = filename
-                    print(f"   ✓ {file_field}: {filename}")
+                    if USE_CLOUDINARY:
+                        # Upload vers Cloudinary
+                        print(f"   ☁️  Upload de {file_field} vers Cloudinary...")
+                        result = upload_file_to_cloudinary(file, folder="salsabil_uploads")
+                        if result['success']:
+                            # Stocker l'URL Cloudinary au lieu du nom de fichier local
+                            uploaded_files[file_field] = result['url']
+                            print(f"   ✓ {file_field}: {result['url']}")
+                        else:
+                            uploaded_files[file_field] = None
+                            print(f"   ✗ {file_field}: Erreur upload - {result.get('error', 'Unknown')}")
+                    else:
+                        # Fallback: stockage local (non persistant sur Render)
+                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                        filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        file.save(filepath)
+                        uploaded_files[file_field] = filename
+                        print(f"   ✓ {file_field}: {filename} (local)")
                 else:
                     uploaded_files[file_field] = None
                     print(f"   ✗ {file_field}: Non fourni")
