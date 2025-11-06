@@ -209,19 +209,45 @@ def get_redirect_with_lang(route_name, **kwargs):
 @app.route('/serve-file/<filename>')
 def serve_file(filename):
     """
-    Route pour servir les fichiers locaux en priorité
-    Fallback vers Cloudinary si le fichier local n'existe pas (après redéploiement Render)
+    Route pour servir les fichiers locaux en priorité avec gestion de l'aperçu
+    - Supporte l'aperçu inline pour images et PDFs
+    - Fallback vers Cloudinary si le fichier local n'existe pas (après redéploiement Render)
     """
     import os
-    from flask import send_file, abort
+    from flask import send_file, abort, request, Response
+    import mimetypes
+    
+    # Vérifier si c'est une demande d'aperçu (preview=true dans l'URL)
+    is_preview = request.args.get('preview', 'false').lower() == 'true'
     
     # 1. PRIORITÉ : Chercher en local d'abord
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     
     if os.path.exists(filepath):
         # Fichier local trouvé - le servir directement
-        print(f"📂 Serving local file: {filename}")
-        return send_file(filepath)
+        print(f"📂 Serving local file: {filename} (preview={is_preview})")
+        
+        # Détecter le type MIME du fichier
+        mimetype = mimetypes.guess_type(filepath)[0] or 'application/octet-stream'
+        
+        if is_preview:
+            # Mode aperçu : forcer l'affichage inline
+            # Pour PDFs et images, afficher dans le navigateur
+            if mimetype == 'application/pdf' or mimetype.startswith('image/'):
+                return send_file(
+                    filepath,
+                    mimetype=mimetype,
+                    as_attachment=False,  # Afficher inline (pas de téléchargement)
+                    download_name=filename
+                )
+        
+        # Mode téléchargement par défaut
+        return send_file(
+            filepath,
+            mimetype=mimetype,
+            as_attachment=True,  # Forcer le téléchargement
+            download_name=filename
+        )
     
     # 2. FALLBACK : Si fichier local absent, chercher sur Cloudinary
     print(f"⚠️  Fichier local absent: {filename}, recherche sur Cloudinary...")
@@ -253,6 +279,13 @@ def serve_file(filename):
     if cloudinary_url:
         print(f"☁️  Redirection vers Cloudinary backup: {cloudinary_url[:80]}...")
         from flask import redirect
+        
+        # Si c'est un aperçu de PDF, ajouter le paramètre pour forcer l'inline
+        if is_preview and cloudinary_url.lower().endswith('.pdf'):
+            # Cloudinary supporte fl_attachment pour forcer le téléchargement
+            # On veut l'inverse : ne PAS ajouter ce paramètre pour permettre l'aperçu
+            pass
+        
         return redirect(cloudinary_url)
     
     # 3. Fichier introuvable
@@ -1295,6 +1328,7 @@ def admin_phase2_decision(app_id):
     from notifications import prepare_notification
     
     decision = request.form.get('decision')  # 'accepted' ou 'rejected'
+    work_start_date = request.form.get('work_start_date')  # Date de début de travail
     rejection_reason = request.form.get('rejection_reason')
     interview_notes = request.form.get('interview_notes')
     
@@ -1310,11 +1344,12 @@ def admin_phase2_decision(app_id):
             from models import add_interview_notes
             add_interview_notes(app_id, interview_notes)
         
-        # Mettre à jour le statut en base de données
-        update_phase2_status(app_id, decision, rejection_reason)
+        # Mettre à jour le statut en base de données (avec date de début si accepté)
+        update_phase2_status(app_id, decision, work_start_date, rejection_reason)
         
-        # Générer le PDF de lettre d'acceptation si le candidat est accepté
-        pdf_path = None
+        # Générer les PDFs de lettre d'acceptation (FR + AR) si le candidat est accepté
+        pdf_path_fr = None
+        pdf_path_ar = None
         if decision == 'accepted':
             from pdf_generator import (generate_acceptance_letter_pdf, 
                                       generate_acceptance_letter_filename,
@@ -1325,35 +1360,46 @@ def admin_phase2_decision(app_id):
             # Générer un code de vérification unique
             verification_code = generate_verification_code(app_id, 'acceptation')
             
-            # Générer le nom du fichier
+            # Générer les noms des fichiers
             candidate_name = f"{application['prenom']}_{application['nom']}"
-            pdf_filename = generate_acceptance_letter_filename(candidate_name, app_id)
+            pdf_filename_fr = generate_acceptance_letter_filename(candidate_name, app_id)
+            pdf_filename_ar = pdf_filename_fr.replace('.pdf', '_AR.pdf')
             
             # Créer le dossier si nécessaire
             acceptance_dir = os.path.join('static', 'acceptances')
             if not os.path.exists(acceptance_dir):
                 os.makedirs(acceptance_dir)
             
-            # Chemin complet du fichier
-            pdf_path = os.path.join(acceptance_dir, pdf_filename)
+            # Chemins complets des fichiers
+            pdf_path_fr = os.path.join(acceptance_dir, pdf_filename_fr)
+            pdf_path_ar = os.path.join(acceptance_dir, pdf_filename_ar)
             
             # URL de base pour le QR code
             base_url = request.url_root.rstrip('/')
             
-            # Détecter la langue actuelle
-            lang = session.get('lang', 'fr')
+            # Ajouter la date de début au dictionnaire application
+            application['work_start_date'] = work_start_date
             
-            # Générer le PDF avec QR code
+            # Générer le PDF VERSION FRANÇAISE
             generate_acceptance_letter_pdf(
                 application, 
-                pdf_path,
+                pdf_path_fr,
                 verification_code=verification_code,
                 base_url=base_url,
-                lang=lang
+                lang='fr'
             )
             
-            # Sauvegarder le chemin dans la base de données
-            save_acceptance_letter_pdf(app_id, pdf_filename)
+            # Générer le PDF VERSION ARABE
+            generate_acceptance_letter_pdf(
+                application, 
+                pdf_path_ar,
+                verification_code=verification_code,
+                base_url=base_url,
+                lang='ar'
+            )
+            
+            # Sauvegarder les deux chemins dans la base de données
+            save_acceptance_letter_pdf(app_id, pdf_filename_fr, pdf_filename_ar)
             
             # Enregistrer le code de vérification dans la base de données
             conn = get_db_connection()
@@ -1368,7 +1414,7 @@ def admin_phase2_decision(app_id):
                 f"{application['prenom']} {application['nom']}",
                 application.get('selected_job_title') or application['job_title'],
                 datetime.now().strftime('%d/%m/%Y'),
-                pdf_path,
+                pdf_path_fr,
                 'valide'
             ))
             conn.commit()
@@ -1388,11 +1434,12 @@ def admin_phase2_decision(app_id):
             'phase': 2,
             'email_link': notifications['email_link'],
             'whatsapp_link': notifications['whatsapp_link'],
-            'pdf_path': pdf_path
+            'pdf_path_fr': pdf_path_fr,
+            'pdf_path_ar': pdf_path_ar
         }
         
         if decision == 'accepted':
-            flash('🎉 Candidat accepté ! Lettre d\'acceptation générée avec succès !', 'success')
+            flash('🎉 Candidat accepté ! Lettres d\'acceptation bilingues (FR + AR) générées avec succès !', 'success')
         else:
             flash('❌ Candidat rejeté après interview', 'info')
         
@@ -1422,7 +1469,7 @@ def admin_send_notification(app_id):
 @login_required
 @permission_required('edit_application')
 def admin_generate_interview_invitation(app_id):
-    """Route pour générer le PDF de convocation à l'entretien avec QR code de vérification"""
+    """Route pour générer les PDFs de convocation à l'entretien (FR + AR) avec QR code de vérification"""
     from pdf_generator import (generate_interview_invitation_pdf, 
                                generate_interview_invitation_filename,
                                generate_verification_code)
@@ -1450,29 +1497,38 @@ def admin_generate_interview_invitation(app_id):
         
         # Générer le nom du fichier
         candidate_name = f"{application['prenom']}_{application['nom']}"
-        pdf_filename = generate_interview_invitation_filename(candidate_name, app_id)
+        pdf_filename_fr = generate_interview_invitation_filename(candidate_name, app_id)
+        pdf_filename_ar = pdf_filename_fr.replace('.pdf', '_AR.pdf')
         
-        # Chemin complet du fichier
-        pdf_path = os.path.join('static', 'convocations', pdf_filename)
+        # Chemins complets des fichiers
+        pdf_path_fr = os.path.join('static', 'convocations', pdf_filename_fr)
+        pdf_path_ar = os.path.join('static', 'convocations', pdf_filename_ar)
         
         # URL de base pour le QR code
         base_url = request.url_root.rstrip('/')
         
-        # Détecter la langue actuelle
-        lang = session.get('lang', 'fr')
-        
-        # Générer le PDF avec QR code
+        # Générer le PDF VERSION FRANÇAISE
         generate_interview_invitation_pdf(
             application_data=application,
             interview_date=application['interview_date'],
-            output_path=pdf_path,
+            output_path=pdf_path_fr,
             verification_code=verification_code,
             base_url=base_url,
-            lang=lang
+            lang='fr'
         )
         
-        # Sauvegarder le chemin dans la base de données
-        save_interview_invitation_pdf(app_id, pdf_filename)
+        # Générer le PDF VERSION ARABE
+        generate_interview_invitation_pdf(
+            application_data=application,
+            interview_date=application['interview_date'],
+            output_path=pdf_path_ar,
+            verification_code=verification_code,
+            base_url=base_url,
+            lang='ar'
+        )
+        
+        # Sauvegarder les deux chemins dans la base de données
+        save_interview_invitation_pdf(app_id, pdf_filename_fr, pdf_filename_ar)
         
         # Enregistrer le code de vérification dans la base de données
         conn = get_db_connection()
@@ -1488,16 +1544,16 @@ def admin_generate_interview_invitation(app_id):
             f"{application['prenom']} {application['nom']}",
             application.get('selected_job_title') or application['job_title'],
             datetime.now().strftime('%d/%m/%Y'),
-            pdf_path,
+            pdf_path_fr,
             'valide'
         ))
         conn.commit()
         conn.close()
         
-        flash('✅ Convocation générée avec succès avec code de vérification QR !', 'success')
+        flash('✅ Convocations bilingues (FR + AR) générées avec succès avec code QR !', 'success')
         
     except Exception as e:
-        flash(f'Erreur lors de la génération du PDF: {str(e)}', 'error')
+        flash(f'Erreur lors de la génération des PDFs: {str(e)}', 'error')
     
     return redirect(url_for('admin_application_detail', app_id=app_id))
 
@@ -1505,22 +1561,70 @@ def admin_generate_interview_invitation(app_id):
 @login_required
 @permission_required('view_applications')
 def admin_download_interview_invitation(app_id):
-    """Route pour télécharger le PDF de convocation"""
+    """Route pour télécharger le PDF de convocation (FR par défaut)"""
+    return admin_download_interview_invitation_lang(app_id, 'fr')
+
+@app.route('/admin/applications/<int:app_id>/download-interview-invitation/<lang>')
+@login_required
+@permission_required('view_applications')
+def admin_download_interview_invitation_lang(app_id, lang='fr'):
+    """Route pour télécharger le PDF de convocation dans la langue spécifiée (FR ou AR)"""
     from models import get_interview_invitation_pdf
     
     try:
-        # Récupérer le nom du fichier depuis la BDD
-        pdf_filename = get_interview_invitation_pdf(app_id)
+        # Récupérer le nom du fichier depuis la BDD selon la langue
+        pdf_filename = get_interview_invitation_pdf(app_id, lang)
         
         if not pdf_filename:
-            flash('Aucune convocation n\'a été générée pour cette candidature', 'error')
+            flash(f'Aucune convocation ({lang.upper()}) n\'a été générée pour cette candidature', 'error')
             return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Chemin complet du fichier
         pdf_path = os.path.join('static', 'convocations', pdf_filename)
         
         if not os.path.exists(pdf_path):
-            flash('Le fichier de convocation est introuvable', 'error')
+            flash(f'Le fichier de convocation ({lang.upper()}) est introuvable', 'error')
+            return redirect(url_for('admin_application_detail', app_id=app_id))
+        
+        # Envoyer le fichier
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=pdf_filename
+        )
+        
+    except Exception as e:
+        flash(f'Erreur: {str(e)}', 'error')
+        return redirect(url_for('admin_application_detail', app_id=app_id))
+
+@app.route('/admin/applications/<int:app_id>/download-acceptance-letter')
+@login_required
+@permission_required('view_applications')
+def admin_download_acceptance_letter(app_id):
+    """Route pour télécharger le PDF de lettre d'acceptation (FR par défaut)"""
+    return admin_download_acceptance_letter_lang(app_id, 'fr')
+
+@app.route('/admin/applications/<int:app_id>/download-acceptance-letter/<lang>')
+@login_required
+@permission_required('view_applications')
+def admin_download_acceptance_letter_lang(app_id, lang='fr'):
+    """Route pour télécharger le PDF de lettre d'acceptation dans la langue spécifiée (FR ou AR)"""
+    from models import get_acceptance_letter_pdf
+    
+    try:
+        # Récupérer le nom du fichier depuis la BDD selon la langue
+        pdf_filename = get_acceptance_letter_pdf(app_id, lang)
+        
+        if not pdf_filename:
+            flash(f'Aucune lettre d\'acceptation ({lang.upper()}) n\'a été générée pour cette candidature', 'error')
+            return redirect(url_for('admin_application_detail', app_id=app_id))
+        
+        # Chemin complet du fichier
+        pdf_path = os.path.join('static', 'acceptances', pdf_filename)
+        
+        if not os.path.exists(pdf_path):
+            flash(f'Le fichier de lettre d\'acceptation ({lang.upper()}) est introuvable', 'error')
             return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Envoyer le fichier
@@ -1626,14 +1730,31 @@ def admin_job_candidates_ar(job_id):
 @login_required
 @permission_required('add_job')
 def admin_add_job():
-    """Route pour ajouter une nouvelle offre"""
+    """Route pour ajouter une nouvelle offre avec support bilingue (FR + AR)"""
+    
+    print("\n" + "="*80)
+    print("🚀 AJOUT D'OFFRE BILINGUE - DEBUT")
+    print("="*80)
     
     try:
-        # Récupérer les requirements
+        # Récupérer les requirements (FR + AR)
         requirements_text = request.form.get('requirements', '').strip()
+        requirements_text_ar = request.form.get('requirements_ar', '').strip()
         
-        # Récupérer le department
+        print(f"📝 Requirements FR: {requirements_text[:100]}...")
+        print(f"📝 Requirements AR: {requirements_text_ar[:100]}...")
+        
+        # Récupérer le department (FR + AR)
         department = request.form.get('department', '').strip()
+        autre_department = request.form.get('autre_department', '').strip()
+        department_ar = request.form.get('department_ar', '').strip()
+        
+        # Si "Autres" est sélectionné, utiliser le champ personnalisé
+        if department == 'Autres' and autre_department:
+            department = autre_department
+        
+        print(f"📁 Department FR: {department}")
+        print(f"📁 Department AR: {department_ar}")
         
         # Récupérer les langues sélectionnées
         langues = []
@@ -1646,20 +1767,51 @@ def admin_add_job():
         
         langues_requises = ', '.join(langues) if langues else None
         
-        # Créer le job dans la base de données
+        print(f"🌐 Langues requises: {langues_requises}")
+        
+        # Récupérer tous les champs
+        titre = request.form.get('title')
+        titre_ar = request.form.get('title_ar')
+        type_job = request.form.get('type')
+        lieu = request.form.get('location')
+        lieu_ar = request.form.get('location_ar')
+        description = request.form.get('description')
+        description_ar = request.form.get('description_ar')
+        date_limite = request.form.get('deadline')
+        
+        print(f"📋 Titre FR: {titre}")
+        print(f"📋 Titre AR: {titre_ar}")
+        print(f"📍 Lieu FR: {lieu}")
+        print(f"📍 Lieu AR: {lieu_ar}")
+        print(f"📅 Date limite: {date_limite}")
+        
+        # Créer le job dans la base de données avec support bilingue
         job_id = create_job(
-            titre=request.form.get('title'),
-            type_job=request.form.get('type'),
-            lieu=request.form.get('location'),
-            description=request.form.get('description'),
-            date_limite=request.form.get('deadline'),
+            titre=titre,
+            titre_ar=titre_ar,
+            type_job=type_job,
+            lieu=lieu,
+            lieu_ar=lieu_ar,
+            description=description,
+            description_ar=description_ar,
+            date_limite=date_limite,
             requirements=requirements_text if requirements_text else None,
+            requirements_ar=requirements_text_ar if requirements_text_ar else None,
             department=department if department else None,
+            department_ar=department_ar if department_ar else None,
             langues_requises=langues_requises
         )
         
-        flash('Offre d\'emploi ajoutée avec succès!', 'success')
+        print(f"✅ Job créé avec ID: {job_id}")
+        print("="*80 + "\n")
+        
+        flash('Offre d\'emploi bilingue ajoutée avec succès! (FR + AR)', 'success')
     except Exception as e:
+        print(f"❌ ERREUR lors de l'ajout: {str(e)}")
+        print(f"   Type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
+        print("="*80 + "\n")
         flash(f'Erreur lors de l\'ajout de l\'offre: {str(e)}', 'error')
     
     return redirect(url_for('admin_jobs'))
@@ -1668,16 +1820,23 @@ def admin_add_job():
 @login_required
 @permission_required('edit_job')
 def admin_edit_job():
-    """Route pour modifier une offre existante"""
+    """Route pour modifier une offre existante avec support bilingue (FR + AR)"""
     
     try:
         job_id = int(request.form.get('job_id'))
         
-        # Récupérer les requirements
+        # Récupérer les requirements (FR + AR)
         requirements_text = request.form.get('requirements', '').strip()
+        requirements_text_ar = request.form.get('requirements_ar', '').strip()
         
-        # Récupérer le department
+        # Récupérer le department (FR + AR)
         department = request.form.get('department', '').strip()
+        autre_department = request.form.get('autre_department', '').strip()
+        department_ar = request.form.get('department_ar', '').strip()
+        
+        # Si "Autres" est sélectionné, utiliser le champ personnalisé
+        if department == 'Autres' and autre_department:
+            department = autre_department
         
         # Récupérer les langues sélectionnées
         langues = []
@@ -1690,16 +1849,21 @@ def admin_edit_job():
         
         langues_requises = ', '.join(langues) if langues else None
         
-        # Mettre à jour le job dans la base de données
+        # Mettre à jour le job dans la base de données avec support bilingue
         update_job(
             job_id=job_id,
             titre=request.form.get('title'),
+            titre_ar=request.form.get('title_ar'),
             type_job=request.form.get('type'),
             lieu=request.form.get('location'),
+            lieu_ar=request.form.get('location_ar'),
             description=request.form.get('description'),
+            description_ar=request.form.get('description_ar'),
             date_limite=request.form.get('deadline'),
             requirements=requirements_text if requirements_text else None,
+            requirements_ar=requirements_text_ar if requirements_text_ar else None,
             department=department if department else None,
+            department_ar=department_ar if department_ar else None,
             langues_requises=langues_requises
         )
         

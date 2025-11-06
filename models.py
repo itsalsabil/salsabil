@@ -197,7 +197,7 @@ def delete_employee(emp_id):
 # ==================== JOBS ====================
 
 def get_all_jobs():
-    """Récupérer tous les jobs"""
+    """Récupérer tous les jobs avec support bilingue"""
     conn = get_db_connection()
     jobs = conn.execute('SELECT * FROM jobs ORDER BY id DESC').fetchall()
     conn.close()
@@ -219,11 +219,19 @@ def get_all_jobs():
             job_dict['requirements'] = [r.strip() for r in req_text.split('\n') if r.strip()]
         else:
             job_dict['requirements'] = []
+        
+        # Parser les requirements arabes
+        req_text_ar = job_dict.get('requirements_ar', '')
+        if req_text_ar:
+            job_dict['requirements_ar'] = [r.strip() for r in req_text_ar.split('\n') if r.strip()]
+        else:
+            job_dict['requirements_ar'] = []
+        
         result.append(job_dict)
     return result
 
 def get_job_by_id(job_id):
-    """Récupérer un job par son ID"""
+    """Récupérer un job par son ID avec support bilingue"""
     conn = get_db_connection()
     job = conn.execute('SELECT * FROM jobs WHERE id = ?', (job_id,)).fetchone()
     conn.close()
@@ -237,37 +245,55 @@ def get_job_by_id(job_id):
         # Si department existe dans la BDD, l'utiliser, sinon utiliser type comme fallback
         if not job_dict.get('department'):
             job_dict['department'] = job_dict.get('type', 'Non spécifié')
-        # Parser les requirements (stockées comme texte avec \n comme séparateur)
+        # Parser les requirements
         req_text = job_dict.get('requirements', '')
         if req_text:
             job_dict['requirements'] = [r.strip() for r in req_text.split('\n') if r.strip()]
         else:
             job_dict['requirements'] = []
+        
+        # Parser les requirements arabes
+        req_text_ar = job_dict.get('requirements_ar', '')
+        if req_text_ar:
+            job_dict['requirements_ar'] = [r.strip() for r in req_text_ar.split('\n') if r.strip()]
+        else:
+            job_dict['requirements_ar'] = []
+        
         return job_dict
     return None
 
-def create_job(titre, type_job, lieu, description, date_limite, requirements=None, department=None, langues_requises=None):
-    """Créer un nouveau job"""
+def create_job(titre, type_job, lieu, description, date_limite, requirements=None, department=None, langues_requises=None,
+               titre_ar=None, lieu_ar=None, description_ar=None, requirements_ar=None, department_ar=None):
+    """Créer un nouveau job avec support bilingue (FR + AR)"""
     conn = get_db_connection()
     cursor = conn.cursor()
     date_publication = datetime.now().strftime('%Y-%m-%d')
     cursor.execute('''
-        INSERT INTO jobs (titre, type, lieu, description, requirements, department, date_limite, date_publication, langues_requises)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (titre, type_job, lieu, description, requirements, department, date_limite, date_publication, langues_requises))
+        INSERT INTO jobs (titre, titre_ar, type, lieu, lieu_ar, description, description_ar, 
+                         requirements, requirements_ar, department, department_ar, date_limite, 
+                         date_publication, langues_requises)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (titre, titre_ar, type_job, lieu, lieu_ar, description, description_ar, 
+          requirements, requirements_ar, department, department_ar, date_limite, 
+          date_publication, langues_requises))
     conn.commit()
     job_id = cursor.lastrowid
     conn.close()
     return job_id
 
-def update_job(job_id, titre, type_job, lieu, description, date_limite, requirements=None, department=None, langues_requises=None):
-    """Mettre à jour un job"""
+def update_job(job_id, titre, type_job, lieu, description, date_limite, requirements=None, department=None, langues_requises=None,
+               titre_ar=None, lieu_ar=None, description_ar=None, requirements_ar=None, department_ar=None):
+    """Mettre à jour un job avec support bilingue (FR + AR)"""
     conn = get_db_connection()
     conn.execute('''
         UPDATE jobs 
-        SET titre = ?, type = ?, lieu = ?, description = ?, requirements = ?, department = ?, date_limite = ?, langues_requises = ?
+        SET titre = ?, titre_ar = ?, type = ?, lieu = ?, lieu_ar = ?, 
+            description = ?, description_ar = ?, requirements = ?, requirements_ar = ?, 
+            department = ?, department_ar = ?, date_limite = ?, langues_requises = ?
         WHERE id = ?
-    ''', (titre, type_job, lieu, description, requirements, department, date_limite, langues_requises, job_id))
+    ''', (titre, titre_ar, type_job, lieu, lieu_ar, description, description_ar, 
+          requirements, requirements_ar, department, department_ar, date_limite, 
+          langues_requises, job_id))
     conn.commit()
     conn.close()
 
@@ -568,13 +594,14 @@ def update_phase1_status(app_id, decision, interview_date=None, rejection_reason
     conn.commit()
     conn.close()
 
-def update_phase2_status(app_id, decision, rejection_reason=None):
+def update_phase2_status(app_id, decision, work_start_date=None, rejection_reason=None):
     """
     Mettre à jour le statut de la Phase 2 (après interview)
     
     Args:
         app_id: ID de la candidature
         decision: 'accepted' ou 'rejected'
+        work_start_date: Date de début de travail (si accepté)
         rejection_reason: Raison du rejet (si rejeté)
     """
     conn = get_db_connection()
@@ -588,10 +615,11 @@ def update_phase2_status(app_id, decision, rejection_reason=None):
             UPDATE applications 
             SET phase2_status = ?,
                 phase2_date = ?,
+                work_start_date = ?,
                 workflow_phase = 'completed',
                 status = 'acceptée'
             WHERE id = ?
-        ''', (decision, current_date, app_id))
+        ''', (decision, current_date, work_start_date, app_id))
     elif decision == 'rejected':
         cursor.execute('''
             UPDATE applications 
@@ -625,29 +653,57 @@ def add_interview_notes(app_id, notes):
     conn.commit()
     conn.close()
 
-def save_interview_invitation_pdf(app_id, pdf_filename):
-    """Sauvegarder le chemin du PDF de convocation"""
+def save_interview_invitation_pdf(app_id, pdf_filename_fr, pdf_filename_ar=None):
+    """Sauvegarder les chemins des PDFs de convocation (FR + AR)"""
     conn = get_db_connection()
-    conn.execute('UPDATE applications SET interview_invitation_pdf = ? WHERE id = ?', (pdf_filename, app_id))
+    if pdf_filename_ar:
+        conn.execute('''
+            UPDATE applications 
+            SET interview_invitation_pdf = ?, interview_invitation_pdf_ar = ? 
+            WHERE id = ?
+        ''', (pdf_filename_fr, pdf_filename_ar, app_id))
+    else:
+        conn.execute('UPDATE applications SET interview_invitation_pdf = ? WHERE id = ?', (pdf_filename_fr, app_id))
     conn.commit()
     conn.close()
 
-def get_interview_invitation_pdf(app_id):
-    """Récupérer le chemin du PDF de convocation"""
+def get_interview_invitation_pdf(app_id, lang='fr'):
+    """Récupérer le chemin du PDF de convocation (FR ou AR)"""
     conn = get_db_connection()
-    result = conn.execute('SELECT interview_invitation_pdf FROM applications WHERE id = ?', (app_id,)).fetchone()
-    conn.close()
-    return result['interview_invitation_pdf'] if result else None
+    if lang == 'ar':
+        result = conn.execute('SELECT interview_invitation_pdf_ar FROM applications WHERE id = ?', (app_id,)).fetchone()
+        conn.close()
+        return result['interview_invitation_pdf_ar'] if result else None
+    else:
+        result = conn.execute('SELECT interview_invitation_pdf FROM applications WHERE id = ?', (app_id,)).fetchone()
+        conn.close()
+        return result['interview_invitation_pdf'] if result else None
 
-def save_acceptance_letter_pdf(app_id, pdf_filename):
-    """Sauvegarder le chemin du PDF de lettre d'acceptation"""
+def save_acceptance_letter_pdf(app_id, pdf_filename_fr, pdf_filename_ar=None):
+    """Sauvegarder les chemins des PDFs de lettre d'acceptation (FR + AR)"""
     conn = get_db_connection()
-    conn.execute('UPDATE applications SET acceptance_letter_pdf = ? WHERE id = ?', (pdf_filename, app_id))
+    if pdf_filename_ar:
+        conn.execute('''
+            UPDATE applications 
+            SET acceptance_letter_pdf = ?, acceptance_letter_pdf_ar = ? 
+            WHERE id = ?
+        ''', (pdf_filename_fr, pdf_filename_ar, app_id))
+    else:
+        conn.execute('UPDATE applications SET acceptance_letter_pdf = ? WHERE id = ?', (pdf_filename_fr, app_id))
     conn.commit()
     conn.close()
 
-def get_acceptance_letter_pdf(app_id):
-    """Récupérer le chemin du PDF de lettre d'acceptation"""
+def get_acceptance_letter_pdf(app_id, lang='fr'):
+    """Récupérer le chemin du PDF de lettre d'acceptation (FR ou AR)"""
+    conn = get_db_connection()
+    if lang == 'ar':
+        result = conn.execute('SELECT acceptance_letter_pdf_ar FROM applications WHERE id = ?', (app_id,)).fetchone()
+        conn.close()
+        return result['acceptance_letter_pdf_ar'] if result else None
+    else:
+        result = conn.execute('SELECT acceptance_letter_pdf FROM applications WHERE id = ?', (app_id,)).fetchone()
+        conn.close()
+        return result['acceptance_letter_pdf'] if result else None
     conn = get_db_connection()
     result = conn.execute('SELECT acceptance_letter_pdf FROM applications WHERE id = ?', (app_id,)).fetchone()
     conn.close()

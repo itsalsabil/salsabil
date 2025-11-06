@@ -193,11 +193,16 @@ def init_db():
             CREATE TABLE IF NOT EXISTS jobs (
                 id SERIAL PRIMARY KEY,
                 titre VARCHAR(500) NOT NULL,
+                titre_ar VARCHAR(500),
                 type VARCHAR(100) NOT NULL,
                 lieu VARCHAR(255) NOT NULL,
+                lieu_ar VARCHAR(255),
                 description TEXT NOT NULL,
+                description_ar TEXT,
                 requirements TEXT,
+                requirements_ar TEXT,
                 department VARCHAR(255),
+                department_ar VARCHAR(255),
                 langues_requises VARCHAR(255),
                 date_limite DATE NOT NULL,
                 date_publication TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -208,11 +213,16 @@ def init_db():
             CREATE TABLE IF NOT EXISTS jobs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 titre TEXT NOT NULL,
+                titre_ar TEXT,
                 type TEXT NOT NULL,
                 lieu TEXT NOT NULL,
+                lieu_ar TEXT,
                 description TEXT NOT NULL,
+                description_ar TEXT,
                 requirements TEXT,
+                requirements_ar TEXT,
                 department TEXT,
+                department_ar TEXT,
                 date_limite TEXT NOT NULL,
                 date_publication TEXT DEFAULT CURRENT_TIMESTAMP
             )
@@ -268,13 +278,16 @@ def init_db():
                 interview_date DATE,
                 interview_notes TEXT,
                 interview_invitation_pdf VARCHAR(500),
+                interview_invitation_pdf_ar VARCHAR(500),
                 phase2_status VARCHAR(50),
                 phase2_date DATE,
                 phase2_notification_sent INTEGER DEFAULT 0,
+                work_start_date DATE,
                 rejection_reason TEXT,
                 selected_job_title VARCHAR(500),
                 is_favorite INTEGER DEFAULT 0,
                 acceptance_letter_pdf VARCHAR(500),
+                acceptance_letter_pdf_ar VARCHAR(500),
                 FOREIGN KEY (job_id) REFERENCES jobs (id) ON DELETE SET NULL
             )
         ''')
@@ -307,10 +320,14 @@ def init_db():
                 interview_date TEXT,
                 interview_notes TEXT,
                 interview_invitation_pdf TEXT,
+                interview_invitation_pdf_ar TEXT,
                 phase2_status TEXT,
                 phase2_date TEXT,
                 phase2_notification_sent INTEGER DEFAULT 0,
+                work_start_date TEXT,
                 rejection_reason TEXT,
+                acceptance_letter_pdf TEXT,
+                acceptance_letter_pdf_ar TEXT,
                 FOREIGN KEY (job_id) REFERENCES jobs (id)
             )
         ''')

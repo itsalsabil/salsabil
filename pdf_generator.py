@@ -417,23 +417,42 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
     except:
         formatted_date = interview_date
         formatted_day = interview_date
-        formatted_time = "À confirmer"
+        formatted_time = "À confirmer" if lang == 'fr' else "يتم التأكيد"
     
-    # Traduction des jours en français
-    days_fr = {
-        'Monday': 'Lundi', 'Tuesday': 'Mardi', 'Wednesday': 'Mercredi',
-        'Thursday': 'Jeudi', 'Friday': 'Vendredi', 'Saturday': 'Samedi', 'Sunday': 'Dimanche'
-    }
-    months_fr = {
-        'January': 'janvier', 'February': 'février', 'March': 'mars', 'April': 'avril',
-        'May': 'mai', 'June': 'juin', 'July': 'juillet', 'August': 'août',
-        'September': 'septembre', 'October': 'octobre', 'November': 'novembre', 'December': 'décembre'
-    }
-    
-    for eng, fr in days_fr.items():
-        formatted_date = formatted_date.replace(eng, fr)
-    for eng, fr in months_fr.items():
-        formatted_date = formatted_date.replace(eng, fr)
+    # Traduction des jours et mois selon la langue
+    if lang == 'ar':
+        # Traduction en arabe
+        days_ar = {
+            'Monday': 'الإثنين', 'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء',
+            'Thursday': 'الخميس', 'Friday': 'الجمعة', 'Saturday': 'السبت', 'Sunday': 'الأحد'
+        }
+        months_ar = {
+            'January': 'يناير', 'February': 'فبراير', 'March': 'مارس', 'April': 'أبريل',
+            'May': 'مايو', 'June': 'يونيو', 'July': 'يوليو', 'August': 'أغسطس',
+            'September': 'سبتمبر', 'October': 'أكتوبر', 'November': 'نوفمبر', 'December': 'ديسمبر'
+        }
+        
+        for eng, ar in days_ar.items():
+            formatted_date = formatted_date.replace(eng, ar)
+        for eng, ar in months_ar.items():
+            formatted_date = formatted_date.replace(eng, ar)
+        formatted_date = formatted_date.replace(' à ', ' في الساعة ')
+    else:
+        # Traduction en français
+        days_fr = {
+            'Monday': 'Lundi', 'Tuesday': 'Mardi', 'Wednesday': 'Mercredi',
+            'Thursday': 'Jeudi', 'Friday': 'Vendredi', 'Saturday': 'Samedi', 'Sunday': 'Dimanche'
+        }
+        months_fr = {
+            'January': 'janvier', 'February': 'février', 'March': 'mars', 'April': 'avril',
+            'May': 'mai', 'June': 'juin', 'July': 'juillet', 'August': 'août',
+            'September': 'septembre', 'October': 'octobre', 'November': 'novembre', 'December': 'décembre'
+        }
+        
+        for eng, fr in days_fr.items():
+            formatted_date = formatted_date.replace(eng, fr)
+        for eng, fr in months_fr.items():
+            formatted_date = formatted_date.replace(eng, fr)
     
     # Créer un tableau pour les informations
     interview_info = [
@@ -448,8 +467,8 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
         ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#ecf0f1')),
         ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#2c3e50')),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 0), (0, -1), FONT_NAME_BOLD),
+        ('FONTNAME', (1, 0), (1, -1), FONT_NAME),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
         ('TOPPADDING', (0, 0), (-1, -1), 8),
@@ -638,7 +657,7 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
     )
     
     current_date = datetime.now().strftime('%d/%m/%Y')
-    date_text = f"Djibouti, {t['issued']} {current_date}" if lang == 'fr' else f"جيبوتي، {t['issued']} {current_date}"
+    date_text = f"Selea, {t['issued']} {current_date}" if lang == 'fr' else f"جيبوتي، {t['issued']} {current_date}"
     elements.append(Paragraph(date_text, date_style))
     elements.append(Spacer(1, 1*cm))
     
@@ -717,9 +736,9 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
     contact_label_address = '📍 Adresse' if lang == 'fr' else '📍 العنوان'
     
     contact_data = [
-        [contact_label_phone, '+253 XXX XXX XXX'],
-        [contact_label_email, 'rh@salsabil.dj'],
-        [contact_label_address, 'SALSABIL, Djibouti']
+        [contact_label_phone, '+269 447 15 85'],
+        [contact_label_email, 'hr.usinesalsabil@gmail.com'],
+        [contact_label_address, 'SALSABIL, Selea' if lang == 'fr' else 'السلسبيل، سيليا' ],
     ]
     
     contact_table = Table(contact_data, colWidths=[5*cm, 10*cm])
@@ -765,9 +784,9 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
             canvas.drawImage(qr_img, x=1.2*cm, y=A4[1]-4*cm, width=3*cm, height=3*cm, mask='auto')
             canvas.restoreState()
             # Texte code en bas centré
-            code_text = f"Code de vérification : {verification_code}"
+            code_text = f"{t.get('verification_code', 'Code de vérification')} : {verification_code}"
             canvas.saveState()
-            canvas.setFont("Helvetica-Bold", 12)
+            canvas.setFont(FONT_NAME_BOLD, 12)
             canvas.setFillColor(colors.HexColor('#2c3e50'))
             canvas.drawCentredString(A4[0]/2, 1.7*cm, code_text)
             canvas.restoreState()
