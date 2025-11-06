@@ -189,7 +189,7 @@
                     {% for job in jobs %}
                     <div class="job-admin-card">
                         <div class="job-card-header">
-                            <h3>{{ job.title }}</h3>
+                            <h3>{{ job.titre_ar if lang == 'ar' and job.titre_ar else job.titre if job.titre else job.title }}</h3>
                             <span class="job-type-badge {{ job.type|lower }}">{{ job.type }}</span>
                         </div>
                         <div class="job-card-body">
@@ -198,7 +198,7 @@
                                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                     <circle cx="12" cy="10" r="3"></circle>
                                 </svg>
-                                {{ job.location }}
+                                {{ job.lieu_ar if lang == 'ar' and job.lieu_ar else job.lieu if job.lieu else job.location }}
                             </div>
                             <div class="job-meta-item">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -214,7 +214,7 @@
                                 </svg>
                                 {% if lang == 'ar' %}الموعد النهائي{% else %}Date limite{% endif %}: {{ job.deadline }}
                             </div>
-                            <p class="job-description">{{ job.description[:100] }}...</p>
+                            <p class="job-description">{{ (job.description_ar if lang == 'ar' and job.description_ar else job.description)[:100] }}...</p>
                         </div>
                         <div class="job-card-footer">
                             <div class="job-footer-info">
@@ -290,40 +290,74 @@
             <form id="jobForm" method="POST" action="{{ url_for('admin_add_job') }}">
                 <input type="hidden" id="jobId" name="job_id">
                 
-                <div class="form-row">
+                {% if lang == 'ar' %}
+                <!-- Section Arabe en premier quand la langue est l'arabe -->
+                <div class="bilingual-section" style="background: #fff8f0; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <h3 style="color: #ea580c; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        🇸🇦 <span>النسخة العربية (Version Arabe)</span>
+                    </h3>
+                    
                     <div class="form-group">
-                        <label for="title">{% if lang == 'ar' %}عنوان المنصب *{% else %}Titre du poste *{% endif %}</label>
-                        <input type="text" id="title" name="title" required>
+                        <label for="title_ar">عنوان المنصب (AR) *</label>
+                        <input type="text" id="title_ar" name="title_ar" required placeholder="مثال: مطور ويب متكامل" dir="rtl">
                     </div>
+
                     <div class="form-group">
-                        <label for="department">{% if lang == 'ar' %}القسم *{% else %}Département *{% endif %}</label>
-                        <select id="department" name="department" required>
-                            <option value="">{% if lang == 'ar' %}-- اختر القسم --{% else %}-- Sélectionnez un département --{% endif %}</option>
-                            <option value="Administration">{% if lang == 'ar' %}الإدارة{% else %}Administration{% endif %}</option>
-                            <option value="Ressources Humaines">{% if lang == 'ar' %}الموارد البشرية{% else %}Ressources Humaines{% endif %}</option>
-                            <option value="Finance et Comptabilité">{% if lang == 'ar' %}المالية والمحاسبة{% else %}Finance et Comptabilité{% endif %}</option>
-                            <option value="Informatique et Technologie">{% if lang == 'ar' %}المعلوماتية والتكنولوجيا{% else %}Informatique et Technologie{% endif %}</option>
-                            <option value="Marketing et Communication">{% if lang == 'ar' %}التسويق والاتصال{% else %}Marketing et Communication{% endif %}</option>
-                            <option value="Ventes et Commerce">{% if lang == 'ar' %}المبيعات والتجارة{% else %}Ventes et Commerce{% endif %}</option>
-                            <option value="Production et Opérations">{% if lang == 'ar' %}الإنتاج والعمليات{% else %}Production et Opérations{% endif %}</option>
-                            <option value="Logistique et Supply Chain">{% if lang == 'ar' %}اللوجستيات وسلسلة التوريد{% else %}Logistique et Supply Chain{% endif %}</option>
-                            <option value="Qualité et Contrôle">{% if lang == 'ar' %}الجودة والرقابة{% else %}Qualité et Contrôle{% endif %}</option>
-                            <option value="Recherche et Développement">{% if lang == 'ar' %}البحث والتطوير{% else %}Recherche et Développement{% endif %}</option>
-                            <option value="Service Client">{% if lang == 'ar' %}خدمة العملاء{% else %}Service Client{% endif %}</option>
-                            <option value="Juridique">{% if lang == 'ar' %}القانوني{% else %}Juridique{% endif %}</option>
-                            <option value="Santé et Sécurité">{% if lang == 'ar' %}الصحة والسلامة{% else %}Santé et Sécurité{% endif %}</option>
-                            <option value="Éducation et Formation">{% if lang == 'ar' %}التعليم والتدريب{% else %}Éducation et Formation{% endif %}</option>
-                            <option value="Autres">{% if lang == 'ar' %}أخرى{% else %}Autres{% endif %}</option>
-                        </select>
+                        <label for="description_ar">الوصف (AR) *</label>
+                        <textarea id="description_ar" name="description_ar" rows="5" required placeholder="اكتب وصف الوظيفة بالعربية..." dir="rtl"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requirements_ar">المتطلبات (AR) - واحدة في كل سطر *</label>
+                        <textarea id="requirements_ar" name="requirements_ar" rows="4" required placeholder="مثال:&#10;Python/Flask&#10;خبرة 3+ سنوات&#10;إنجليزية بطلاقة" dir="rtl"></textarea>
                     </div>
                 </div>
 
-                <div class="form-row">
+                <!-- Section Français -->
+                <div class="bilingual-section" style="background: #f8f9ff; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <h3 style="color: #2563eb; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        🇫🇷 <span>Version Française</span>
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Titre du poste (FR) *</label>
+                            <input type="text" id="title" name="title" required placeholder="Ex: Développeur Full Stack">
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Département (FR) *</label>
+                            <select id="department" name="department" required onchange="toggleAutreDepartement()">
+                                <option value="">-- Sélectionnez un département --</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Ressources Humaines">Ressources Humaines</option>
+                                <option value="Finance et Comptabilité">Finance et Comptabilité</option>
+                                <option value="Informatique et Technologie">Informatique et Technologie</option>
+                                <option value="Marketing et Communication">Marketing et Communication</option>
+                                <option value="Ventes et Commerce">Ventes et Commerce</option>
+                                <option value="Production et Opérations">Production et Opérations</option>
+                                <option value="Logistique et Supply Chain">Logistique et Supply Chain</option>
+                                <option value="Qualité et Contrôle">Qualité et Contrôle</option>
+                                <option value="Recherche et Développement">Recherche et Développement</option>
+                                <option value="Service Client">Service Client</option>
+                                <option value="Juridique">Juridique</option>
+                                <option value="Santé et Sécurité">Santé et Sécurité</option>
+                                <option value="Éducation et Formation">Éducation et Formation</option>
+                                <option value="Autres">Autres</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Champ "Autre département" (masqué par défaut) -->
+                    <div id="autre-department-field" class="form-group" style="display: none;">
+                        <label for="autre_department">{% if lang == 'ar' %}حدد القسم{% else %}Précisez le département{% endif %} *</label>
+                        <input type="text" id="autre_department" name="autre_department" placeholder="{% if lang == 'ar' %}اكتب اسم القسم{% else %}Ex: Département personnalisé{% endif %}">
+                    </div>
+
                     <div class="form-group">
-                        <label for="location">{% if lang == 'ar' %}الموقع *{% else %}Localisation *{% endif %}</label>
+                        <label for="location">Localisation (FR) *</label>
                         <select id="location" name="location" required>
-                            <option value="">{% if lang == 'ar' %}-- اختر الموقع --{% else %}-- Sélectionnez une localisation --{% endif %}</option>
-                            <optgroup label="{% if lang == 'ar' %}موروني والضواحي{% else %}Moroni et environs{% endif %}">
+                            <option value="">-- Sélectionnez une localisation --</option>
+                            <optgroup label="Moroni et environs">
                                 <option value="Moroni">Moroni</option>
                                 <option value="Itsandra">Itsandra</option>
                                 <option value="Hahaya">Hahaya</option>
@@ -332,30 +366,156 @@
                                 <option value="Oichili">Oichili</option>
                                 <option value="Ivembeni">Ivembeni</option>
                             </optgroup>
-                            <optgroup label="{% if lang == 'ar' %}الجزء الشمالي{% else %}Partie Nord{% endif %}">
+                            <optgroup label="Partie Nord">
                                 <option value="Mitsamiouli">Mitsamiouli</option>
                                 <option value="Mbeni">Mbeni</option>
                                 <option value="Nioumamilima">Nioumamilima</option>
                                 <option value="Bangoi">Bangoi</option>
                             </optgroup>
-                            <optgroup label="{% if lang == 'ar' %}الجزء الجنوبي{% else %}Partie Sud{% endif %}">
+                            <optgroup label="Partie Sud">
                                 <option value="Foumbouni">Foumbouni</option>
                                 <option value="Mitsoudjé">Mitsoudjé</option>
                                 <option value="Dimadjou">Dimadjou</option>
                                 <option value="Ourovéni">Ourovéni</option>
                                 <option value="Séléa">Séléa</option>
                             </optgroup>
-                            <optgroup label="{% if lang == 'ar' %}الجزء الغربي{% else %}Partie Ouest{% endif %}">
+                            <optgroup label="Partie Ouest">
                                 <option value="Mbéni">Mbéni</option>
                                 <option value="Itsandzéni">Itsandzéni</option>
                                 <option value="Simboussa">Simboussa</option>
                             </optgroup>
-                            <optgroup label="{% if lang == 'ar' %}أخرى{% else %}Autres{% endif %}">
-                                <option value="Télétravail">{% if lang == 'ar' %}العمل عن بعد{% else %}Télétravail{% endif %}</option>
-                                <option value="Plusieurs sites">{% if lang == 'ar' %}مواقع متعددة{% else %}Plusieurs sites{% endif %}</option>
+                            <optgroup label="Autres">
+                                <option value="Télétravail">Télétravail</option>
+                                <option value="Plusieurs sites">Plusieurs sites</option>
                             </optgroup>
                         </select>
                     </div>
+
+                    <div class="form-group">
+                        <label for="description">Description (FR) *</label>
+                        <textarea id="description" name="description" rows="5" required placeholder="Décrivez le poste en français..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requirements">Exigences (FR) - Une par ligne *</label>
+                        <textarea id="requirements" name="requirements" rows="4" required placeholder="Ex:&#10;Python/Flask&#10;3+ ans d'expérience&#10;Anglais courant"></textarea>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Section Français en premier quand la langue est le français -->
+                <div class="bilingual-section" style="background: #f8f9ff; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <h3 style="color: #2563eb; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        🇫🇷 <span>Version Française</span>
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Titre du poste (FR) *</label>
+                            <input type="text" id="title" name="title" required placeholder="Ex: Développeur Full Stack">
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Département (FR) *</label>
+                            <select id="department" name="department" required onchange="toggleAutreDepartement()">
+                                <option value="">-- Sélectionnez un département --</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Ressources Humaines">Ressources Humaines</option>
+                                <option value="Finance et Comptabilité">Finance et Comptabilité</option>
+                                <option value="Informatique et Technologie">Informatique et Technologie</option>
+                                <option value="Marketing et Communication">Marketing et Communication</option>
+                                <option value="Ventes et Commerce">Ventes et Commerce</option>
+                                <option value="Production et Opérations">Production et Opérations</option>
+                                <option value="Logistique et Supply Chain">Logistique et Supply Chain</option>
+                                <option value="Qualité et Contrôle">Qualité et Contrôle</option>
+                                <option value="Recherche et Développement">Recherche et Développement</option>
+                                <option value="Service Client">Service Client</option>
+                                <option value="Juridique">Juridique</option>
+                                <option value="Santé et Sécurité">Santé et Sécurité</option>
+                                <option value="Éducation et Formation">Éducation et Formation</option>
+                                <option value="Autres">Autres</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Champ "Autre département" (masqué par défaut) -->
+                    <div id="autre-department-field-2" class="form-group" style="display: none;">
+                        <label for="autre_department">{% if lang == 'ar' %}حدد القسم{% else %}Précisez le département{% endif %} *</label>
+                        <input type="text" id="autre_department" name="autre_department" placeholder="{% if lang == 'ar' %}اكتب اسم القسم{% else %}Ex: Département personnalisé{% endif %}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Localisation (FR) *</label>
+                        <select id="location" name="location" required>
+                            <option value="">-- Sélectionnez une localisation --</option>
+                            <optgroup label="Moroni et environs">
+                                <option value="Moroni">Moroni</option>
+                                <option value="Itsandra">Itsandra</option>
+                                <option value="Hahaya">Hahaya</option>
+                                <option value="Mvouni">Mvouni</option>
+                                <option value="Ikoni">Ikoni</option>
+                                <option value="Oichili">Oichili</option>
+                                <option value="Ivembeni">Ivembeni</option>
+                            </optgroup>
+                            <optgroup label="Partie Nord">
+                                <option value="Mitsamiouli">Mitsamiouli</option>
+                                <option value="Mbeni">Mbeni</option>
+                                <option value="Nioumamilima">Nioumamilima</option>
+                                <option value="Bangoi">Bangoi</option>
+                            </optgroup>
+                            <optgroup label="Partie Sud">
+                                <option value="Foumbouni">Foumbouni</option>
+                                <option value="Mitsoudjé">Mitsoudjé</option>
+                                <option value="Dimadjou">Dimadjou</option>
+                                <option value="Ourovéni">Ourovéni</option>
+                                <option value="Séléa">Séléa</option>
+                            </optgroup>
+                            <optgroup label="Partie Ouest">
+                                <option value="Mbéni">Mbéni</option>
+                                <option value="Itsandzéni">Itsandzéni</option>
+                                <option value="Simboussa">Simboussa</option>
+                            </optgroup>
+                            <optgroup label="Autres">
+                                <option value="Télétravail">Télétravail</option>
+                                <option value="Plusieurs sites">Plusieurs sites</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description (FR) *</label>
+                        <textarea id="description" name="description" rows="5" required placeholder="Décrivez le poste en français..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requirements">Exigences (FR) - Une par ligne *</label>
+                        <textarea id="requirements" name="requirements" rows="4" required placeholder="Ex:&#10;Python/Flask&#10;3+ ans d'expérience&#10;Anglais courant"></textarea>
+                    </div>
+                </div>
+
+                <!-- Section Arabe -->
+                <div class="bilingual-section" style="background: #fff8f0; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <h3 style="color: #ea580c; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        🇸🇦 <span>النسخة العربية (Version Arabe)</span>
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label for="title_ar">عنوان المنصب (AR) *</label>
+                        <input type="text" id="title_ar" name="title_ar" required placeholder="مثال: مطور ويب متكامل" dir="rtl">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description_ar">الوصف (AR) *</label>
+                        <textarea id="description_ar" name="description_ar" rows="5" required placeholder="اكتب وصف الوظيفة بالعربية..." dir="rtl"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requirements_ar">المتطلبات (AR) - واحدة في كل سطر *</label>
+                        <textarea id="requirements_ar" name="requirements_ar" rows="4" required placeholder="مثال:&#10;Python/Flask&#10;خبرة 3+ سنوات&#10;إنجليزية بطلاقة" dir="rtl"></textarea>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Section Commune (Type et Date) -->
+                <div class="form-row">
                     <div class="form-group">
                         <label for="type">{% if lang == 'ar' %}نوع العقد *{% else %}Type de contrat *{% endif %}</label>
                         <select id="type" name="type" required>
@@ -365,16 +525,10 @@
                             <option value="Alternance">{% if lang == 'ar' %}تناوب{% else %}Alternance{% endif %}</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="description">{% if lang == 'ar' %}الوصف *{% else %}Description *{% endif %}</label>
-                    <textarea id="description" name="description" rows="5" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="requirements">{% if lang == 'ar' %}المتطلبات (واحدة في كل سطر) *{% else %}Exigences (une par ligne) *{% endif %}</label>
-                    <textarea id="requirements" name="requirements" rows="4" required placeholder="{% if lang == 'ar' %}مثال:&#10;Python/Flask&#10;خبرة 3+ سنوات&#10;إنجليزية بطلاقة{% else %}Ex:&#10;Python/Flask&#10;3+ ans d'expérience&#10;Anglais courant{% endif %}"></textarea>
+                    <div class="form-group">
+                        <label for="deadline">{% if lang == 'ar' %}تاريخ انتهاء التقديم *{% else %}Date limite *{% endif %}</label>
+                        <input type="date" id="deadline" name="deadline" required>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -404,6 +558,7 @@
                                 <span class="checkmark">✓</span>
                             </span>
                         </label>
+                        </label>
                         <label class="language-option">
                             <input type="checkbox" name="langue_francaise" value="Français" id="langue_francaise">
                             <span class="language-card">
@@ -421,17 +576,6 @@
                         </svg>
                         {% if lang == 'ar' %}حدد اللغات المطلوبة لهذا المنصب{% else %}Sélectionnez les langues nécessaires pour ce poste{% endif %}
                     </small>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="posted_date">{% if lang == 'ar' %}تاريخ النشر *{% else %}Date de publication *{% endif %}</label>
-                        <input type="date" id="posted_date" name="posted_date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="deadline">{% if lang == 'ar' %}الموعد النهائي *{% else %}Date limite *{% endif %}</label>
-                        <input type="date" id="deadline" name="deadline" required>
-                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -459,14 +603,55 @@
                 modalTitle.textContent = lang === 'ar' ? 'تعديل عرض العمل' : 'Modifier l\'offre d\'emploi';
                 form.action = '{{ url_for("admin_edit_job") }}';
                 document.getElementById('jobId').value = jobData.id;
-                document.getElementById('title').value = jobData.title;
-                document.getElementById('department').value = jobData.department;
-                document.getElementById('location').value = jobData.location;
-                document.getElementById('type').value = jobData.type;
-                document.getElementById('description').value = jobData.description;
-                document.getElementById('requirements').value = jobData.requirements.join('\n');
-                document.getElementById('posted_date').value = jobData.posted_date;
-                document.getElementById('deadline').value = jobData.deadline;
+                
+                // Champs français
+                document.getElementById('title').value = jobData.titre || jobData.title || '';
+                
+                // Gérer le département avec les départements prédéfinis
+                const departmentsPredefined = [
+                    'Administration', 'Ressources Humaines', 'Finance et Comptabilité',
+                    'Informatique et Technologie', 'Marketing et Communication', 'Ventes et Commerce',
+                    'Production et Opérations', 'Logistique et Supply Chain', 'Qualité et Contrôle',
+                    'Recherche et Développement', 'Service Client', 'Juridique',
+                    'Santé et Sécurité', 'Éducation et Formation'
+                ];
+                
+                const departmentValue = jobData.department || '';
+                if (departmentsPredefined.includes(departmentValue)) {
+                    document.getElementById('department').value = departmentValue;
+                } else if (departmentValue) {
+                    // Si le département n'est pas dans la liste, c'est un département personnalisé
+                    document.getElementById('department').value = 'Autres';
+                    if (document.getElementById('autre_department')) {
+                        document.getElementById('autre_department').value = departmentValue;
+                    }
+                }
+                
+                document.getElementById('location').value = jobData.lieu || jobData.location || '';
+                document.getElementById('type').value = jobData.type || '';
+                document.getElementById('description').value = jobData.description || '';
+                document.getElementById('requirements').value = Array.isArray(jobData.requirements) ? jobData.requirements.join('\n') : jobData.requirements || '';
+                document.getElementById('deadline').value = jobData.deadline || jobData.date_limite || '';
+                
+                // Déclencher l'affichage du champ "Autre" si nécessaire
+                toggleAutreDepartement();
+                
+                // Champs arabes (nouveaux)
+                if (document.getElementById('title_ar')) {
+                    document.getElementById('title_ar').value = jobData.titre_ar || '';
+                }
+                if (document.getElementById('department_ar')) {
+                    document.getElementById('department_ar').value = jobData.department_ar || '';
+                }
+                if (document.getElementById('location_ar')) {
+                    document.getElementById('location_ar').value = jobData.lieu_ar || '';
+                }
+                if (document.getElementById('description_ar')) {
+                    document.getElementById('description_ar').value = jobData.description_ar || '';
+                }
+                if (document.getElementById('requirements_ar')) {
+                    document.getElementById('requirements_ar').value = Array.isArray(jobData.requirements_ar) ? jobData.requirements_ar.join('\n') : jobData.requirements_ar || '';
+                }
                 
                 // Cocher les langues si elles existent
                 document.getElementById('langue_arabe').checked = false;
@@ -490,9 +675,6 @@
                 form.action = '{{ url_for("admin_add_job") }}';
                 form.reset();
                 document.getElementById('jobId').value = '';
-                // Set today's date as default
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('posted_date').value = today;
             }
             
             modal.style.display = 'flex';
@@ -501,6 +683,37 @@
         function closeJobModal() {
             const modal = document.getElementById('jobModal');
             modal.style.display = 'none';
+        }
+
+        function toggleAutreDepartement() {
+            const departmentSelect = document.getElementById('department');
+            const autreDepartmentField = document.getElementById('autre-department-field');
+            const autreDepartmentField2 = document.getElementById('autre-department-field-2');
+            const autreDepartmentInput = document.getElementById('autre_department');
+            
+            // Afficher le champ "Autre" si "Autres" est sélectionné
+            if (departmentSelect.value === 'Autres') {
+                if (autreDepartmentField) {
+                    autreDepartmentField.style.display = 'block';
+                }
+                if (autreDepartmentField2) {
+                    autreDepartmentField2.style.display = 'block';
+                }
+                if (autreDepartmentInput) {
+                    autreDepartmentInput.required = true;
+                }
+            } else {
+                if (autreDepartmentField) {
+                    autreDepartmentField.style.display = 'none';
+                }
+                if (autreDepartmentField2) {
+                    autreDepartmentField2.style.display = 'none';
+                }
+                if (autreDepartmentInput) {
+                    autreDepartmentInput.required = false;
+                    autreDepartmentInput.value = '';
+                }
+            }
         }
 
         function editJob(jobId) {

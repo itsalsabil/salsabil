@@ -981,26 +981,39 @@
                                                     <p class="pdf-status-detail">{% if lang == 'ar' %}وثيقة رسمية للوصول إلى المكان{% else %}Document officiel pour l'accès aux locaux{% endif %}</p>
                                                 </div>
                                             </div>
-                                            <div class="pdf-action-buttons">
-                                                <a href="{{ url_for('admin_download_interview_invitation', app_id=application.id) }}" class="btn-pdf-download">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                        <polyline points="7 10 12 15 17 10"></polyline>
-                                                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                                                    </svg>
-                                                    {% if lang == 'ar' %}تحميل PDF{% else %}Télécharger le PDF{% endif %}
-                                                </a>
-                                                {% if lang == 'ar' %}
-                                                <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('إنشاء دعوة PDF جديدة؟')">
-                                                {% else %}
-                                                <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('Générer un nouveau PDF de convocation ?')">
-                                                {% endif %}
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                        <polyline points="23 4 23 10 17 10"></polyline>
-                                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                                                    </svg>
-                                                    {% if lang == 'ar' %}إعادة الإنشاء{% else %}Régénérer{% endif %}
-                                                </a>
+                                            <!-- Téléchargement bilingue (FR + AR) -->
+                                            <div class="bilingual-download-section">
+                                                <div class="pdf-action-buttons">
+                                                    <a href="{{ url_for('admin_download_interview_invitation', app_id=application.id, lang='fr') }}" class="btn-pdf-download">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                        </svg>
+                                                        🇫🇷 {% if lang == 'ar' %}تحميل (فرنسي){% else %}Télécharger (FR){% endif %}
+                                                    </a>
+                                                    <a href="{{ url_for('admin_download_interview_invitation', app_id=application.id, lang='ar') }}" class="btn-pdf-download">
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                            <polyline points="7 10 12 15 17 10"></polyline>
+                                                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                        </svg>
+                                                        🇸🇦 {% if lang == 'ar' %}تحميل (عربي){% else %}Télécharger (AR){% endif %}
+                                                    </a>
+                                                </div>
+                                                <div class="pdf-action-buttons" style="margin-top: 0.5rem;">
+                                                    {% if lang == 'ar' %}
+                                                    <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('إنشاء دعوة PDF جديدة؟')">
+                                                    {% else %}
+                                                    <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('Générer un nouveau PDF de convocation ?')">
+                                                    {% endif %}
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                                        </svg>
+                                                        {% if lang == 'ar' %}إعادة الإنشاء{% else %}Régénérer{% endif %}
+                                                    </a>
+                                                </div>
                                             </div>
                                         {% else %}
                                             <!-- Aucun PDF généré -->
@@ -1128,6 +1141,15 @@
                                             </select>
                                         </div>
                                         
+                                        <!-- Champ date de début (visible seulement si accepté) -->
+                                        <div id="phase2WorkStartDateField" class="form-group" style="display: none;">
+                                            <label>{% if lang == 'ar' %}📅 تاريخ بداية العمل:{% else %}📅 Date de début de travail :{% endif %} <span class="required">*</span></label>
+                                            <input type="date" name="work_start_date" class="form-input" min="{{ today }}">
+                                            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                                                {% if lang == 'ar' %}هذا التاريخ سيتم تضمينه في خطاب القبول{% else %}Cette date sera incluse dans la lettre d'acceptation{% endif %}
+                                            </small>
+                                        </div>
+                                        
                                         <div id="phase2RejectionReasonField" class="form-group" style="display: none;">
                                             <label>{% if lang == 'ar' %}سبب الرفض (اختياري):{% else %}Raison du rejet (optionnel) :{% endif %}</label>
                                             <textarea name="rejection_reason" rows="3" class="form-input" placeholder="{% if lang == 'ar' %}مثال: مهارات تقنية غير كافية...{% else %}Ex: Compétences techniques insuffisantes...{% endif %}"></textarea>
@@ -1149,21 +1171,37 @@
                         {% if lang == 'ar' %}🎉 المرشح مقبول - عضو جديد!{% else %}🎉 Candidat accepté - Nouveau membre !{% endif %}
                     </div>
                     <p><strong>{% if lang == 'ar' %}تاريخ القرار:{% else %}Décision prise le :{% endif %}</strong> {{ application.phase2_date }}</p>
+                    {% if application.work_start_date %}
+                    <p><strong>{% if lang == 'ar' %}📅 تاريخ بداية العمل:{% else %}📅 Date de début de travail :{% endif %}</strong> {{ application.work_start_date }}</p>
+                    {% endif %}
                     
-                    <!-- Bouton de téléchargement de la lettre d'acceptation -->
+                    <!-- Boutons de téléchargement bilingue de la lettre d'acceptation -->
                     {% if application.acceptance_letter_pdf %}
                     <div style="margin: 1rem 0;">
-                        <a href="{{ url_for('static', filename='acceptances/' + application.acceptance_letter_pdf) }}" 
-                           class="btn-download-acceptance" 
-                           target="_blank"
-                           download>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            {% if lang == 'ar' %}📄 تحميل خطاب القبول (PDF){% else %}📄 Télécharger la lettre d'acceptation (PDF){% endif %}
-                        </a>
+                        <div class="bilingual-download-buttons" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <a href="{{ url_for('admin_download_acceptance_letter', app_id=application.id, lang='fr') }}" 
+                               class="btn-download-acceptance" 
+                               target="_blank"
+                               download>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                🇫🇷 {% if lang == 'ar' %}تحميل خطاب القبول (فرنسي){% else %}Télécharger lettre (FR){% endif %}
+                            </a>
+                            <a href="{{ url_for('admin_download_acceptance_letter', app_id=application.id, lang='ar') }}" 
+                               class="btn-download-acceptance" 
+                               target="_blank"
+                               download>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                🇸🇦 {% if lang == 'ar' %}تحميل خطاب القبول (عربي){% else %}Télécharger lettre (AR){% endif %}
+                            </a>
+                        </div>
                     </div>
                     {% endif %}
                     
@@ -1307,20 +1345,43 @@
             // Extraire l'extension depuis l'URL du fichier au lieu du nom affiché
             const fileExtension = fileUrl.split('.').pop().toLowerCase().split('?')[0];
             const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            const pdfExtension = 'pdf';
             
             if (imageExtensions.includes(fileExtension)) {
-                // Afficher l'image
+                // Afficher l'image directement
                 frame.style.display = 'none';
                 image.style.display = 'block';
                 image.src = fileUrl;
-            } else {
-                // Afficher le document dans l'iframe
+                modal.style.display = 'flex';
+            } else if (fileExtension === pdfExtension) {
+                // Pour les PDF : ajouter #view=FitH pour forcer l'affichage en ligne
                 image.style.display = 'none';
                 frame.style.display = 'block';
-                frame.src = fileUrl;
+                
+                // Ajouter le paramètre pour forcer l'aperçu (ne pas télécharger)
+                let pdfUrl = fileUrl;
+                if (!pdfUrl.includes('?')) {
+                    pdfUrl += '?preview=true';
+                } else {
+                    pdfUrl += '&preview=true';
+                }
+                
+                // Pour les PDFs, utiliser Google Docs Viewer comme fallback si l'iframe ne fonctionne pas
+                frame.src = pdfUrl + '#view=FitH';
+                modal.style.display = 'flex';
+                
+                // Si l'iframe ne charge pas après 3 secondes, ouvrir dans un nouvel onglet
+                setTimeout(() => {
+                    if (!frame.contentDocument && !frame.contentWindow) {
+                        closePreview();
+                        window.open(pdfUrl, '_blank');
+                    }
+                }, 3000);
+            } else {
+                // Pour les autres documents (Word, etc.), ouvrir dans un nouvel onglet
+                window.open(fileUrl, '_blank');
+                return; // Ne pas ouvrir la modale
             }
-            
-            modal.style.display = 'flex';
         }
         
         function closePreview() {
@@ -1361,12 +1422,22 @@
         
         function togglePhase2Fields() {
             const decision = document.getElementById('phase2Decision').value;
+            const workStartDateField = document.getElementById('phase2WorkStartDateField');
             const rejectionReasonField = document.getElementById('phase2RejectionReasonField');
             
-            if (decision === 'rejected') {
-                rejectionReasonField.style.display = 'block';
-            } else {
+            if (decision === 'accepted') {
+                workStartDateField.style.display = 'block';
                 rejectionReasonField.style.display = 'none';
+                // Rendre le champ date requis si accepté
+                workStartDateField.querySelector('input').required = true;
+            } else if (decision === 'rejected') {
+                workStartDateField.style.display = 'none';
+                rejectionReasonField.style.display = 'block';
+                workStartDateField.querySelector('input').required = false;
+            } else {
+                workStartDateField.style.display = 'none';
+                rejectionReasonField.style.display = 'none';
+                workStartDateField.querySelector('input').required = false;
             }
         }
         
