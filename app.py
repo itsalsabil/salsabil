@@ -107,14 +107,17 @@ def get_file_url(filename_or_url):
         filename_or_url: Soit un nom de fichier local, soit une URL Cloudinary
     
     Returns:
-        str: URL complète du fichier
+        str: URL complète du fichier (via route proxy pour Cloudinary)
     """
     if not filename_or_url:
         return None
     
-    # Si c'est déjà une URL Cloudinary (commence par http), la retourner telle quelle
+    # Si c'est une URL Cloudinary, utiliser la route proxy
     if filename_or_url.startswith('http://') or filename_or_url.startswith('https://'):
-        return filename_or_url
+        # Encoder l'URL pour la passer en paramètre
+        import urllib.parse
+        encoded_url = urllib.parse.quote(filename_or_url, safe='')
+        return url_for('serve_file', file_url=encoded_url)
     
     # Sinon, c'est un fichier local - construire l'URL via url_for
     return url_for('static', filename='uploads/' + filename_or_url)
@@ -190,6 +193,58 @@ def get_redirect_with_lang(route_name, **kwargs):
             pass
     
     return redirect(url_for(route_name, **kwargs))
+
+@app.route('/serve-file')
+def serve_file():
+    """
+    Route proxy pour servir les fichiers depuis Cloudinary
+    Permet de télécharger les fichiers via l'application au lieu de rediriger vers Cloudinary
+    """
+    import urllib.parse
+    import requests
+    from flask import Response, stream_with_context
+    
+    # Récupérer l'URL encodée
+    encoded_url = request.args.get('file_url')
+    if not encoded_url:
+        return "URL du fichier manquante", 400
+    
+    # Décoder l'URL
+    file_url = urllib.parse.unquote(encoded_url)
+    
+    # Vérifier que c'est bien une URL Cloudinary
+    if 'cloudinary.com' not in file_url:
+        return "URL invalide", 400
+    
+    try:
+        # Télécharger le fichier depuis Cloudinary
+        response = requests.get(file_url, stream=True)
+        response.raise_for_status()
+        
+        # Extraire le nom du fichier depuis l'URL
+        filename = file_url.split('/')[-1].split('?')[0]
+        
+        # Déterminer le type de contenu
+        content_type = response.headers.get('Content-Type', 'application/octet-stream')
+        
+        # Créer une réponse en streaming
+        def generate():
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    yield chunk
+        
+        # Retourner le fichier avec les bons headers
+        flask_response = Response(
+            stream_with_context(generate()),
+            content_type=content_type
+        )
+        flask_response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+        
+        return flask_response
+        
+    except requests.RequestException as e:
+        print(f"❌ Erreur téléchargement fichier depuis Cloudinary: {e}")
+        return "Erreur lors du téléchargement du fichier", 500
 
 @app.route('/')
 def home():
