@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التقديم - {{ job.title }}</title>
+    <title>التقديم - {{ job.titre_ar if job.titre_ar else job.titre if job.titre else job.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl-mobile-menu.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/apply-mobile.css') }}">
@@ -51,7 +51,7 @@
                     <li><a href="https://salsabil-km.com/news" class="nav-link">الأخبار</a></li>
                     <li><a href="https://salsabil-km.com/contact" class="nav-link">اتصل بنا</a></li>
                     <li><a href="/jobs_ar" class="nav-link active">الوظائف المتاحة</a></li>
-                    <li><a href="/jobs" class="nav-link">🇫🇷 Français</a></li>
+                    <li><a href="/apply/{{ job.id }}" class="nav-link">🇫🇷 Français</a></li>
                 </ul>
             </div>
         </nav>
@@ -64,10 +64,10 @@
         <section class="apply-section">
             <div class="container">
                 <div class="apply-header">
-                    <h2>التقديم على: {{ job.title }}</h2>
+                    <h2>التقديم على: {{ job.titre_ar if job.titre_ar else job.titre if job.titre else job.title }}</h2>
                     <p class="job-info">
                         <span>📁 {{ job.department }}</span>
-                        <span>📍 {{ job.location }}</span>
+                        <span>📍 {{ job.lieu_ar if job.lieu_ar else job.lieu if job.lieu else job.location }}</span>
                         <span class="job-type {{ job.type.lower() }}">{{ job.type }}</span>
                     </p>
                 </div>
@@ -75,12 +75,18 @@
                 <div class="apply-content">
                     <div class="job-summary">
                         <h3>حول الوظيفة</h3>
-                        <p>{{ job.description }}</p>
+                        <p>{{ job.description_ar if job.description_ar else job.description }}</p>
                         <h4>المهارات المطلوبة:</h4>
                         <ul>
-                            {% for req in job.requirements %}
-                            <li>{{ req }}</li>
-                            {% endfor %}
+                            {% if job.requirements_ar %}
+                                {% for req in job.requirements_ar %}
+                                <li>{{ req }}</li>
+                                {% endfor %}
+                            {% else %}
+                                {% for req in job.requirements %}
+                                <li>{{ req }}</li>
+                                {% endfor %}
+                            {% endif %}
                         </ul>
                         {% if job.langues_requises %}
                         <div class="job-languages-apply">
@@ -415,6 +421,7 @@
                                     <option value="">-- اختر --</option>
                                     <option value="Célibataire">أعزب/عزباء</option>
                                     <option value="Marié">متزوج/متزوجة</option>
+                                    <option value="Divorcé">مطلق/مطلقة</option>
                                 </select>
                             </div>
 

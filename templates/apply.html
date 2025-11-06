@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Postuler - {{ job.title }}</title>
+    <title>Postuler - {{ job.titre if job.titre else job.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl-mobile-menu.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/apply-mobile.css') }}">
@@ -60,10 +60,10 @@
         <section class="apply-section">
             <div class="container">
                 <div class="apply-header">
-                    <h2>Postuler pour : {{ job.title }}</h2>
+                    <h2>Postuler pour : {{ job.titre if job.titre else job.title }}</h2>
                     <p class="job-info">
                         <span>📁 {{ job.department }}</span>
-                        <span>📍 {{ job.location }}</span>
+                        <span>📍 {{ job.lieu if job.lieu else job.location }}</span>
                         <span class="job-type {{ job.type.lower() }}">{{ job.type }}</span>
                     </p>
                 </div>
@@ -71,7 +71,7 @@
                 <div class="apply-content">
                     <div class="job-summary">
                         <h3>À propos du poste</h3>
-                        <p>{{ job.description }}</p>
+                        <p>{{ job.description if job.description else job.description }}</p>
                         <h4>Compétences requises :</h4>
                         <ul>
                             {% for req in job.requirements %}
@@ -411,6 +411,7 @@
                                     <option value="">-- Sélectionnez --</option>
                                     <option value="Célibataire">Célibataire</option>
                                     <option value="Marié">Marié(e)</option>
+                                    <option value="Divorcé">Divorcé(e)</option>
                                 </select>
                             </div>
 
