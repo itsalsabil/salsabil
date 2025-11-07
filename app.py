@@ -1076,8 +1076,8 @@ def admin_update_status(app_id):
 def admin_delete_application(app_id):
     """Route pour supprimer une candidature"""
     
-    # Sauvegarder la langue actuelle
-    lang = session.get('lang', 'fr')
+    # Récupérer le paramètre lang pour conserver la langue
+    lang = request.form.get('lang', session.get('lang', 'fr'))
     
     try:
         # Récupérer l'info de la candidature AVANT suppression pour savoir où rediriger
@@ -1093,9 +1093,13 @@ def admin_delete_application(app_id):
         else:
             flash('Candidature supprimée avec succès', 'success')
         
-        # Rediriger vers la bonne page selon le type
+        # Rediriger vers la bonne page selon le type et la langue
         if is_spontaneous:
+            if lang == 'ar':
+                return redirect(url_for('admin_spontaneous_applications_ar'))
             return redirect(url_for('admin_spontaneous_applications'))
+        if lang == 'ar':
+            return redirect(url_for('admin_applications_ar'))
         return redirect(url_for('admin_applications'))
     except Exception as e:
         flash(f'Erreur lors de la suppression: {str(e)}', 'error')
@@ -1113,8 +1117,8 @@ def admin_toggle_favorite(app_id):
     """Route pour marquer/démarquer une candidature spontanée comme favorite"""
     from models import toggle_favorite
     
-    # Sauvegarder la langue actuelle
-    lang = session.get('lang', 'fr')
+    # Récupérer le paramètre lang pour conserver la langue
+    lang = request.form.get('lang', session.get('lang', 'fr'))
     
     try:
         new_status = toggle_favorite(app_id)
@@ -1142,11 +1146,17 @@ def admin_toggle_favorite(app_id):
     if referrer and 'spontaneous-applications' in referrer:
         # Si on vient de la liste spontanée OU de la page détails spontanée
         if f'/spontaneous-applications/{app_id}' in referrer:
+            if lang == 'ar':
+                return redirect(url_for('admin_spontaneous_application_detail_ar', app_id=app_id))
             return redirect(url_for('admin_spontaneous_application_detail', app_id=app_id))
         else:
+            if lang == 'ar':
+                return redirect(url_for('admin_spontaneous_applications_ar'))
             return redirect(url_for('admin_spontaneous_applications'))
     else:
         # Par défaut, retourner à la page détails spontanée
+        if lang == 'ar':
+            return redirect(url_for('admin_spontaneous_application_detail_ar', app_id=app_id))
         return redirect(url_for('admin_spontaneous_application_detail', app_id=app_id))
 
 
@@ -1317,6 +1327,10 @@ def admin_phase1_decision(app_id):
     except Exception as e:
         flash(f'Erreur: {str(e)}', 'error')
     
+    # Récupérer le paramètre lang pour conserver la langue
+    lang = request.form.get('lang', 'fr')
+    if lang == 'ar':
+        return redirect(url_for('admin_application_detail_ar', app_id=app_id))
     return redirect(url_for('admin_application_detail', app_id=app_id))
 
 @app.route('/admin/applications/<int:app_id>/phase2-decision', methods=['POST'])
@@ -1446,6 +1460,10 @@ def admin_phase2_decision(app_id):
     except Exception as e:
         flash(f'Erreur: {str(e)}', 'error')
     
+    # Récupérer le paramètre lang pour conserver la langue
+    lang = request.form.get('lang', 'fr')
+    if lang == 'ar':
+        return redirect(url_for('admin_application_detail_ar', app_id=app_id))
     return redirect(url_for('admin_application_detail', app_id=app_id))
 
 @app.route('/admin/applications/<int:app_id>/send-notification')
@@ -1508,6 +1526,7 @@ def admin_generate_interview_invitation(app_id):
         base_url = request.url_root.rstrip('/')
         
         # Générer le PDF VERSION FRANÇAISE
+        print(f"📄 Génération PDF FR: {pdf_path_fr}")
         generate_interview_invitation_pdf(
             application_data=application,
             interview_date=application['interview_date'],
@@ -1516,8 +1535,10 @@ def admin_generate_interview_invitation(app_id):
             base_url=base_url,
             lang='fr'
         )
+        print(f"✅ PDF FR généré: {os.path.exists(pdf_path_fr)}")
         
         # Générer le PDF VERSION ARABE
+        print(f"📄 Génération PDF AR: {pdf_path_ar}")
         generate_interview_invitation_pdf(
             application_data=application,
             interview_date=application['interview_date'],
@@ -1526,9 +1547,12 @@ def admin_generate_interview_invitation(app_id):
             base_url=base_url,
             lang='ar'
         )
+        print(f"✅ PDF AR généré: {os.path.exists(pdf_path_ar)}")
         
         # Sauvegarder les deux chemins dans la base de données
+        print(f"💾 Sauvegarde BDD: FR={pdf_filename_fr}, AR={pdf_filename_ar}")
         save_interview_invitation_pdf(app_id, pdf_filename_fr, pdf_filename_ar)
+        print(f"✅ Chemins sauvegardés dans la BDD")
         
         # Enregistrer le code de vérification dans la base de données
         conn = get_db_connection()
@@ -1572,15 +1596,22 @@ def admin_download_interview_invitation_lang(app_id, lang='fr'):
     from models import get_interview_invitation_pdf
     
     try:
+        print(f"🔍 Téléchargement convocation: app_id={app_id}, lang={lang}")
+        
         # Récupérer le nom du fichier depuis la BDD selon la langue
         pdf_filename = get_interview_invitation_pdf(app_id, lang)
         
+        print(f"📄 Fichier récupéré de la BDD: {pdf_filename}")
+        
         if not pdf_filename:
+            print(f"❌ Aucun fichier dans la BDD pour lang={lang}")
             flash(f'Aucune convocation ({lang.upper()}) n\'a été générée pour cette candidature', 'error')
             return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Chemin complet du fichier
         pdf_path = os.path.join('static', 'convocations', pdf_filename)
+        print(f"📂 Chemin complet: {pdf_path}")
+        print(f"📂 Fichier existe?: {os.path.exists(pdf_path)}")
         
         if not os.path.exists(pdf_path):
             flash(f'Le fichier de convocation ({lang.upper()}) est introuvable', 'error')
@@ -1637,6 +1668,85 @@ def admin_download_acceptance_letter_lang(app_id, lang='fr'):
         
     except Exception as e:
         flash(f'Erreur: {str(e)}', 'error')
+        return redirect(url_for('admin_application_detail', app_id=app_id))
+
+@app.route('/admin/applications/<int:app_id>/regenerate-acceptance-letter', methods=['POST'])
+@login_required
+@permission_required('edit_application')
+def admin_regenerate_acceptance_letter(app_id):
+    """Route pour régénérer les lettres d'acceptation (FR + AR)"""
+    from pdf_generator import (generate_acceptance_letter_pdf, 
+                              generate_acceptance_letter_filename,
+                              generate_verification_code)
+    from models import save_acceptance_letter_pdf, get_application_by_id
+    from datetime import datetime
+    
+    try:
+        # Récupérer la candidature
+        application = get_application_by_id(app_id)
+        if not application:
+            flash('Candidature non trouvée', 'error')
+            return redirect(url_for('admin_applications'))
+        
+        # Vérifier que le candidat est accepté
+        if application.get('phase2_status') != 'accepted':
+            flash('Cette candidature n\'a pas été acceptée', 'error')
+            return redirect(url_for('admin_application_detail', app_id=app_id))
+        
+        # Générer un code de vérification unique
+        verification_code = generate_verification_code(app_id, 'acceptation')
+        
+        # Générer les noms des fichiers
+        candidate_name = f"{application['prenom']}_{application['nom']}"
+        pdf_filename_fr = generate_acceptance_letter_filename(candidate_name, app_id)
+        pdf_filename_ar = pdf_filename_fr.replace('.pdf', '_AR.pdf')
+        
+        # Créer le dossier si nécessaire
+        acceptance_dir = os.path.join('static', 'acceptances')
+        if not os.path.exists(acceptance_dir):
+            os.makedirs(acceptance_dir)
+        
+        # Chemins complets des fichiers
+        pdf_path_fr = os.path.join(acceptance_dir, pdf_filename_fr)
+        pdf_path_ar = os.path.join(acceptance_dir, pdf_filename_ar)
+        
+        # URL de base pour le QR code
+        base_url = request.url_root.rstrip('/')
+        
+        # Générer le PDF VERSION FRANÇAISE
+        generate_acceptance_letter_pdf(
+            application, 
+            pdf_path_fr,
+            verification_code=verification_code,
+            base_url=base_url,
+            lang='fr'
+        )
+        
+        # Générer le PDF VERSION ARABE
+        generate_acceptance_letter_pdf(
+            application, 
+            pdf_path_ar,
+            verification_code=verification_code,
+            base_url=base_url,
+            lang='ar'
+        )
+        
+        # Sauvegarder les deux chemins dans la base de données
+        save_acceptance_letter_pdf(app_id, pdf_filename_fr, pdf_filename_ar)
+        
+        flash('✅ Lettres d\'acceptation régénérées avec succès (FR + AR)', 'success')
+        
+        # Récupérer le paramètre lang pour conserver la langue
+        lang = request.form.get('lang', 'fr')
+        if lang == 'ar':
+            return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+        return redirect(url_for('admin_application_detail', app_id=app_id))
+        
+    except Exception as e:
+        flash(f'Erreur lors de la régénération: {str(e)}', 'error')
+        lang = request.form.get('lang', 'fr')
+        if lang == 'ar':
+            return redirect(url_for('admin_application_detail_ar', app_id=app_id))
         return redirect(url_for('admin_application_detail', app_id=app_id))
 
 @app.route('/admin/jobs')
