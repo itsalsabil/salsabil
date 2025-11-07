@@ -1474,14 +1474,21 @@ def admin_send_notification(app_id):
     from models import mark_notification_sent
     
     phase = request.args.get('phase', type=int)
+    lang = request.args.get('lang', 'fr')
     
     try:
         mark_notification_sent(app_id, phase)
-        flash('✅ Notification marquée comme envoyée', 'success')
+        success_msg = '✅ تم وضع علامة على الإشعار كمرسل' if lang == 'ar' else '✅ Notification marquée comme envoyée'
+        flash(success_msg, 'success')
     except Exception as e:
-        flash(f'Erreur: {str(e)}', 'error')
+        error_msg = f'خطأ: {str(e)}' if lang == 'ar' else f'Erreur: {str(e)}'
+        flash(error_msg, 'error')
     
-    return redirect(url_for('admin_application_detail', app_id=app_id))
+    # Rediriger vers la version appropriée selon la langue
+    if lang == 'ar':
+        return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+    else:
+        return redirect(url_for('admin_application_detail', app_id=app_id))
 
 @app.route('/admin/applications/<int:app_id>/generate-interview-invitation')
 @login_required
@@ -1493,22 +1500,34 @@ def admin_generate_interview_invitation(app_id):
                                generate_verification_code)
     from models import save_interview_invitation_pdf
     
+    # Récupérer la langue de l'interface depuis la query string
+    interface_lang = request.args.get('lang', 'fr')
+    
     try:
         # Récupérer la candidature
         application = next((app for app in get_all_applications() if app['id'] == app_id), None)
         if not application:
-            flash('Candidature non trouvée', 'error')
+            error_msg = 'الطلب غير موجود' if interface_lang == 'ar' else 'Candidature non trouvée'
+            flash(error_msg, 'error')
             return redirect(url_for('admin_applications'))
         
         # Vérifier que le candidat est sélectionné pour interview
         if application.get('phase1_status') != 'selected_for_interview':
-            flash('Le candidat doit d\'abord être sélectionné pour un entretien', 'error')
-            return redirect(url_for('admin_application_detail', app_id=app_id))
+            error_msg = 'يجب أولاً اختيار المرشح للمقابلة' if interface_lang == 'ar' else 'Le candidat doit d\'abord être sélectionné pour un entretien'
+            flash(error_msg, 'error')
+            if interface_lang == 'ar':
+                return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+            else:
+                return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Vérifier qu'une date d'interview existe
         if not application.get('interview_date'):
-            flash('Aucune date d\'entretien n\'est définie', 'error')
-            return redirect(url_for('admin_application_detail', app_id=app_id))
+            error_msg = 'لم يتم تحديد موعد للمقابلة' if interface_lang == 'ar' else 'Aucune date d\'entretien n\'est définie'
+            flash(error_msg, 'error')
+            if interface_lang == 'ar':
+                return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+            else:
+                return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Générer un code de vérification unique
         verification_code = generate_verification_code(app_id, 'convocation')
@@ -1574,12 +1593,18 @@ def admin_generate_interview_invitation(app_id):
         conn.commit()
         conn.close()
         
-        flash('✅ Convocations bilingues (FR + AR) générées avec succès avec code QR !', 'success')
+        success_msg = '✅ تم إنشاء الدعوات بنجاح (FR + AR) مع رمز QR!' if interface_lang == 'ar' else '✅ Convocations bilingues (FR + AR) générées avec succès avec code QR !'
+        flash(success_msg, 'success')
         
     except Exception as e:
-        flash(f'Erreur lors de la génération des PDFs: {str(e)}', 'error')
+        error_msg = f'خطأ: {str(e)}' if interface_lang == 'ar' else f'Erreur lors de la génération des PDFs: {str(e)}'
+        flash(error_msg, 'error')
     
-    return redirect(url_for('admin_application_detail', app_id=app_id))
+    # Rediriger vers la version appropriée selon la langue de l'interface
+    if interface_lang == 'ar':
+        return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+    else:
+        return redirect(url_for('admin_application_detail', app_id=app_id))
 
 @app.route('/admin/applications/<int:app_id>/download-interview-invitation')
 @login_required
@@ -1595,8 +1620,11 @@ def admin_download_interview_invitation_lang(app_id, lang='fr'):
     """Route pour télécharger le PDF de convocation dans la langue spécifiée (FR ou AR)"""
     from models import get_interview_invitation_pdf
     
+    # Récupérer la langue de l'interface depuis la query string
+    interface_lang = request.args.get('interface_lang', 'fr')
+    
     try:
-        print(f"🔍 Téléchargement convocation: app_id={app_id}, lang={lang}")
+        print(f"🔍 Téléchargement convocation: app_id={app_id}, lang={lang}, interface_lang={interface_lang}")
         
         # Récupérer le nom du fichier depuis la BDD selon la langue
         pdf_filename = get_interview_invitation_pdf(app_id, lang)
@@ -1605,8 +1633,13 @@ def admin_download_interview_invitation_lang(app_id, lang='fr'):
         
         if not pdf_filename:
             print(f"❌ Aucun fichier dans la BDD pour lang={lang}")
-            flash(f'Aucune convocation ({lang.upper()}) n\'a été générée pour cette candidature', 'error')
-            return redirect(url_for('admin_application_detail', app_id=app_id))
+            error_msg = f'لم يتم إنشاء دعوة ({lang.upper()}) لهذا الطلب' if interface_lang == 'ar' else f'Aucune convocation ({lang.upper()}) n\'a été générée pour cette candidature'
+            flash(error_msg, 'error')
+            # Rediriger vers la version appropriée selon la langue de l'interface
+            if interface_lang == 'ar':
+                return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+            else:
+                return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Chemin complet du fichier
         pdf_path = os.path.join('static', 'convocations', pdf_filename)
@@ -1614,8 +1647,13 @@ def admin_download_interview_invitation_lang(app_id, lang='fr'):
         print(f"📂 Fichier existe?: {os.path.exists(pdf_path)}")
         
         if not os.path.exists(pdf_path):
-            flash(f'Le fichier de convocation ({lang.upper()}) est introuvable', 'error')
-            return redirect(url_for('admin_application_detail', app_id=app_id))
+            error_msg = f'ملف الدعوة ({lang.upper()}) غير موجود' if interface_lang == 'ar' else f'Le fichier de convocation ({lang.upper()}) est introuvable'
+            flash(error_msg, 'error')
+            # Rediriger vers la version appropriée selon la langue de l'interface
+            if interface_lang == 'ar':
+                return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+            else:
+                return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Envoyer le fichier
         return send_file(
@@ -1626,8 +1664,13 @@ def admin_download_interview_invitation_lang(app_id, lang='fr'):
         )
         
     except Exception as e:
-        flash(f'Erreur: {str(e)}', 'error')
-        return redirect(url_for('admin_application_detail', app_id=app_id))
+        error_msg = f'خطأ: {str(e)}' if interface_lang == 'ar' else f'Erreur: {str(e)}'
+        flash(error_msg, 'error')
+        # Rediriger vers la version appropriée selon la langue de l'interface
+        if interface_lang == 'ar':
+            return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+        else:
+            return redirect(url_for('admin_application_detail', app_id=app_id))
 
 @app.route('/admin/applications/<int:app_id>/download-acceptance-letter')
 @login_required
@@ -1643,20 +1686,33 @@ def admin_download_acceptance_letter_lang(app_id, lang='fr'):
     """Route pour télécharger le PDF de lettre d'acceptation dans la langue spécifiée (FR ou AR)"""
     from models import get_acceptance_letter_pdf
     
+    # Récupérer la langue de l'interface depuis la query string
+    interface_lang = request.args.get('interface_lang', 'fr')
+    
     try:
         # Récupérer le nom du fichier depuis la BDD selon la langue
         pdf_filename = get_acceptance_letter_pdf(app_id, lang)
         
         if not pdf_filename:
-            flash(f'Aucune lettre d\'acceptation ({lang.upper()}) n\'a été générée pour cette candidature', 'error')
-            return redirect(url_for('admin_application_detail', app_id=app_id))
+            error_msg = f'لم يتم إنشاء خطاب القبول ({lang.upper()}) لهذا الطلب' if interface_lang == 'ar' else f'Aucune lettre d\'acceptation ({lang.upper()}) n\'a été générée pour cette candidature'
+            flash(error_msg, 'error')
+            # Rediriger vers la version appropriée selon la langue de l'interface
+            if interface_lang == 'ar':
+                return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+            else:
+                return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Chemin complet du fichier
         pdf_path = os.path.join('static', 'acceptances', pdf_filename)
         
         if not os.path.exists(pdf_path):
-            flash(f'Le fichier de lettre d\'acceptation ({lang.upper()}) est introuvable', 'error')
-            return redirect(url_for('admin_application_detail', app_id=app_id))
+            error_msg = f'ملف خطاب القبول ({lang.upper()}) غير موجود' if interface_lang == 'ar' else f'Le fichier de lettre d\'acceptation ({lang.upper()}) est introuvable'
+            flash(error_msg, 'error')
+            # Rediriger vers la version appropriée selon la langue de l'interface
+            if interface_lang == 'ar':
+                return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+            else:
+                return redirect(url_for('admin_application_detail', app_id=app_id))
         
         # Envoyer le fichier
         return send_file(
@@ -1667,8 +1723,13 @@ def admin_download_acceptance_letter_lang(app_id, lang='fr'):
         )
         
     except Exception as e:
-        flash(f'Erreur: {str(e)}', 'error')
-        return redirect(url_for('admin_application_detail', app_id=app_id))
+        error_msg = f'خطأ: {str(e)}' if interface_lang == 'ar' else f'Erreur: {str(e)}'
+        flash(error_msg, 'error')
+        # Rediriger vers la version appropriée selon la langue de l'interface
+        if interface_lang == 'ar':
+            return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+        else:
+            return redirect(url_for('admin_application_detail', app_id=app_id))
 
 @app.route('/admin/applications/<int:app_id>/regenerate-acceptance-letter', methods=['POST'])
 @login_required
@@ -2327,12 +2388,16 @@ def admin_jobs_ar():
     """Route pour voir toutes les offres d'emploi - Version Arabe"""
     session['lang'] = 'ar'  # Maintenir la langue arabe
     all_applications = get_all_applications()
+    
+    # Filtrer pour exclure les candidatures spontanées (job_id = 0)
+    regular_applications = [app for app in all_applications if app.get('job_id') is not None]
     spontaneous_count = len([app for app in all_applications if app.get('job_id') is None])
     
     current_user = get_current_user()
     permissions = has_permission(None)
     return render_template('admin/jobs.html',
                          jobs=get_all_jobs(),
+                         applications=regular_applications,
                          current_user=current_user,
                          permissions=permissions,
                          spontaneous_count=spontaneous_count,

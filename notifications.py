@@ -184,20 +184,24 @@ def generate_email_link(to_email, subject, body):
 
 def generate_whatsapp_link(phone, message):
     """Générer un lien WhatsApp avec message pré-rempli"""
-    # Nettoyer le numéro de téléphone
-    cleaned_phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+    # Formater le numéro pour WhatsApp
+    formatted_phone = format_phone_for_whatsapp(phone)
     encoded_message = urllib.parse.quote(message)
-    return f"https://wa.me/{cleaned_phone}?text={encoded_message}"
+    return f"https://wa.me/{formatted_phone}?text={encoded_message}"
 
 def format_phone_for_whatsapp(phone):
     """Formater un numéro de téléphone pour WhatsApp (avec indicatif pays si nécessaire)"""
-    cleaned = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+    cleaned = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '').replace('+', '')
     
-    # Si le numéro commence par 0, ajouter l'indicatif du Maroc (+212)
+    # Si le numéro commence par 0, ajouter l'indicatif des Comores (+269)
     if cleaned.startswith('0'):
-        cleaned = '212' + cleaned[1:]
-    elif not cleaned.startswith('+') and not cleaned.startswith('212'):
-        cleaned = '212' + cleaned
+        cleaned = '269' + cleaned[1:]
+    # Si le numéro ne commence pas par 269, l'ajouter
+    elif not cleaned.startswith('269'):
+        # Vérifier si c'est déjà un numéro international avec un autre indicatif
+        # Sinon, ajouter l'indicatif des Comores par défaut
+        if len(cleaned) >= 7 and not cleaned.startswith('212') and not cleaned.startswith('33'):
+            cleaned = '269' + cleaned
     
     return cleaned
 

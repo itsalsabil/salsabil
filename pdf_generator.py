@@ -74,6 +74,56 @@ except Exception as e:
 
 
 # ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def get_job_title_for_language(application_data, lang='fr'):
+    """
+    Récupère le titre du job dans la langue appropriée.
+    Pour les candidatures spontanées, utilise selected_job_title.
+    Pour les candidatures normales, fait un JOIN avec la table jobs pour récupérer titre_ar si lang='ar'.
+    
+    Args:
+        application_data (dict): Données de la candidature
+        lang (str): 'fr' ou 'ar'
+    
+    Returns:
+        str: Le titre du job dans la langue demandée
+    """
+    from database import get_db_connection
+    
+    # Pour les candidatures spontanées, utiliser selected_job_title
+    if application_data.get('job_id') is None:
+        job_title = application_data.get('selected_job_title') or application_data.get('job_title', 'Candidature Spontanée' if lang == 'fr' else 'طلب توظيف عفوي')
+        print(f"📋 Candidature spontanée - titre: {job_title}")
+        return job_title
+    
+    # Pour les candidatures normales, récupérer depuis la table jobs
+    try:
+        conn = get_db_connection()
+        job = conn.execute('SELECT titre, titre_ar FROM jobs WHERE id = ?', (application_data['job_id'],)).fetchone()
+        conn.close()
+        
+        if job:
+            # Retourner le titre dans la langue appropriée
+            if lang == 'ar' and job['titre_ar']:
+                print(f"📋 Job ID {application_data['job_id']} - titre AR: {job['titre_ar']}")
+                return job['titre_ar']
+            else:
+                print(f"📋 Job ID {application_data['job_id']} - titre FR: {job['titre']}")
+                return job['titre']
+        else:
+            # Fallback si le job n'existe pas
+            fallback = application_data.get('job_title', 'Poste non spécifié' if lang == 'fr' else 'منصب غير محدد')
+            print(f"⚠️ Job ID {application_data['job_id']} introuvable - fallback: {fallback}")
+            return fallback
+    except Exception as e:
+        print(f"❌ Erreur lors de la récupération du titre du job: {e}")
+        # En cas d'erreur, utiliser le titre dans application_data
+        return application_data.get('job_title', 'Poste non spécifié' if lang == 'fr' else 'منصب غير محدد')
+
+
+# ============================================================================
 # DICTIONNAIRES DE TRADUCTION POUR LES PDF
 # ============================================================================
 
@@ -247,19 +297,27 @@ def create_qr_code(verification_url):
     return img_buffer
 
 
-def reshape_arabic_text(text, lang='fr'):
+def reshape_arabic_text(text, lang='fr', force_reshape=False):
     """
     Reshape le texte arabe pour qu'il s'affiche correctement dans les PDFs
     
     Args:
         text: Le texte à reshaper
         lang: La langue ('ar' pour arabe, 'fr' pour français)
+        force_reshape: Si True, reshape même si lang='fr' (utile pour les noms arabes dans les docs français)
     
     Returns:
         str: Le texte reshaped (pour l'arabe) ou original (pour le français)
     """
-    if lang != 'ar' or not ARABIC_SUPPORT or not text:
+    if not ARABIC_SUPPORT or not text:
         return text
+    
+    # Ne pas reshaper si ce n'est pas de l'arabe (sauf si force_reshape ou lang='ar')
+    if lang != 'ar' and not force_reshape:
+        # Détecter si le texte contient des caractères arabes
+        has_arabic = any('\u0600' <= char <= '\u06FF' for char in str(text))
+        if not has_arabic:
+            return text
     
     try:
         # Reshaper le texte arabe (connecter les lettres)
@@ -427,12 +485,17 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
     # ========================================================================
     
     attention_text = reshape_arabic_text(t['attention'], lang)
+    # Reshaper les noms pour l'arabe
+    prenom = reshape_arabic_text(application_data['prenom'], lang)
+    nom = reshape_arabic_text(application_data['nom'], lang)
+    adresse = reshape_arabic_text(application_data['adresse'], lang)
+    
     recipient = f"""
     <b>{attention_text}</b><br/>
-    <b>{application_data['prenom']} {application_data['nom']}</b><br/>
+    <b>{nom} {prenom}</b><br/>
     {application_data['email']}<br/>
     {application_data['telephone']}<br/>
-    {application_data['adresse']}
+    {adresse}
     """
     elements.append(Paragraph(recipient, body_style))
     elements.append(Spacer(1, 0.2*cm))
@@ -444,17 +507,17 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
     # Salutation - ordre différent pour l'arabe
     greeting_text = reshape_arabic_text(t['greeting'], lang)
     if lang == 'ar':
-        # En arabe : Nom + Salutation (ex: "محمد السيدة، السيد")
-        salutation = f"{application_data['nom']} {greeting_text}،"
+        # En arabe : Nom Prénom + Salutation (ex: "علي محمد السيدة، السيد")
+        salutation = f"{nom} {prenom} {greeting_text}،"
     else:
-        # En français : Salutation + Nom (ex: "Madame, Monsieur Dupont,")
-        salutation = f"{greeting_text} {application_data['nom']},"
+        # En français : Salutation + Nom Prénom (ex: "Madame, Monsieur Dupont Jean,")
+        salutation = f"{greeting_text} {nom} {prenom},"
     elements.append(Paragraph(salutation, body_style))
     elements.append(Spacer(1, 0.2*cm))
     
     # Introduction
-    # For spontaneous applications, use the selected job title if available
-    job_title_display = application_data.get('selected_job_title') or application_data['job_title']
+    # Récupérer le titre du job dans la langue appropriée
+    job_title_display = get_job_title_for_language(application_data, lang)
     
     intro_1 = reshape_arabic_text(t['intro_1'], lang)
     intro_2 = reshape_arabic_text(t['intro_2'], lang)
@@ -484,12 +547,15 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
         formatted_date = interview_dt.strftime('%A %d %B %Y à %H:%M')
         formatted_day = interview_dt.strftime('%d/%m/%Y')
         formatted_time = interview_dt.strftime('%H:%M')
-    except:
+        print(f"✅ Date parsée avec succès: jour={formatted_day}, heure={formatted_time}")
+    except Exception as e:
+        print(f"⚠️ Erreur parsing date: {e}, date brute: {interview_date}")
         # Si le parsing échoue, s'assurer que tout est en chaîne
         formatted_date = str(interview_date)
         formatted_day = str(interview_date)
         to_confirm_text = "À confirmer" if lang == 'fr' else "يتم التأكيد"
         formatted_time = reshape_arabic_text(to_confirm_text, lang)
+        print(f"⚠️ Utilisation valeurs par défaut: formatted_time={formatted_time}")
     
     # Traduction des jours et mois selon la langue (seulement si c'est une chaîne)
     if isinstance(formatted_date, str):
@@ -535,6 +601,9 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
     address_label = reshape_arabic_text(t["address"], lang)
     position_label = reshape_arabic_text(t["position"], lang)
     address_value = reshape_arabic_text('Siège de SALSABIL' if lang == 'fr' else 'مقر السلسبيل', lang)
+    job_title_reshaped = reshape_arabic_text(job_title_display, lang)
+    
+    print(f"📊 Données tableau: jour={formatted_day}, heure={formatted_time}, poste={job_title_reshaped}")
     
     # Inverser les colonnes pour l'arabe (valeur à gauche, label à droite)
     if lang == 'ar':
@@ -542,8 +611,9 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
             [formatted_day, f'📅 {date_label}'],
             [formatted_time, f'🕐 {time_label}'],
             [address_value, f'📍 {address_label}'],
-            [job_title_display, f'💼 {position_label}'],
+            [job_title_reshaped, f'💼 {position_label}'],
         ]
+        print(f"📋 Tableau AR créé avec {len(interview_info)} lignes")
         # Pour l'arabe : valeur (large) puis label (étroit)
         col_widths = [10*cm, 5*cm]
     else:
@@ -553,6 +623,7 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
             [f'📍 {address_label}', address_value],
             [f'💼 {position_label}', job_title_display],
         ]
+        print(f"📋 Tableau FR créé avec {len(interview_info)} lignes")
         # Pour le français : label (étroit) puis valeur (large)
         col_widths = [5*cm, 10*cm]
     
@@ -785,10 +856,15 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
         fontName=FONT_NAME_BOLD
     )
     
+    # Reshaper les noms et l'adresse pour l'arabe
+    prenom = reshape_arabic_text(application_data.get('prenom', ''), lang)
+    nom = reshape_arabic_text(application_data.get('nom', ''), lang)
+    adresse = reshape_arabic_text(application_data.get('adresse', 'Salsabil'), lang)
+    
     recipient = f"""
     <b>{reshape_arabic_text(t['attention'], lang)}</b><br/>
-    {application_data.get('prenom', '')} {application_data.get('nom', '')}<br/>
-    {application_data.get('adresse', 'Salsabil')}<br/>
+    {nom} {prenom}<br/>
+    {adresse}<br/>
     Email : {application_data.get('email', '')}<br/>
     Tél : {application_data.get('telephone', '')}
     """
@@ -819,7 +895,8 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
         alignment=TA_CENTER
     )
     
-    job_title = application_data.get('job_title', 'le poste proposé')
+    # Récupérer le titre du job dans la langue appropriée
+    job_title = get_job_title_for_language(application_data, lang)
     
     acceptance_msg = reshape_arabic_text("Acceptation de votre candidature" if lang == 'fr' else "قبول طلبكم", lang)
     job_title_reshaped = reshape_arabic_text(job_title, lang)
@@ -830,11 +907,11 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
     # Salutation - Inverser pour l'arabe
     greeting_text = reshape_arabic_text(t['greeting'], lang)
     if lang == 'ar':
-        # En arabe : Nom + Salutation
-        salutation = f"{application_data.get('nom', '')} {greeting_text}،"
+        # En arabe : Nom Prénom + Salutation
+        salutation = f"{nom} {prenom} {greeting_text}،"
     else:
-        # En français : Salutation + Nom
-        salutation = f"{greeting_text} {application_data.get('nom', '')},"
+        # En français : Salutation + Nom Prénom
+        salutation = f"{greeting_text} {nom} {prenom},"
     elements.append(Paragraph(salutation, body_style))
     elements.append(Spacer(1, 0.3*cm))  # Réduit de 0.5 à 0.3
     
