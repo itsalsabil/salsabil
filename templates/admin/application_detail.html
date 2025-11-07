@@ -214,6 +214,7 @@
                             <h2>{% if lang == 'ar' %}معلومات المرشح{% else %}Informations du Candidat{% endif %}</h2>
                             {% if application.job_id is none %}
                             <form action="{{ url_for('admin_toggle_favorite', app_id=application.id) }}" method="POST" style="display: inline;">
+                                <input type="hidden" name="lang" value="{{ lang }}">
                                 <button type="submit" class="btn-favorite-large {{ 'active' if application.is_favorite == 1 else '' }}" title="{% if lang == 'ar' %}{{ 'إزالة من المفضلة' if application.is_favorite == 1 else 'إضافة إلى المفضلة' }}{% else %}{{ 'Retirer des favoris' if application.is_favorite == 1 else 'Ajouter aux favoris' }}{% endif %}">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="{{ '#FFD700' if application.is_favorite == 1 else 'none' }}" stroke="currentColor" stroke-width="2">
                                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -904,6 +905,7 @@
                                     </p>
                                     
                                     <form method="POST" action="{{ url_for('admin_phase1_decision', app_id=application.id) }}" class="workflow-form">
+                                        <input type="hidden" name="lang" value="{{ lang }}">
                                         {% if application.job_id is none and application.choix_travail %}
                                         <!-- Sélection du poste pour candidature spontanée -->
                                         <div class="form-group" style="background: #f8f9ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea;">
@@ -984,7 +986,7 @@
                                             <!-- Téléchargement bilingue (FR + AR) -->
                                             <div class="bilingual-download-section">
                                                 <div class="pdf-action-buttons">
-                                                    <a href="{{ url_for('admin_download_interview_invitation', app_id=application.id, lang='fr') }}" class="btn-pdf-download">
+                                                    <a href="{{ url_for('admin_download_interview_invitation_lang', app_id=application.id, lang='fr') }}" class="btn-pdf-download">
                                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -992,7 +994,7 @@
                                                         </svg>
                                                         🇫🇷 {% if lang == 'ar' %}تحميل (فرنسي){% else %}Télécharger (FR){% endif %}
                                                     </a>
-                                                    <a href="{{ url_for('admin_download_interview_invitation', app_id=application.id, lang='ar') }}" class="btn-pdf-download">
+                                                    <a href="{{ url_for('admin_download_interview_invitation_lang', app_id=application.id, lang='ar') }}" class="btn-pdf-download">
                                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -1127,6 +1129,7 @@
                                     </p>
                                     
                                     <form method="POST" action="{{ url_for('admin_phase2_decision', app_id=application.id) }}" class="workflow-form">
+                                        <input type="hidden" name="lang" value="{{ lang }}">
                                         <div class="form-group">
                                             <label>{% if lang == 'ar' %}ملاحظات المقابلة (اختياري):{% else %}Notes d'entretien (optionnel) :{% endif %}</label>
                                             <textarea name="interview_notes" rows="4" class="form-input" placeholder="{% if lang == 'ar' %}ملاحظاتك أثناء المقابلة...{% else %}Vos observations pendant l'entretien...{% endif %}">{{ application.interview_notes or '' }}</textarea>
@@ -1178,8 +1181,8 @@
                     <!-- Boutons de téléchargement bilingue de la lettre d'acceptation -->
                     {% if application.acceptance_letter_pdf %}
                     <div style="margin: 1rem 0;">
-                        <div class="bilingual-download-buttons" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                            <a href="{{ url_for('admin_download_acceptance_letter', app_id=application.id, lang='fr') }}" 
+                        <div class="bilingual-download-buttons" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                            <a href="{{ url_for('admin_download_acceptance_letter_lang', app_id=application.id, lang='fr') }}" 
                                class="btn-download-acceptance" 
                                target="_blank"
                                download>
@@ -1190,7 +1193,7 @@
                                 </svg>
                                 🇫🇷 {% if lang == 'ar' %}تحميل خطاب القبول (فرنسي){% else %}Télécharger lettre (FR){% endif %}
                             </a>
-                            <a href="{{ url_for('admin_download_acceptance_letter', app_id=application.id, lang='ar') }}" 
+                            <a href="{{ url_for('admin_download_acceptance_letter_lang', app_id=application.id, lang='ar') }}" 
                                class="btn-download-acceptance" 
                                target="_blank"
                                download>
@@ -1201,6 +1204,19 @@
                                 </svg>
                                 🇸🇦 {% if lang == 'ar' %}تحميل خطاب القبول (عربي){% else %}Télécharger lettre (AR){% endif %}
                             </a>
+                            
+                            <!-- Bouton de régénération -->
+                            <form method="POST" action="{{ url_for('admin_regenerate_acceptance_letter', app_id=application.id) }}" style="display: inline;" onsubmit="return confirm('{% if lang == 'ar' %}هل تريد حقاً إعادة إنشاء رسائل القبول؟{% else %}Voulez-vous vraiment régénérer les lettres d\'acceptation ?{% endif %}');">
+                                <input type="hidden" name="lang" value="{{ lang }}">
+                                <button type="submit" class="btn-regenerate" style="background: #f39c12; color: white; border: none; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; transition: all 0.3s;">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <polyline points="1 20 1 14 7 14"></polyline>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                    {% if lang == 'ar' %}🔄 إعادة إنشاء{% else %}🔄 Régénérer{% endif %}
+                                </button>
+                            </form>
                         </div>
                     </div>
                     {% endif %}
@@ -1303,6 +1319,7 @@
                                 </a>
                                 
                                 <form method="POST" action="{{ url_for('admin_delete_application', app_id=application.id) }}" onsubmit="return confirm(&quot;{% if lang == 'ar' %}هل أنت متأكد من رغبتك في حذف هذا الطلب؟{% else %}Êtes-vous sûr de vouloir supprimer cette candidature ?{% endif %}&quot;);" style="display: inline;">
+                                    <input type="hidden" name="lang" value="{{ lang }}">
                                     <button type="submit" class="btn-quick-action btn-danger">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="3 6 5 6 21 6"></polyline>
