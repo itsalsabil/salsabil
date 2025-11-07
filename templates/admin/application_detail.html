@@ -986,7 +986,7 @@
                                             <!-- Téléchargement bilingue (FR + AR) -->
                                             <div class="bilingual-download-section">
                                                 <div class="pdf-action-buttons">
-                                                    <a href="{{ url_for('admin_download_interview_invitation_lang', app_id=application.id, lang='fr') }}" class="btn-pdf-download">
+                                                    <a href="{{ url_for('admin_download_interview_invitation_lang', app_id=application.id, lang='fr', interface_lang=lang) }}" class="btn-pdf-download">
                                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -994,7 +994,7 @@
                                                         </svg>
                                                         🇫🇷 {% if lang == 'ar' %}تحميل (فرنسي){% else %}Télécharger (FR){% endif %}
                                                     </a>
-                                                    <a href="{{ url_for('admin_download_interview_invitation_lang', app_id=application.id, lang='ar') }}" class="btn-pdf-download">
+                                                    <a href="{{ url_for('admin_download_interview_invitation_lang', app_id=application.id, lang='ar', interface_lang=lang) }}" class="btn-pdf-download">
                                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -1005,9 +1005,9 @@
                                                 </div>
                                                 <div class="pdf-action-buttons" style="margin-top: 0.5rem;">
                                                     {% if lang == 'ar' %}
-                                                    <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('إنشاء دعوة PDF جديدة؟')">
+                                                    <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id, lang='ar') }}" class="btn-pdf-regenerate" onclick="return confirm('إنشاء دعوة PDF جديدة؟')">
                                                     {% else %}
-                                                    <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-regenerate" onclick="return confirm('Générer un nouveau PDF de convocation ?')">
+                                                    <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id, lang='fr') }}" class="btn-pdf-regenerate" onclick="return confirm('Générer un nouveau PDF de convocation ?')">
                                                     {% endif %}
                                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <polyline points="23 4 23 10 17 10"></polyline>
@@ -1022,11 +1022,11 @@
                                             <div class="pdf-status-box pdf-not-generated">
                                                 <div class="pdf-status-icon">📄</div>
                                                 <div class="pdf-status-content">
-                                                    <p class="pdf-status-text"><strong>Convocation non générée</strong></p>
-                                                    <p class="pdf-status-detail">Le candidat aura besoin de ce document pour accéder aux locaux</p>
+                                                    <p class="pdf-status-text"><strong>{% if lang == 'ar' %}لم يتم إنشاء الدعوة{% else %}Convocation non générée{% endif %}</strong></p>
+                                                    <p class="pdf-status-detail">{% if lang == 'ar' %}سيحتاج المرشح هذه الوثيقة للدخول{% else %}Le candidat aura besoin de ce document pour accéder aux locaux{% endif %}</p>
                                                 </div>
                                             </div>
-                                            <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id) }}" class="btn-pdf-generate">
+                                            <a href="{{ url_for('admin_generate_interview_invitation', app_id=application.id, lang=lang) }}" class="btn-pdf-generate">
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                                     <polyline points="14 2 14 8 20 8"></polyline>
@@ -1182,7 +1182,7 @@
                     {% if application.acceptance_letter_pdf %}
                     <div style="margin: 1rem 0;">
                         <div class="bilingual-download-buttons" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                            <a href="{{ url_for('admin_download_acceptance_letter_lang', app_id=application.id, lang='fr') }}" 
+                            <a href="{{ url_for('admin_download_acceptance_letter_lang', app_id=application.id, lang='fr', interface_lang=lang) }}" 
                                class="btn-download-acceptance" 
                                target="_blank"
                                download>
@@ -1193,7 +1193,7 @@
                                 </svg>
                                 🇫🇷 {% if lang == 'ar' %}تحميل خطاب القبول (فرنسي){% else %}Télécharger lettre (FR){% endif %}
                             </a>
-                            <a href="{{ url_for('admin_download_acceptance_letter_lang', app_id=application.id, lang='ar') }}" 
+                            <a href="{{ url_for('admin_download_acceptance_letter_lang', app_id=application.id, lang='ar', interface_lang=lang) }}" 
                                class="btn-download-acceptance" 
                                target="_blank"
                                download>
@@ -1459,10 +1459,13 @@
         }
         
         function markNotificationSent(appId, phase) {
-            // Rediriger vers la route pour marquer la notification comme envoyée
+            // Marquer la notification comme envoyée après un délai
+            // pour laisser le temps au lien (email/WhatsApp) de s'ouvrir
+            var lang = '{{ lang }}' || 'fr';
             setTimeout(function() {
-                window.location.href = '/admin/applications/' + appId + '/send-notification?phase=' + phase;
-            }, 1000);
+                window.location.href = '/admin/applications/' + appId + '/send-notification?phase=' + phase + '&lang=' + lang;
+            }, 2000); // Augmenté à 2 secondes
+            return true; // Permettre au lien de s'ouvrir
         }
     </script>
 </body>
