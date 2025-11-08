@@ -150,6 +150,14 @@ def get_file_url(filename_or_url):
 # Enregistrer le filtre Jinja pour les templates
 app.jinja_env.filters['file_url'] = get_file_url
 
+# Filtre Jinja pour traduire les valeurs
+def translate_filter(value, target_lang='ar'):
+    """Filtre Jinja pour traduire les valeurs du français vers l'arabe"""
+    from translations import translate_value
+    return translate_value(value, target_lang)
+
+app.jinja_env.filters['translate'] = translate_filter
+
 def allowed_file(filename):
     """Vérifie si le fichier a une extension autorisée"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -553,7 +561,8 @@ def apply(job_id):
                 carte_id=uploaded_files.get('carte_id'),
                 lettre_recommandation=uploaded_files.get('lettre_recommandation'),
                 casier_judiciaire=uploaded_files.get('casier_judiciaire'),
-                diplome=uploaded_files.get('diplome')
+                diplome=uploaded_files.get('diplome'),
+                form_language='fr'  # Langue du formulaire français
             )
             
             print(f"✅ Candidature créée avec succès! ID: {app_id}")
@@ -778,7 +787,8 @@ def apply_ar(job_id):
                 'carte_id': uploaded_files.get('carte_id'),
                 'lettre_recommandation': uploaded_files.get('lettre_recommandation'),
                 'casier_judiciaire': uploaded_files.get('casier_judiciaire'),
-                'diplome': uploaded_files.get('diplome')
+                'diplome': uploaded_files.get('diplome'),
+                'form_language': 'ar'  # Langue du formulaire arabe
             }
             
             print("   Paramètres de candidature:")
@@ -1945,6 +1955,11 @@ def admin_download_candidate_report_lang(app_id, lang='fr'):
             flash(error_msg, 'error')
             return redirect(url_for('admin_applications_ar' if interface_lang == 'ar' else 'admin_applications'))
         
+        # ✨ UTILISER LE PARAMÈTRE lang (choix explicite de l'utilisateur)
+        # Le paramètre lang dans l'URL a la priorité sur form_language
+        report_lang = lang
+        print(f"📄 Génération rapport: langue demandée={lang}, langue formulaire={application.get('form_language', 'N/A')}")
+        
         # Créer le nom du fichier
         candidate_name = f"{application['nom']} {application['prenom']}"
         pdf_filename = generate_candidate_report_filename(candidate_name, app_id)
@@ -1966,8 +1981,8 @@ def admin_download_candidate_report_lang(app_id, lang='fr'):
                 photo_path = os.path.join('static', 'uploads', photo_path)
             application_data['photo'] = photo_path
         
-        # Générer le PDF
-        generate_candidate_report_pdf(application_data, pdf_path, lang=lang)
+        # Générer le PDF avec la langue du formulaire
+        generate_candidate_report_pdf(application_data, pdf_path, lang=report_lang)
         
         # Envoyer le fichier
         success_msg = 'تم إنشاء التقرير بنجاح' if interface_lang == 'ar' else 'Rapport généré avec succès'
@@ -2689,6 +2704,7 @@ def admin_profile_ar():
 def admin_application_detail_ar(app_id):
     """Route pour voir les détails d'une candidature - Version Arabe"""
     from notifications import generate_whatsapp_link
+    from translations import translate_dict_values
     
     session['lang'] = 'ar'  # Maintenir la langue arabe
     all_applications = get_all_applications()
@@ -2700,6 +2716,9 @@ def admin_application_detail_ar(app_id):
         if referrer and 'spontaneous' in referrer:
             return redirect(url_for('admin_spontaneous_applications_ar'))
         return redirect(url_for('admin_applications_ar'))
+    
+    # Traduire les valeurs des champs en arabe
+    application = translate_dict_values(application, target_lang='ar')
     
     # Générer le lien WhatsApp personnel formaté avec un message simple
     candidate_name = f"{application.get('prenom', '')} {application.get('nom', '')}"
@@ -2731,6 +2750,8 @@ def admin_application_detail_ar(app_id):
 @permission_required('view_applications')
 def admin_spontaneous_application_detail_ar(app_id):
     """Route pour voir les détails d'une candidature spontanée - Version Arabe"""
+    from translations import translate_dict_values
+    
     session['lang'] = 'ar'  # Maintenir la langue arabe
     all_applications = get_all_applications()
     application = next((app for app in all_applications if app['id'] == app_id), None)
@@ -2743,6 +2764,9 @@ def admin_spontaneous_application_detail_ar(app_id):
     if application.get('job_id') is not None:
         flash('هذا الطلب ليس طلبًا عفويًا', 'error')
         return redirect(url_for('admin_applications_ar'))
+    
+    # Traduire les valeurs des champs en arabe
+    application = translate_dict_values(application, target_lang='ar')
     
     # Filtrer pour exclure les candidatures spontanées (job_id = 0) pour le badge
     regular_applications = [app for app in all_applications if app.get('job_id') is not None]

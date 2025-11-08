@@ -393,7 +393,7 @@ def create_application(job_id, job_title, prenom, nom, email, telephone, adresse
                       problemes_sante, nature_maladie,
                       choix_travail,
                       photo, cv, lettre_demande, carte_id, lettre_recommandation, 
-                      casier_judiciaire, diplome):
+                      casier_judiciaire, diplome, form_language='fr'):
     """Créer une nouvelle candidature"""
     try:
         # Convertir job_id=0 en None pour les candidatures spontanées
@@ -406,7 +406,7 @@ def create_application(job_id, job_title, prenom, nom, email, telephone, adresse
         # Enregistrer la date de soumission avec heure (format ISO local)
         date_soumission = get_comoros_time().strftime('%Y-%m-%d %H:%M:%S')
         
-        print("   💾 Exécution de la requête SQL INSERT...")
+        print(f"   💾 Exécution de la requête SQL INSERT... (langue formulaire: {form_language})")
         
         # Utiliser le placeholder approprié
         ph = get_placeholder()
@@ -421,8 +421,8 @@ def create_application(job_id, job_title, prenom, nom, email, telephone, adresse
              problemes_sante, nature_maladie,
              choix_travail,
              photo, cv, lettre_demande, carte_id, lettre_recommandation, 
-             casier_judiciaire, diplome, status, date_soumission)
-            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
+             casier_judiciaire, diplome, status, date_soumission, form_language)
+            VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph}, {ph})
         '''
         
         cursor.execute(query, (job_id, job_title, prenom, nom, email, telephone, adresse, pays, region,
@@ -434,7 +434,7 @@ def create_application(job_id, job_title, prenom, nom, email, telephone, adresse
               problemes_sante, nature_maladie,
               choix_travail,
               photo, cv, lettre_demande, carte_id, lettre_recommandation,
-              casier_judiciaire, diplome, 'en attente', date_soumission))
+              casier_judiciaire, diplome, 'en attente', date_soumission, form_language))
         
         conn.commit()
         app_id = cursor.lastrowid

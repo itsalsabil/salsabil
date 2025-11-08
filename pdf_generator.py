@@ -1110,6 +1110,13 @@ def generate_candidate_report_pdf(application_data, output_path, lang='fr'):
         str: Chemin du fichier PDF généré
     """
     
+    # Importer le système de traduction
+    from translations import translate_dict_values
+    
+    # Traduire les valeurs si c'est en arabe
+    if lang == 'ar':
+        application_data = translate_dict_values(application_data, target_lang='ar')
+    
     def safe_str(value):
         """Convertir une valeur en chaîne de manière sûre"""
         if value is None:
