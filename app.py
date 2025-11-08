@@ -975,7 +975,11 @@ def admin_toggle_spontaneous():
     except Exception as e:
         flash(f'Erreur: {str(e)}', 'error')
     
-    return redirect(url_for('admin_spontaneous_applications'))
+    # Rediriger vers la bonne version selon la langue
+    if lang == 'ar':
+        return redirect(url_for('admin_spontaneous_applications_ar'))
+    else:
+        return redirect(url_for('admin_spontaneous_applications'))
 
 @app.route('/admin/favorite-applications')
 @login_required
@@ -1914,8 +1918,76 @@ def admin_regenerate_acceptance_letter(app_id):
             return redirect(url_for('admin_application_detail_ar', app_id=app_id))
         return redirect(url_for('admin_application_detail', app_id=app_id))
 
-@app.route('/admin/jobs')
+@app.route('/admin/applications/<int:app_id>/download-candidate-report')
+@login_required
+@permission_required('view_applications')
+def admin_download_candidate_report(app_id):
+    """Route pour télécharger le rapport de candidature (FR par défaut)"""
+    return admin_download_candidate_report_lang(app_id, 'fr')
 
+@app.route('/admin/applications/<int:app_id>/download-candidate-report/<lang>')
+@login_required
+@permission_required('view_applications')
+def admin_download_candidate_report_lang(app_id, lang='fr'):
+    """Route pour télécharger le rapport détaillé de candidature dans la langue spécifiée (FR ou AR)"""
+    from pdf_generator import generate_candidate_report_pdf, generate_candidate_report_filename
+    from models import get_application_by_id
+    import os
+    
+    # Récupérer la langue de l'interface depuis la query string
+    interface_lang = request.args.get('interface_lang', 'fr')
+    
+    try:
+        # Récupérer la candidature
+        application = get_application_by_id(app_id)
+        if not application:
+            error_msg = 'الطلب غير موجود' if interface_lang == 'ar' else 'Candidature non trouvée'
+            flash(error_msg, 'error')
+            return redirect(url_for('admin_applications_ar' if interface_lang == 'ar' else 'admin_applications'))
+        
+        # Créer le nom du fichier
+        candidate_name = f"{application['nom']} {application['prenom']}"
+        pdf_filename = generate_candidate_report_filename(candidate_name, app_id)
+        
+        # Créer le dossier s'il n'existe pas
+        reports_dir = os.path.join('static', 'reports')
+        if not os.path.exists(reports_dir):
+            os.makedirs(reports_dir)
+        
+        # Chemin complet du fichier
+        pdf_path = os.path.join(reports_dir, pdf_filename)
+        
+        # Préparer les données de la candidature avec le chemin complet de la photo
+        application_data = dict(application)
+        if application_data.get('photo'):
+            photo_path = application_data['photo']
+            # Si le chemin n'est pas absolu, le construire
+            if not os.path.isabs(photo_path):
+                photo_path = os.path.join('static', 'uploads', photo_path)
+            application_data['photo'] = photo_path
+        
+        # Générer le PDF
+        generate_candidate_report_pdf(application_data, pdf_path, lang=lang)
+        
+        # Envoyer le fichier
+        success_msg = 'تم إنشاء التقرير بنجاح' if interface_lang == 'ar' else 'Rapport généré avec succès'
+        flash(success_msg, 'success')
+        
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=pdf_filename
+        )
+        
+    except Exception as e:
+        error_msg = f'خطأ: {str(e)}' if interface_lang == 'ar' else f'Erreur: {str(e)}'
+        flash(error_msg, 'error')
+        # Rediriger vers la version appropriée selon la langue de l'interface
+        if interface_lang == 'ar':
+            return redirect(url_for('admin_application_detail_ar', app_id=app_id))
+        else:
+            return redirect(url_for('admin_application_detail', app_id=app_id))
 
 # Routes pour la gestion des offres d'emploi
 @app.route('/admin/jobs')
@@ -2230,6 +2302,9 @@ def admin_employees():
 def admin_add_employee():
     """Route pour ajouter un nouvel employé"""
     
+    # Récupérer la langue depuis le formulaire
+    lang = request.form.get('lang', 'fr')
+    
     try:
         username = request.form.get('username')
         password = request.form.get('password')
@@ -2240,42 +2315,66 @@ def admin_add_employee():
         
         # Vérifier si le username existe déjà
         if get_employee_by_username(username):
-            flash('Ce nom d\'utilisateur existe déjà', 'error')
-            return redirect(url_for('admin_employees'))
+            if lang == 'ar':
+                flash('اسم المستخدم هذا موجود بالفعل', 'error')
+            else:
+                flash('Ce nom d\'utilisateur existe déjà', 'error')
+            return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
         
         # Créer l'employé dans la base de données
         emp_id = create_employee(username, password, prenom, nom, email, role, 'actif')
         
-        flash(f'Employé {prenom} {nom} ajouté avec succès!', 'success')
-        return redirect(url_for('admin_employees'))
+        if lang == 'ar':
+            flash(f'✅ تمت إضافة الموظف {prenom} {nom} بنجاح!', 'success')
+        else:
+            flash(f'Employé {prenom} {nom} ajouté avec succès!', 'success')
+        return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
     except Exception as e:
-        flash(f'Erreur lors de l\'ajout de l\'employé: {str(e)}', 'error')
-        return redirect(url_for('admin_employees'))
+        if lang == 'ar':
+            flash(f'خطأ أثناء إضافة الموظف: {str(e)}', 'error')
+        else:
+            flash(f'Erreur lors de l\'ajout de l\'employé: {str(e)}', 'error')
+        return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
 
 @app.route('/admin/employees/<int:emp_id>/toggle-status', methods=['POST'])
 @login_required
 @permission_required('edit_employee')
 def admin_toggle_employee_status(emp_id):
     """Route pour activer/désactiver un employé"""
+    # Récupérer la langue depuis le formulaire ou la session
+    lang = request.form.get('lang', session.get('lang', 'fr'))
+    
     employee = get_employee_by_id(emp_id)
     
     if employee is None:
-        flash('Employé non trouvé', 'error')
-        return redirect(url_for('admin_employees'))
+        if lang == 'ar':
+            flash('الموظف غير موجود', 'error')
+        else:
+            flash('Employé non trouvé', 'error')
+        return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
     
     # Ne pas permettre de désactiver son propre compte
     if employee['id'] == session.get('user_id'):
-        flash('Vous ne pouvez pas désactiver votre propre compte', 'error')
-        return redirect(url_for('admin_employees'))
+        if lang == 'ar':
+            flash('لا يمكنك تعطيل حسابك الخاص', 'error')
+        else:
+            flash('Vous ne pouvez pas désactiver votre propre compte', 'error')
+        return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
     
     try:
         # Basculer le statut dans la base de données
         new_status = toggle_employee_status(emp_id)
-        flash(f'Statut de {employee["prenom"]} {employee["nom"]} mis à jour: {new_status}', 'success')
+        if lang == 'ar':
+            flash(f'✅ تم تحديث حالة {employee["prenom"]} {employee["nom"]}: {new_status}', 'success')
+        else:
+            flash(f'Statut de {employee["prenom"]} {employee["nom"]} mis à jour: {new_status}', 'success')
     except Exception as e:
-        flash(f'Erreur lors de la mise à jour: {str(e)}', 'error')
+        if lang == 'ar':
+            flash(f'خطأ أثناء التحديث: {str(e)}', 'error')
+        else:
+            flash(f'Erreur lors de la mise à jour: {str(e)}', 'error')
     
-    return redirect(url_for('admin_employees'))
+    return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
 
 @app.route('/admin/employees/<int:emp_id>/delete', methods=['POST'])
 @login_required
@@ -2283,25 +2382,40 @@ def admin_toggle_employee_status(emp_id):
 def admin_delete_employee(emp_id):
     """Route pour supprimer un employé"""
     
+    # Récupérer la langue depuis le formulaire ou la session
+    lang = request.form.get('lang', session.get('lang', 'fr'))
+    
     employee = get_employee_by_id(emp_id)
     
     if employee is None:
-        flash('Employé non trouvé', 'error')
-        return redirect(url_for('admin_employees'))
+        if lang == 'ar':
+            flash('الموظف غير موجود', 'error')
+        else:
+            flash('Employé non trouvé', 'error')
+        return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
     
     # Ne pas permettre de supprimer son propre compte
     if employee['id'] == session.get('user_id'):
-        flash('Vous ne pouvez pas supprimer votre propre compte', 'error')
-        return redirect(url_for('admin_employees'))
+        if lang == 'ar':
+            flash('لا يمكنك حذف حسابك الخاص', 'error')
+        else:
+            flash('Vous ne pouvez pas supprimer votre propre compte', 'error')
+        return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
     
     # Supprimer l'employé de la base de données
     try:
         delete_employee(emp_id)
-        flash(f'Employé {employee["prenom"]} {employee["nom"]} supprimé', 'success')
+        if lang == 'ar':
+            flash(f'✅ تم حذف الموظف {employee["prenom"]} {employee["nom"]}', 'success')
+        else:
+            flash(f'Employé {employee["prenom"]} {employee["nom"]} supprimé', 'success')
     except Exception as e:
-        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+        if lang == 'ar':
+            flash(f'خطأ أثناء الحذف: {str(e)}', 'error')
+        else:
+            flash(f'Erreur lors de la suppression: {str(e)}', 'error')
     
-    return redirect(url_for('admin_employees'))
+    return redirect(url_for('admin_employees_ar' if lang == 'ar' else 'admin_employees'))
 
 # Routes pour la gestion de profil (tous les utilisateurs)
 @app.route('/admin/profile')

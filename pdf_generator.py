@@ -1091,3 +1091,532 @@ def generate_acceptance_letter_filename(candidate_name, application_id):
     timestamp = get_comoros_time().strftime('%Y%m%d_%H%M%S')
     
     return f"Lettre_Acceptation_{clean_name}_{application_id}_{timestamp}.pdf"
+
+
+# ============================================================================
+# GÉNÉRATION DU RAPPORT DE CANDIDATURE
+# ============================================================================
+
+def generate_candidate_report_pdf(application_data, output_path, lang='fr'):
+    """
+    Génère un rapport détaillé de candidature avec photo du candidat
+    
+    Args:
+        application_data: Dictionnaire contenant les données de la candidature
+        output_path: Chemin où sauvegarder le PDF
+        lang: Langue du document ('fr' ou 'ar')
+    
+    Returns:
+        str: Chemin du fichier PDF généré
+    """
+    
+    def safe_str(value):
+        """Convertir une valeur en chaîne de manière sûre"""
+        if value is None:
+            return ''
+        if isinstance(value, datetime):
+            return value.strftime('%d/%m/%Y')
+        return str(value)
+    
+    try:
+        # Créer le document PDF
+        doc = SimpleDocTemplate(output_path, pagesize=A4,
+                              rightMargin=2*cm, leftMargin=2*cm,
+                              topMargin=2*cm, bottomMargin=2*cm)
+        
+        # Conteneur pour les éléments du document
+        story = []
+        styles = getSampleStyleSheet()
+        
+        # Style personnalisé pour l'arabe
+        if lang == 'ar':
+            title_style = ParagraphStyle(
+                'ArabicTitle',
+                parent=styles['Heading1'],
+                fontName=FONT_NAME_BOLD,
+                fontSize=18,
+                alignment=TA_RIGHT,
+                textColor=colors.HexColor('#2c3e50'),
+                spaceAfter=20
+            )
+            heading_style = ParagraphStyle(
+                'ArabicHeading',
+                parent=styles['Heading2'],
+                fontName=FONT_NAME_BOLD,
+                fontSize=14,
+                alignment=TA_RIGHT,
+                textColor=colors.HexColor('#34495e'),
+                spaceAfter=10
+            )
+            normal_style = ParagraphStyle(
+                'ArabicNormal',
+                parent=styles['Normal'],
+                fontName=FONT_NAME,
+                fontSize=11,
+                alignment=TA_RIGHT,
+                leading=16
+            )
+        else:
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=18,
+                alignment=TA_CENTER,
+                textColor=colors.HexColor('#2c3e50'),
+                spaceAfter=20
+            )
+            heading_style = ParagraphStyle(
+                'CustomHeading',
+                parent=styles['Heading2'],
+                fontSize=14,
+                textColor=colors.HexColor('#34495e'),
+                spaceAfter=10
+            )
+            normal_style = styles['Normal']
+        
+        # Titre du document
+        if lang == 'ar':
+            title_text = reshape_arabic_text("تقرير الترشيح", lang)
+            story.append(Paragraph(title_text, title_style))
+        else:
+            story.append(Paragraph("RAPPORT DE CANDIDATURE", title_style))
+        
+        story.append(Spacer(1, 0.5*cm))
+        
+        # Section avec photo du candidat
+        photo_section = []
+        
+        # Ajouter la photo si disponible
+        photo_path = application_data.get('photo')
+        if photo_path and os.path.exists(photo_path):
+            try:
+                # Créer un tableau avec la photo et les informations de base
+                photo_img = Image(photo_path, width=4*cm, height=5*cm)
+                
+                # Informations de base à côté de la photo
+                info_data = []
+                if lang == 'ar':
+                    nom_label = reshape_arabic_text("الاسم الكامل:", lang)
+                    prenom = reshape_arabic_text(application_data.get('prenom', ''), lang)
+                    nom = reshape_arabic_text(application_data.get('nom', ''), lang)
+                    # Pour l'arabe : valeur puis label (inversé)
+                    info_data.append([Paragraph(f"{nom} {prenom}", normal_style),
+                                    Paragraph(nom_label, normal_style)])
+                    
+                    email_label = reshape_arabic_text("البريد الإلكتروني:", lang)
+                    info_data.append([Paragraph(application_data.get('email', ''), normal_style),
+                                    Paragraph(email_label, normal_style)])
+                    
+                    tel_label = reshape_arabic_text("الهاتف:", lang)
+                    info_data.append([Paragraph(application_data.get('telephone', ''), normal_style),
+                                    Paragraph(tel_label, normal_style)])
+                else:
+                    info_data.append([Paragraph("<b>Nom complet:</b>", normal_style), 
+                                    Paragraph(f"{application_data.get('nom', '')} {application_data.get('prenom', '')}", normal_style)])
+                    info_data.append([Paragraph("<b>Email:</b>", normal_style), 
+                                    Paragraph(application_data.get('email', ''), normal_style)])
+                    info_data.append([Paragraph("<b>Téléphone:</b>", normal_style), 
+                                    Paragraph(application_data.get('telephone', ''), normal_style)])
+                
+                # Largeurs des colonnes selon la langue
+                if lang == 'ar':
+                    info_table = Table(info_data, colWidths=[8*cm, 5*cm])  # Inversé pour arabe
+                else:
+                    info_table = Table(info_data, colWidths=[5*cm, 8*cm])  # Normal pour français
+                
+                info_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+                ]))
+                
+                # Tableau principal avec photo et info
+                main_table = Table([[photo_img, info_table]], colWidths=[5*cm, 12*cm])
+                main_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+                    ('ALIGN', (1, 0), (1, 0), 'LEFT' if lang == 'fr' else 'RIGHT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('BOX', (0, 0), (-1, -1), 1, colors.grey),
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8f9fa')),
+                ]))
+                
+                story.append(main_table)
+                story.append(Spacer(1, 0.7*cm))
+                
+            except Exception as e:
+                print(f"⚠️ Erreur lors de l'ajout de la photo: {e}")
+        
+        # Informations personnelles détaillées
+        if lang == 'ar':
+            story.append(Paragraph(reshape_arabic_text("معلومات شخصية", lang), heading_style))
+        else:
+            story.append(Paragraph("INFORMATIONS PERSONNELLES", heading_style))
+        
+        personal_info = []
+        
+        if lang == 'ar':
+            personal_info.extend([
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('adresse', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("العنوان:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('pays', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("البلد:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('region', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("المنطقة:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('sexe', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("الجنس:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('lieu_naissance', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("مكان الميلاد:", lang), normal_style)],
+                [Paragraph(safe_str(application_data.get('date_naissance', '')), normal_style),
+                 Paragraph(reshape_arabic_text("تاريخ الميلاد:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('nationalite', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("الجنسية:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('etat_civil', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("الحالة المدنية:", lang), normal_style)],
+            ])
+        else:
+            personal_info.extend([
+                [Paragraph("<b>Adresse:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('adresse', '')), normal_style)],
+                [Paragraph("<b>Pays:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('pays', '')), normal_style)],
+                [Paragraph("<b>Région:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('region', '')), normal_style)],
+                [Paragraph("<b>Sexe:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('sexe', '')), normal_style)],
+                [Paragraph("<b>Lieu de naissance:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('lieu_naissance', '')), normal_style)],
+                [Paragraph("<b>Date de naissance:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('date_naissance', '')), normal_style)],
+                [Paragraph("<b>Nationalité:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('nationalite', '')), normal_style)],
+                [Paragraph("<b>État civil:</b>", normal_style), 
+                 Paragraph(safe_str(application_data.get('etat_civil', '')), normal_style)],
+            ])
+        
+        # Largeurs de colonnes selon la langue
+        if lang == 'ar':
+            personal_table = Table(personal_info, colWidths=[11*cm, 6*cm])  # Inversé pour arabe
+        else:
+            personal_table = Table(personal_info, colWidths=[6*cm, 11*cm])  # Normal pour français
+        
+        personal_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#ecf0f1')) if lang == 'ar' else ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        
+        story.append(personal_table)
+        story.append(Spacer(1, 0.5*cm))
+        
+        # Expérience professionnelle
+        if lang == 'ar':
+            story.append(Paragraph(reshape_arabic_text("الخبرة المهنية", lang), heading_style))
+        else:
+            story.append(Paragraph("EXPÉRIENCE PROFESSIONNELLE", heading_style))
+        
+        work_info = []
+        if lang == 'ar':
+            travaille = safe_str(application_data.get('travaille_actuellement', ''))
+            work_info.append([
+                Paragraph(reshape_arabic_text(travaille, lang), normal_style),
+                Paragraph(reshape_arabic_text("يعمل حالياً:", lang), normal_style)
+            ])
+            if application_data.get('dernier_lieu_travail'):
+                work_info.append([
+                    Paragraph(reshape_arabic_text(safe_str(application_data.get('dernier_lieu_travail', '')), lang), normal_style),
+                    Paragraph(reshape_arabic_text("آخر مكان عمل:", lang), normal_style)
+                ])
+            if application_data.get('raison_depart'):
+                work_info.append([
+                    Paragraph(reshape_arabic_text(safe_str(application_data.get('raison_depart', '')), lang), normal_style),
+                    Paragraph(reshape_arabic_text("سبب المغادرة:", lang), normal_style)
+                ])
+        else:
+            work_info.append([
+                Paragraph("<b>Travaille actuellement:</b>", normal_style),
+                Paragraph(safe_str(application_data.get('travaille_actuellement', '')), normal_style)
+            ])
+            if application_data.get('dernier_lieu_travail'):
+                work_info.append([
+                    Paragraph("<b>Dernier lieu de travail:</b>", normal_style),
+                    Paragraph(safe_str(application_data.get('dernier_lieu_travail', '')), normal_style)
+                ])
+            if application_data.get('raison_depart'):
+                work_info.append([
+                    Paragraph("<b>Raison du départ:</b>", normal_style),
+                    Paragraph(safe_str(application_data.get('raison_depart', '')), normal_style)
+                ])
+        
+        if work_info:
+            # Largeurs de colonnes selon la langue
+            if lang == 'ar':
+                work_table = Table(work_info, colWidths=[11*cm, 6*cm])  # Inversé pour arabe
+            else:
+                work_table = Table(work_info, colWidths=[6*cm, 11*cm])  # Normal pour français
+            
+            work_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#ecf0f1')) if lang == 'ar' else ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ]))
+            story.append(work_table)
+            story.append(Spacer(1, 0.5*cm))
+        
+        # Formation
+        if lang == 'ar':
+            story.append(Paragraph(reshape_arabic_text("التكوين", lang), heading_style))
+        else:
+            story.append(Paragraph("FORMATION", heading_style))
+        
+        education_info = []
+        if lang == 'ar':
+            education_info.extend([
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('niveau_instruction', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("المستوى التعليمي:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('specialisation', '') or application_data.get('specialisation_autre', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("التخصص:", lang), normal_style)],
+            ])
+        else:
+            education_info.extend([
+                [Paragraph("<b>Niveau d'instruction:</b>", normal_style),
+                 Paragraph(safe_str(application_data.get('niveau_instruction', '')), normal_style)],
+                [Paragraph("<b>Spécialisation:</b>", normal_style),
+                 Paragraph(safe_str(application_data.get('specialisation', '') or application_data.get('specialisation_autre', '')), normal_style)],
+            ])
+        
+        # Largeurs de colonnes selon la langue
+        if lang == 'ar':
+            education_table = Table(education_info, colWidths=[11*cm, 6*cm])  # Inversé pour arabe
+        else:
+            education_table = Table(education_info, colWidths=[6*cm, 11*cm])  # Normal pour français
+        
+        education_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#ecf0f1')) if lang == 'ar' else ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        
+        story.append(education_table)
+        story.append(Spacer(1, 0.5*cm))
+        
+        # Compétences linguistiques
+        if lang == 'ar':
+            story.append(Paragraph(reshape_arabic_text("المهارات اللغوية", lang), heading_style))
+        else:
+            story.append(Paragraph("COMPÉTENCES LINGUISTIQUES", heading_style))
+        
+        lang_info = []
+        if lang == 'ar':
+            lang_info.extend([
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('langue_arabe', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("العربية:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('langue_francaise', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("الفرنسية:", lang), normal_style)],
+                [Paragraph(reshape_arabic_text(safe_str(application_data.get('langue_anglaise', '')), lang), normal_style),
+                 Paragraph(reshape_arabic_text("الإنجليزية:", lang), normal_style)],
+            ])
+            if application_data.get('autre_langue_nom'):
+                lang_info.append([
+                    Paragraph(reshape_arabic_text(f"{safe_str(application_data.get('autre_langue_nom', ''))} ({safe_str(application_data.get('autre_langue_niveau', ''))})", lang), normal_style),
+                    Paragraph(reshape_arabic_text("لغة أخرى:", lang), normal_style)
+                ])
+        else:
+            lang_info.extend([
+                [Paragraph("<b>Arabe:</b>", normal_style),
+                 Paragraph(safe_str(application_data.get('langue_arabe', '')), normal_style)],
+                [Paragraph("<b>Français:</b>", normal_style),
+                 Paragraph(safe_str(application_data.get('langue_francaise', '')), normal_style)],
+                [Paragraph("<b>Anglais:</b>", normal_style),
+                 Paragraph(safe_str(application_data.get('langue_anglaise', '')), normal_style)],
+            ])
+            if application_data.get('autre_langue_nom'):
+                lang_info.append([
+                    Paragraph("<b>Autre langue:</b>", normal_style),
+                    Paragraph(f"{safe_str(application_data.get('autre_langue_nom', ''))} ({safe_str(application_data.get('autre_langue_niveau', ''))})", normal_style)
+                ])
+        
+        # Largeurs de colonnes selon la langue
+        if lang == 'ar':
+            lang_table = Table(lang_info, colWidths=[11*cm, 6*cm])  # Inversé pour arabe
+        else:
+            lang_table = Table(lang_info, colWidths=[6*cm, 11*cm])  # Normal pour français
+        
+        lang_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#ecf0f1')) if lang == 'ar' else ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        
+        story.append(lang_table)
+        story.append(Spacer(1, 0.5*cm))
+        
+        # Informations de santé
+        if lang == 'ar':
+            story.append(Paragraph(reshape_arabic_text("معلومات صحية", lang), heading_style))
+        else:
+            story.append(Paragraph("INFORMATIONS DE SANTÉ", heading_style))
+        
+        health_info = []
+        if lang == 'ar':
+            health_info.append([
+                Paragraph(reshape_arabic_text(safe_str(application_data.get('problemes_sante', '')), lang), normal_style),
+                Paragraph(reshape_arabic_text("مشاكل صحية:", lang), normal_style)
+            ])
+            if application_data.get('nature_maladie'):
+                health_info.append([
+                    Paragraph(reshape_arabic_text(safe_str(application_data.get('nature_maladie', '')), lang), normal_style),
+                    Paragraph(reshape_arabic_text("طبيعة المرض:", lang), normal_style)
+                ])
+        else:
+            health_info.append([
+                Paragraph("<b>Problèmes de santé:</b>", normal_style),
+                Paragraph(safe_str(application_data.get('problemes_sante', '')), normal_style)
+            ])
+            if application_data.get('nature_maladie'):
+                health_info.append([
+                    Paragraph("<b>Nature de la maladie:</b>", normal_style),
+                    Paragraph(safe_str(application_data.get('nature_maladie', '')), normal_style)
+                ])
+        
+        # Largeurs de colonnes selon la langue
+        if lang == 'ar':
+            health_table = Table(health_info, colWidths=[11*cm, 6*cm])  # Inversé pour arabe
+        else:
+            health_table = Table(health_info, colWidths=[6*cm, 11*cm])  # Normal pour français
+        
+        health_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#ecf0f1')) if lang == 'ar' else ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        
+        story.append(health_table)
+        story.append(Spacer(1, 0.5*cm))
+        
+        # Documents joints
+        if lang == 'ar':
+            story.append(Paragraph(reshape_arabic_text("الوثائق المرفقة", lang), heading_style))
+        else:
+            story.append(Paragraph("DOCUMENTS JOINTS", heading_style))
+        
+        docs_info = []
+        doc_fields = [
+            ('cv', 'CV' if lang == 'fr' else 'السيرة الذاتية'),
+            ('lettre_demande', 'Lettre de demande' if lang == 'fr' else 'خطاب الطلب'),
+            ('carte_id', "Carte d'identité" if lang == 'fr' else 'بطاقة الهوية'),
+            ('diplome', 'Diplôme' if lang == 'fr' else 'الشهادة'),
+            ('casier_judiciaire', 'Casier judiciaire' if lang == 'fr' else 'السجل العدلي'),
+            ('lettre_recommandation', 'Lettre de recommandation' if lang == 'fr' else 'خطاب التوصية'),
+        ]
+        
+        for field, label in doc_fields:
+            value = application_data.get(field)
+            status = "✓ Fourni" if value else "✗ Non fourni"
+            if lang == 'ar':
+                label = reshape_arabic_text(label, lang)
+                status = reshape_arabic_text("✓ مُرفق" if value else "✗ غير مُرفق", lang)
+            
+            # Invert columns for Arabic
+            if lang == 'ar':
+                docs_info.append([
+                    Paragraph(status, normal_style),
+                    Paragraph(label, normal_style)
+                ])
+            else:
+                docs_info.append([
+                    Paragraph(f"<b>{label}:</b>", normal_style),
+                    Paragraph(status, normal_style)
+                ])
+        
+        # Adjust column widths and styles for Arabic
+        if lang == 'ar':
+            docs_table = Table(docs_info, colWidths=[8*cm, 9*cm])
+        else:
+            docs_table = Table(docs_info, colWidths=[9*cm, 8*cm])
+            
+        docs_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'RIGHT' if lang == 'ar' else 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BACKGROUND', (1, 0), (1, -1), colors.HexColor('#ecf0f1')) if lang == 'ar' else ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#ecf0f1')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ]))
+        
+        story.append(docs_table)
+        story.append(Spacer(1, 0.5*cm))
+        
+        # Pied de page avec date de génération
+        story.append(Spacer(1, 1*cm))
+        footer_text = f"Document généré le {get_comoros_time().strftime('%d/%m/%Y à %H:%M')}"
+        if lang == 'ar':
+            footer_text = reshape_arabic_text(f"تم إنشاء الوثيقة في {get_comoros_time().strftime('%d/%m/%Y - %H:%M')}", lang)
+        
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=normal_style,
+            fontSize=9,
+            textColor=colors.grey,
+            alignment=TA_CENTER if lang == 'fr' else TA_RIGHT
+        )
+        story.append(Paragraph(footer_text, footer_style))
+        
+        # Construire le PDF
+        doc.build(story)
+        
+        print(f"✅ Rapport de candidature généré: {output_path}")
+        return output_path
+        
+    except Exception as e:
+        print(f"❌ Erreur lors de la génération du rapport: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+
+
+def generate_candidate_report_filename(candidate_name, application_id):
+    """
+    Générer un nom de fichier standardisé pour le rapport de candidature
+    
+    Args:
+        candidate_name: Nom complet du candidat
+        application_id: ID de la candidature
+    
+    Returns:
+        str: Nom de fichier formaté
+    """
+    import re
+    clean_name = re.sub(r'[^\w\s-]', '', candidate_name)
+    clean_name = re.sub(r'[-\s]+', '_', clean_name)
+    
+    timestamp = get_comoros_time().strftime('%Y%m%d_%H%M%S')
+    
+    return f"Rapport_Candidature_{clean_name}_{application_id}_{timestamp}.pdf"
