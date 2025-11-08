@@ -119,6 +119,24 @@ def delete_application_files(application):
             except Exception as e:
                 print(f"⚠️ Erreur lors de la suppression de la lettre d'acceptation: {e}")
     
+    # Supprimer les rapports de candidat (FR et AR) s'ils existent
+    reports_dir = os.path.join('static', 'reports')
+    if os.path.exists(reports_dir):
+        import glob
+        app_id = application.get('id')
+        # Rechercher tous les fichiers de rapport pour cette candidature (FR et AR)
+        # Pattern: Rapport_Candidature_*_<app_id>_*.pdf
+        report_pattern = os.path.join(reports_dir, f"Rapport_Candidature_*_{app_id}_*.pdf")
+        report_files = glob.glob(report_pattern)
+        
+        for report_file in report_files:
+            try:
+                os.remove(report_file)
+                deleted_count += 1
+                print(f"📊 Rapport de candidat supprimé: {os.path.basename(report_file)}")
+            except Exception as e:
+                print(f"⚠️ Erreur lors de la suppression du rapport: {e}")
+    
     return deleted_count
 
 # ==================== EMPLOYEES ====================
