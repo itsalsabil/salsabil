@@ -248,6 +248,7 @@
                                 {% endif %}
                                 {% if permissions and permissions.delete_job %}
                                 <form method="POST" action="{{ url_for('admin_delete_job', job_id=job.id) }}" style="display: inline;" onsubmit="return confirm(&quot;{% if lang == 'ar' %}هل أنت متأكد من حذف هذا العرض؟{% else %}Êtes-vous sûr de vouloir supprimer cette offre ?{% endif %}&quot;);">
+                                    <input type="hidden" name="lang" value="{{ lang }}">
                                     <button type="submit" class="btn-delete-job" title="{% if lang == 'ar' %}حذف{% else %}Supprimer{% endif %}">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="3 6 5 6 21 6"></polyline>
@@ -289,6 +290,7 @@
             </div>
             <form id="jobForm" method="POST" action="{{ url_for('admin_add_job') }}">
                 <input type="hidden" id="jobId" name="job_id">
+                <input type="hidden" name="lang" value="{{ lang }}">
                 
                 {% if lang == 'ar' %}
                 <!-- Section Arabe en premier quand la langue est l'arabe -->
