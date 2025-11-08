@@ -28,8 +28,8 @@ init_db()
 COMOROS_TZ = timezone(timedelta(hours=3))
 
 def get_comoros_time():
-    """Retourne l'heure actuelle aux Comores (UTC+3)"""
-    return datetime.now(COMOROS_TZ)
+    """Retourne l'heure actuelle aux Comores (UTC+3) sans timezone info"""
+    return datetime.now(COMOROS_TZ).replace(tzinfo=None)
 
 # ============================================================================
 # CONFIGURATION DES UPLOADS
