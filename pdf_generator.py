@@ -173,7 +173,7 @@ INVITATION_TEXTS = {
     'ar': {
         'issued': 'صدر في',
         'title': 'دعوة لإجراء مقابلة',
-        'company_name': 'السلسبيل',
+        'company_name': 'سلسبيل',
         'company_subtitle': 'شركة التوظيف',
         'attention': 'إلى عناية:',
         'greeting': 'السيدة، السيد',
@@ -231,7 +231,7 @@ ACCEPTANCE_TEXTS = {
     'ar': {
         'issued': 'صدر في',
         'title': 'خطاب القبول',
-        'company_name': 'السلسبيل',
+        'company_name': 'سلسبيل',
         'company_subtitle': 'شركة التوظيف',
         'attention': 'إلى عناية:',
         'congratulations': 'تهانينا!',
@@ -983,7 +983,7 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
     contact_label_phone = reshape_arabic_text('📞 Téléphone' if lang == 'fr' else '📞 الهاتف', lang)
     contact_label_email = reshape_arabic_text('📧 Email' if lang == 'fr' else '📧 البريد الإلكتروني', lang)
     contact_label_address = reshape_arabic_text('📍 Adresse' if lang == 'fr' else '📍 العنوان', lang)
-    salsabil_address = reshape_arabic_text('SALSABIL, Selea' if lang == 'fr' else 'السلسبيل، سيليا', lang)
+    salsabil_address = reshape_arabic_text('SALSABIL, Selea' if lang == 'fr' else 'سلسبيل، سيليا', lang)
     
     # Inverser les colonnes pour l'arabe (valeur à gauche, label à droite)
     if lang == 'ar':
