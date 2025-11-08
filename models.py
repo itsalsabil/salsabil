@@ -1,6 +1,15 @@
 from database import get_db_connection, is_postgresql
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
+
+# ==================== TIMEZONE CONFIGURATION ====================
+
+# Fuseau horaire des Comores (UTC+3)
+COMOROS_TZ = timezone(timedelta(hours=3))
+
+def get_comoros_time():
+    """Retourne l'heure actuelle aux Comores (UTC+3)"""
+    return datetime.now(COMOROS_TZ)
 
 # ==================== UTILITY FUNCTIONS ====================
 
@@ -267,7 +276,7 @@ def create_job(titre, type_job, lieu, description, date_limite, requirements=Non
     """Créer un nouveau job avec support bilingue (FR + AR)"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    date_publication = datetime.now().strftime('%Y-%m-%d')
+    date_publication = get_comoros_time().strftime('%Y-%m-%d')
     cursor.execute('''
         INSERT INTO jobs (titre, titre_ar, type, lieu, lieu_ar, description, description_ar, 
                          requirements, requirements_ar, department, department_ar, date_limite, 
@@ -375,7 +384,7 @@ def create_application(job_id, job_title, prenom, nom, email, telephone, adresse
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        date_soumission = datetime.now().strftime('%Y-%m-%d')
+        date_soumission = get_comoros_time().strftime('%Y-%m-%d')
         
         print("   💾 Exécution de la requête SQL INSERT...")
         
@@ -499,7 +508,7 @@ def update_phase1_status(app_id, decision, interview_date=None, rejection_reason
     cursor = conn.cursor()
     
     from datetime import datetime
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    current_date = get_comoros_time().strftime('%Y-%m-%d %H:%M:%S')
     
     if decision == 'selected_for_interview':
         cursor.execute('''
@@ -526,7 +535,7 @@ def update_phase1_status(app_id, decision, interview_date=None, rejection_reason
                 os.makedirs(convocations_dir, exist_ok=True)
                 
                 # Nom du fichier PDF
-                pdf_filename = f"convocation_{app_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+                pdf_filename = f"convocation_{app_id}_{get_comoros_time().strftime('%Y%m%d_%H%M%S')}.pdf"
                 pdf_path = os.path.join(convocations_dir, pdf_filename)
                 
                 # Générer le code de vérification sécurisé (16 caractères hexadécimaux)
@@ -568,7 +577,7 @@ def update_phase1_status(app_id, decision, interview_date=None, rejection_reason
                     'convocation',
                     f"{app_data['prenom']} {app_data['nom']}",
                     app_data.get('selected_job_title') or app_data['job_title'],
-                    datetime.now().strftime('%d/%m/%Y'),
+                    get_comoros_time().strftime('%d/%m/%Y'),
                     pdf_path,
                     'valide'
                 ))
@@ -608,7 +617,7 @@ def update_phase2_status(app_id, decision, work_start_date=None, rejection_reaso
     cursor = conn.cursor()
     
     from datetime import datetime
-    current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    current_date = get_comoros_time().strftime('%Y-%m-%d %H:%M:%S')
     
     if decision == 'accepted':
         cursor.execute('''

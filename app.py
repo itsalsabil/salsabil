@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from werkzeug.utils import secure_filename
 import json
 import zipfile
@@ -21,6 +21,19 @@ app.secret_key = os.environ.get('SECRET_KEY', 'b61a18f9ef47065d7cf7d69431e48771'
 # Initialiser la base de données au démarrage
 init_db()
 
+# ============================================================================
+# CONFIGURATION DU FUSEAU HORAIRE
+# ============================================================================
+# Fuseau horaire des Comores (UTC+3)
+COMOROS_TZ = timezone(timedelta(hours=3))
+
+def get_comoros_time():
+    """Retourne l'heure actuelle aux Comores (UTC+3)"""
+    return datetime.now(COMOROS_TZ)
+
+# ============================================================================
+# CONFIGURATION DES UPLOADS
+# ============================================================================
 # Configuration pour l'upload de fichiers
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'}
@@ -97,7 +110,7 @@ def is_closing_soon(deadline_str):
         # C'est déjà un objet date/datetime (PostgreSQL)
         deadline = datetime.combine(deadline_str, datetime.min.time()) if hasattr(deadline_str, 'year') else deadline_str
     
-    today = datetime.now()
+    today = get_comoros_time()
     days_remaining = (deadline - today).days
     return days_remaining <= 7 and days_remaining >= 0
 
@@ -422,7 +435,7 @@ def apply(job_id):
                              'lettre_recommandation', 'casier_judiciaire', 'diplome']
             
             print("📎 Traitement des fichiers...")
-            upload_start_time = datetime.now()
+            upload_start_time = get_comoros_time()
             successful_uploads = 0
             failed_uploads = 0
             
@@ -430,7 +443,7 @@ def apply(job_id):
                 file = request.files.get(file_field)
                 if file and file.filename and allowed_file(file.filename):
                     # 💾 DOUBLE SAUVEGARDE: Local (backup) + Cloudinary (principal)
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    timestamp = get_comoros_time().strftime('%Y%m%d_%H%M%S')
                     filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
                     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                     
@@ -468,7 +481,7 @@ def apply(job_id):
                     uploaded_files[file_field] = None
                     print(f"   ✗ {file_field}: Non fourni")
             
-            upload_duration = (datetime.now() - upload_start_time).total_seconds()
+            upload_duration = (get_comoros_time() - upload_start_time).total_seconds()
             print(f"⏱️  Uploads terminés en {upload_duration:.1f}s ({successful_uploads} réussis, {failed_uploads} fallback local)")
             
             # Gérer la lettre de demande : textarea OU fichier uploadé
@@ -655,7 +668,7 @@ def apply_ar(job_id):
                              'lettre_recommandation', 'casier_judiciaire', 'diplome']
             
             print("📎 معالجة الملفات...")
-            upload_start_time = datetime.now()
+            upload_start_time = get_comoros_time()
             successful_uploads = 0
             failed_uploads = 0
             
@@ -663,7 +676,7 @@ def apply_ar(job_id):
                 file = request.files.get(file_field)
                 if file and file.filename and allowed_file(file.filename):
                     # 💾 حفظ مزدوج: محلي (نسخة احتياطية) + Cloudinary (رئيسي)
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    timestamp = get_comoros_time().strftime('%Y%m%d_%H%M%S')
                     filename = secure_filename(f"{timestamp}_{file_field}_{file.filename}")
                     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                     
@@ -700,7 +713,7 @@ def apply_ar(job_id):
                 else:
                     uploaded_files[file_field] = None
             
-            upload_duration = (datetime.now() - upload_start_time).total_seconds()
+            upload_duration = (get_comoros_time() - upload_start_time).total_seconds()
             print(f"⏱️  اكتملت الرفوعات في {upload_duration:.1f}s ({successful_uploads} نجحت, {failed_uploads} fallback محلي)")
             
             # Gérer la lettre de demande
@@ -804,7 +817,7 @@ def confirmation():
     candidate_name = request.args.get('candidate_name', '')
     candidate_email = request.args.get('candidate_email', '')
     reference_number = request.args.get('reference_number', '')
-    submission_date = datetime.now().strftime('%d/%m/%Y à %H:%M')
+    submission_date = get_comoros_time().strftime('%d/%m/%Y à %H:%M')
     
     return render_template('confirmation.html', 
                          job_title=job_title,
@@ -822,7 +835,7 @@ def confirmation_ar():
     candidate_name = request.args.get('candidate_name', '')
     candidate_email = request.args.get('candidate_email', '')
     reference_number = request.args.get('reference_number', '')
-    submission_date = datetime.now().strftime('%d/%m/%Y - %H:%M')
+    submission_date = get_comoros_time().strftime('%d/%m/%Y - %H:%M')
     
     return render_template('confirmation_ar.html', 
                          job_title=job_title,
@@ -1027,6 +1040,8 @@ def admin_spontaneous_application_detail(app_id):
 @permission_required('view_applications')
 def admin_application_detail(app_id):
     """Route pour voir les détails d'une candidature"""
+    from notifications import generate_whatsapp_link
+    
     all_applications = get_all_applications()
     application = next((app for app in all_applications if app['id'] == app_id), None)
     if application is None:
@@ -1036,6 +1051,14 @@ def admin_application_detail(app_id):
         if referrer and 'spontaneous-applications' in referrer:
             return redirect(url_for('admin_spontaneous_applications'))
         return redirect(url_for('admin_applications'))
+    
+    # Générer le lien WhatsApp personnel formaté avec un message simple
+    candidate_name = f"{application.get('prenom', '')} {application.get('nom', '')}"
+    simple_message = f"Bonjour {candidate_name},"
+    whatsapp_personal_link = generate_whatsapp_link(
+        phone=application.get('telephone', ''),
+        message=simple_message
+    )
     
     # Filtrer pour exclure les candidatures spontanées (job_id = 0) pour le badge
     regular_applications = [app for app in all_applications if app.get('job_id') is not None]
@@ -1050,7 +1073,8 @@ def admin_application_detail(app_id):
                          jobs=get_all_jobs(),
                          current_user=current_user,
                          permissions=permissions,
-                         spontaneous_count=spontaneous_count)
+                         spontaneous_count=spontaneous_count,
+                         whatsapp_personal_link=whatsapp_personal_link)
 
 @app.route('/admin/applications/<int:app_id>/update-status', methods=['POST'])
 @login_required
@@ -1235,7 +1259,7 @@ Informations du candidat:
 Documents inclus: {documents_added}
 
 Ce dossier a été généré automatiquement par le système de recrutement Salsabil.
-Date de génération: {datetime.now().strftime('%d/%m/%Y à %H:%M')}
+Date de génération: {get_comoros_time().strftime('%d/%m/%Y à %H:%M')}
 """
         
         zipf.writestr(f"{folder_name}/README.txt", readme_content)
@@ -1353,7 +1377,7 @@ def admin_phase1_decision(app_id):
                     'convocation',
                     f"{application['prenom']} {application['nom']}",
                     application.get('selected_job_title') or application['job_title'],
-                    datetime.now().strftime('%d/%m/%Y'),
+                    get_comoros_time().strftime('%d/%m/%Y'),
                     pdf_filename_fr,
                     'valide'
                 ))
@@ -1507,7 +1531,7 @@ def admin_phase2_decision(app_id):
                 'acceptation',
                 f"{application['prenom']} {application['nom']}",
                 application.get('selected_job_title') or application['job_title'],
-                datetime.now().strftime('%d/%m/%Y'),
+                get_comoros_time().strftime('%d/%m/%Y'),
                 pdf_path_fr,
                 'valide'
             ))
@@ -1666,7 +1690,7 @@ def admin_generate_interview_invitation(app_id):
             'convocation',
             f"{application['prenom']} {application['nom']}",
             application.get('selected_job_title') or application['job_title'],
-            datetime.now().strftime('%d/%m/%Y'),
+            get_comoros_time().strftime('%d/%m/%Y'),
             pdf_path_fr,
             'valide'
         ))
@@ -2550,6 +2574,8 @@ def admin_profile_ar():
 @permission_required('view_applications')
 def admin_application_detail_ar(app_id):
     """Route pour voir les détails d'une candidature - Version Arabe"""
+    from notifications import generate_whatsapp_link
+    
     session['lang'] = 'ar'  # Maintenir la langue arabe
     all_applications = get_all_applications()
     application = next((app for app in all_applications if app['id'] == app_id), None)
@@ -2560,6 +2586,14 @@ def admin_application_detail_ar(app_id):
         if referrer and 'spontaneous' in referrer:
             return redirect(url_for('admin_spontaneous_applications_ar'))
         return redirect(url_for('admin_applications_ar'))
+    
+    # Générer le lien WhatsApp personnel formaté avec un message simple
+    candidate_name = f"{application.get('prenom', '')} {application.get('nom', '')}"
+    simple_message = f"مرحبا {candidate_name}،"
+    whatsapp_personal_link = generate_whatsapp_link(
+        phone=application.get('telephone', ''),
+        message=simple_message
+    )
     
     # Filtrer pour exclure les candidatures spontanées (job_id = 0) pour le badge
     regular_applications = [app for app in all_applications if app.get('job_id') is not None]
@@ -2575,6 +2609,7 @@ def admin_application_detail_ar(app_id):
                          current_user=current_user,
                          permissions=permissions,
                          spontaneous_count=spontaneous_count,
+                         whatsapp_personal_link=whatsapp_personal_link,
                          lang='ar')
 
 @app.route('/admin/spontaneous_applications_ar/<int:app_id>')

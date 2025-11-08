@@ -11,7 +11,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 import qrcode
 from io import BytesIO
@@ -19,6 +19,19 @@ import hashlib
 import hashlib
 import secrets
 
+# ============================================================================
+# CONFIGURATION DU FUSEAU HORAIRE
+# ============================================================================
+# Fuseau horaire des Comores (UTC+3)
+COMOROS_TZ = timezone(timedelta(hours=3))
+
+def get_comoros_time():
+    """Retourne l'heure actuelle aux Comores (UTC+3)"""
+    return datetime.now(COMOROS_TZ)
+
+# ============================================================================
+# SUPPORT ARABE
+# ============================================================================
 # Bibliothèques pour le reshape de l'arabe
 try:
     import arabic_reshaper
@@ -260,7 +273,7 @@ def generate_verification_code(application_id, document_type):
         str: Code de vérification unique
     """
     # Créer une chaîne unique basée sur l'ID, le type et un sel aléatoire
-    timestamp = datetime.now().isoformat()
+    timestamp = get_comoros_time().isoformat()
     random_salt = secrets.token_hex(16)
     data = f"{application_id}-{document_type}-{timestamp}-{random_salt}"
     
@@ -446,7 +459,7 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
     # ========================================================================
     
     # Date d'émission
-    emission_date = datetime.now().strftime('%d/%m/%Y')
+    emission_date = get_comoros_time().strftime('%d/%m/%Y')
     issued_text = reshape_arabic_text(f"{t['issued']} {emission_date}", lang)
     elements.append(Paragraph(issued_text, date_style))
     elements.append(Spacer(1, 0.3*cm))  # Réduit de 0.5 à 0.3
@@ -731,7 +744,7 @@ def generate_interview_invitation_filename(candidate_name, application_id):
     clean_name = re.sub(r'[^\w\s-]', '', candidate_name)
     clean_name = re.sub(r'[-\s]+', '_', clean_name)
     
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    timestamp = get_comoros_time().strftime('%Y%m%d_%H%M%S')
     
     return f"Convocation_Entretien_{clean_name}_{application_id}_{timestamp}.pdf"
 
@@ -841,7 +854,7 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
         fontName=FONT_NAME
     )
     
-    current_date = datetime.now().strftime('%d/%m/%Y')
+    current_date = get_comoros_time().strftime('%d/%m/%Y')
     issued_text = reshape_arabic_text(t['issued'], lang)
     date_text = reshape_arabic_text(f"Salsabil, {issued_text} {current_date}" if lang == 'fr' else f"سالسبيل، {issued_text} {current_date}", lang)
     elements.append(Paragraph(date_text, date_style))
@@ -1075,6 +1088,6 @@ def generate_acceptance_letter_filename(candidate_name, application_id):
     clean_name = re.sub(r'[^\w\s-]', '', candidate_name)
     clean_name = re.sub(r'[-\s]+', '_', clean_name)
     
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    timestamp = get_comoros_time().strftime('%Y%m%d_%H%M%S')
     
     return f"Lettre_Acceptation_{clean_name}_{application_id}_{timestamp}.pdf"
