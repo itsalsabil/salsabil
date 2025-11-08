@@ -276,7 +276,8 @@ def create_job(titre, type_job, lieu, description, date_limite, requirements=Non
     """Créer un nouveau job avec support bilingue (FR + AR)"""
     conn = get_db_connection()
     cursor = conn.cursor()
-    date_publication = get_comoros_time().strftime('%Y-%m-%d')
+    # Enregistrer la date de publication avec heure (format ISO local)
+    date_publication = get_comoros_time().strftime('%Y-%m-%d %H:%M:%S')
     cursor.execute('''
         INSERT INTO jobs (titre, titre_ar, type, lieu, lieu_ar, description, description_ar, 
                          requirements, requirements_ar, department, department_ar, date_limite, 
@@ -384,7 +385,8 @@ def create_application(job_id, job_title, prenom, nom, email, telephone, adresse
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        date_soumission = get_comoros_time().strftime('%Y-%m-%d')
+        # Enregistrer la date de soumission avec heure (format ISO local)
+        date_soumission = get_comoros_time().strftime('%Y-%m-%d %H:%M:%S')
         
         print("   💾 Exécution de la requête SQL INSERT...")
         
