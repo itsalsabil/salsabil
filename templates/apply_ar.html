@@ -75,7 +75,7 @@
                 <div class="apply-content">
                     <div class="job-summary">
                         <h3>حول الوظيفة</h3>
-                        <p>{{ job.description_ar if job.description_ar else job.description }}</p>
+                        <p style="white-space: pre-wrap;">{{ job.description_ar if job.description_ar else job.description }}</p>
                         <h4>المهارات المطلوبة:</h4>
                         <ul>
                             {% if job.requirements_ar %}

@@ -71,7 +71,7 @@
                 <div class="apply-content">
                     <div class="job-summary">
                         <h3>À propos du poste</h3>
-                        <p>{{ job.description if job.description else job.description }}</p>
+                        <p style="white-space: pre-wrap;">{{ job.description if job.description else job.description }}</p>
                         <h4>Compétences requises :</h4>
                         <ul>
                             {% for req in job.requirements %}
