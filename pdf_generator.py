@@ -88,15 +88,19 @@ def get_job_title_for_language(application_data, lang='fr'):
         lang (str): 'fr' ou 'ar'
     
     Returns:
-        str: Le titre du job dans la langue demandée
+        str: Le titre du job dans la langue demandée (déjà reshaped si nécessaire)
     """
     from database import get_db_connection
     
     # Pour les candidatures spontanées, utiliser selected_job_title
     if application_data.get('job_id') is None:
         job_title = application_data.get('selected_job_title') or application_data.get('job_title', 'Candidature Spontanée' if lang == 'fr' else 'طلب توظيف عفوي')
-        print(f"📋 Candidature spontanée - titre: {job_title}")
-        return job_title
+        print(f"📋 Candidature spontanée - titre brut: {job_title}")
+        # IMPORTANT: Reshaper le titre même pour les candidatures spontanées
+        # car l'admin peut avoir saisi un titre en arabe
+        job_title_reshaped = reshape_arabic_text(job_title, lang)
+        print(f"📋 Candidature spontanée - titre reshaped: {job_title_reshaped}")
+        return job_title_reshaped
     
     # Pour les candidatures normales, récupérer depuis la table jobs
     try:
@@ -601,9 +605,9 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
     address_label = reshape_arabic_text(t["address"], lang)
     position_label = reshape_arabic_text(t["position"], lang)
     address_value = reshape_arabic_text('Siège de SALSABIL' if lang == 'fr' else 'مقر السلسبيل', lang)
-    job_title_reshaped = reshape_arabic_text(job_title_display, lang)
+    # job_title_display est déjà reshaped par get_job_title_for_language()
     
-    print(f"📊 Données tableau: jour={formatted_day}, heure={formatted_time}, poste={job_title_reshaped}")
+    print(f"📊 Données tableau: jour={formatted_day}, heure={formatted_time}, poste={job_title_display}")
     
     # Inverser les colonnes pour l'arabe (valeur à gauche, label à droite)
     if lang == 'ar':
@@ -611,7 +615,7 @@ def generate_interview_invitation_pdf(application_data, interview_date, output_p
             [formatted_day, f'📅 {date_label}'],
             [formatted_time, f'🕐 {time_label}'],
             [address_value, f'📍 {address_label}'],
-            [job_title_reshaped, f'💼 {position_label}'],
+            [job_title_display, f'💼 {position_label}'],
         ]
         print(f"📋 Tableau AR créé avec {len(interview_info)} lignes")
         # Pour l'arabe : valeur (large) puis label (étroit)
@@ -895,12 +899,12 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
         alignment=TA_CENTER
     )
     
-    # Récupérer le titre du job dans la langue appropriée
+    # Récupérer le titre du job dans la langue appropriée (déjà reshaped)
     job_title = get_job_title_for_language(application_data, lang)
     
     acceptance_msg = reshape_arabic_text("Acceptation de votre candidature" if lang == 'fr' else "قبول طلبكم", lang)
-    job_title_reshaped = reshape_arabic_text(job_title, lang)
-    object_text = f"{acceptance_msg} - {job_title_reshaped}"
+    # job_title est déjà reshaped par get_job_title_for_language()
+    object_text = f"{acceptance_msg} - {job_title}"
     elements.append(Paragraph(f"<b>{object_text}</b>", object_style))
     elements.append(Spacer(1, 0.5*cm))  # Réduit de 0.8 à 0.5
     
@@ -919,7 +923,7 @@ def generate_acceptance_letter_pdf(application_data, output_path, verification_c
     acceptance_msg_1 = reshape_arabic_text(t['acceptance_msg_1'], lang)
     acceptance_msg_2 = reshape_arabic_text(t['acceptance_msg_2'], lang)
     para1 = f"""
-    {acceptance_msg_1} <b>{job_title_reshaped}</b> {acceptance_msg_2}
+    {acceptance_msg_1} <b>{job_title}</b> {acceptance_msg_2}
     """
     elements.append(Paragraph(para1, body_style))
     elements.append(Spacer(1, 0.3*cm))  # Réduit de 0.5 à 0.3

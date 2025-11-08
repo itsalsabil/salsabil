@@ -1288,13 +1288,93 @@ def admin_phase1_decision(app_id):
         # Mettre à jour le statut en base de données
         update_phase1_status(app_id, decision, interview_date, rejection_reason)
         
-        # Récupérer le chemin du PDF si le candidat est sélectionné pour interview
+        # GÉNÉRATION AUTOMATIQUE DU PDF si le candidat est sélectionné pour interview
         pdf_filename = None
-        if decision == 'selected_for_interview':
+        pdf_path = None
+        if decision == 'selected_for_interview' and interview_date:
+            try:
+                from pdf_generator import (generate_interview_invitation_pdf, 
+                                          generate_interview_invitation_filename,
+                                          generate_verification_code)
+                from models import save_interview_invitation_pdf
+                
+                print(f"🎯 Génération automatique des PDFs pour candidat {app_id}")
+                
+                # Générer un code de vérification unique
+                verification_code = generate_verification_code(app_id, 'convocation')
+                
+                # Générer le nom du fichier
+                candidate_name = f"{application['prenom']}_{application['nom']}"
+                pdf_filename_fr = generate_interview_invitation_filename(candidate_name, app_id)
+                pdf_filename_ar = pdf_filename_fr.replace('.pdf', '_AR.pdf')
+                
+                # Chemins complets des fichiers
+                pdf_path_fr = os.path.join('static', 'convocations', pdf_filename_fr)
+                pdf_path_ar = os.path.join('static', 'convocations', pdf_filename_ar)
+                
+                # URL de base pour le QR code
+                base_url = request.url_root.rstrip('/')
+                
+                # Générer le PDF VERSION FRANÇAISE
+                print(f"📄 Génération PDF FR: {pdf_path_fr}")
+                generate_interview_invitation_pdf(
+                    application_data=application,
+                    interview_date=interview_date,
+                    output_path=pdf_path_fr,
+                    verification_code=verification_code,
+                    base_url=base_url,
+                    lang='fr'
+                )
+                
+                # Générer le PDF VERSION ARABE
+                print(f"📄 Génération PDF AR: {pdf_path_ar}")
+                generate_interview_invitation_pdf(
+                    application_data=application,
+                    interview_date=interview_date,
+                    output_path=pdf_path_ar,
+                    verification_code=verification_code,
+                    base_url=base_url,
+                    lang='ar'
+                )
+                
+                # Sauvegarder les deux chemins dans la base de données
+                save_interview_invitation_pdf(app_id, pdf_filename_fr, pdf_filename_ar)
+                
+                # Enregistrer le code de vérification dans la base de données
+                conn = get_db_connection()
+                from datetime import datetime
+                conn.execute('''
+                    INSERT INTO document_verifications 
+                    (verification_code, application_id, document_type, candidate_name, job_title, issue_date, pdf_path, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    verification_code,
+                    app_id,
+                    'convocation',
+                    f"{application['prenom']} {application['nom']}",
+                    application.get('selected_job_title') or application['job_title'],
+                    datetime.now().strftime('%d/%m/%Y'),
+                    pdf_filename_fr,
+                    'valide'
+                ))
+                conn.commit()
+                conn.close()
+                
+                pdf_filename = pdf_filename_fr
+                pdf_path = pdf_path_fr
+                print(f"✅ PDFs générés automatiquement: FR={pdf_filename_fr}, AR={pdf_filename_ar}")
+                
+            except Exception as e:
+                print(f"❌ Erreur lors de la génération automatique des PDFs: {e}")
+                import traceback
+                traceback.print_exc()
+                # Continuer même si la génération échoue
+                pdf_filename = None
+                pdf_path = None
+        else:
+            # Récupérer le PDF existant si déjà généré
             pdf_filename = get_interview_invitation_pdf(app_id)
             pdf_path = os.path.join('static', 'convocations', pdf_filename) if pdf_filename else None
-        else:
-            pdf_path = None
         
         # Préparer les notifications
         notifications = prepare_notification(
@@ -1903,8 +1983,12 @@ def admin_job_candidates_ar(job_id):
 def admin_add_job():
     """Route pour ajouter une nouvelle offre avec support bilingue (FR + AR)"""
     
+    # Récupérer la langue de l'interface
+    lang = request.form.get('lang', 'fr')
+    
     print("\n" + "="*80)
     print("🚀 AJOUT D'OFFRE BILINGUE - DEBUT")
+    print(f"🌐 Langue interface: {lang}")
     print("="*80)
     
     try:
@@ -1976,22 +2060,31 @@ def admin_add_job():
         print(f"✅ Job créé avec ID: {job_id}")
         print("="*80 + "\n")
         
-        flash('Offre d\'emploi bilingue ajoutée avec succès! (FR + AR)', 'success')
+        success_msg = 'تم إضافة عرض العمل بنجاح! (FR + AR)' if lang == 'ar' else 'Offre d\'emploi bilingue ajoutée avec succès! (FR + AR)'
+        flash(success_msg, 'success')
     except Exception as e:
         print(f"❌ ERREUR lors de l'ajout: {str(e)}")
         print(f"   Type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         print("="*80 + "\n")
-        flash(f'Erreur lors de l\'ajout de l\'offre: {str(e)}', 'error')
+        error_msg = f'خطأ أثناء إضافة العرض: {str(e)}' if lang == 'ar' else f'Erreur lors de l\'ajout de l\'offre: {str(e)}'
+        flash(error_msg, 'error')
     
-    return redirect(url_for('admin_jobs'))
+    # Rediriger vers la bonne version selon la langue
+    if lang == 'ar':
+        return redirect(url_for('admin_jobs_ar'))
+    else:
+        return redirect(url_for('admin_jobs'))
 
 @app.route('/admin/jobs/edit', methods=['POST'])
 @login_required
 @permission_required('edit_job')
 def admin_edit_job():
     """Route pour modifier une offre existante avec support bilingue (FR + AR)"""
+    
+    # Récupérer la langue de l'interface
+    lang = request.form.get('lang', 'fr')
     
     try:
         job_id = int(request.form.get('job_id'))
@@ -2038,11 +2131,17 @@ def admin_edit_job():
             langues_requises=langues_requises
         )
         
-        flash('Offre d\'emploi modifiée avec succès!', 'success')
+        success_msg = 'تم تعديل عرض العمل بنجاح!' if lang == 'ar' else 'Offre d\'emploi modifiée avec succès!'
+        flash(success_msg, 'success')
     except Exception as e:
-        flash(f'Erreur lors de la modification de l\'offre: {str(e)}', 'error')
+        error_msg = f'خطأ أثناء التعديل: {str(e)}' if lang == 'ar' else f'Erreur lors de la modification de l\'offre: {str(e)}'
+        flash(error_msg, 'error')
     
-    return redirect(url_for('admin_jobs'))
+    # Rediriger vers la bonne version selon la langue
+    if lang == 'ar':
+        return redirect(url_for('admin_jobs_ar'))
+    else:
+        return redirect(url_for('admin_jobs'))
 
 @app.route('/admin/jobs/<int:job_id>/delete', methods=['POST'])
 @login_required
@@ -2050,15 +2149,23 @@ def admin_edit_job():
 def admin_delete_job(job_id):
     """Route pour supprimer une offre"""
     
+    # Récupérer la langue de l'interface
+    lang = request.form.get('lang', 'fr')
+    
     try:
         # Supprimer le job de la base de données (cascade sur les candidatures)
         delete_job(job_id)
-        flash('Offre d\'emploi supprimée avec succès!', 'success')
+        success_msg = 'تم حذف عرض العمل بنجاح!' if lang == 'ar' else 'Offre d\'emploi supprimée avec succès!'
+        flash(success_msg, 'success')
     except Exception as e:
-        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+        error_msg = f'خطأ أثناء الحذف: {str(e)}' if lang == 'ar' else f'Erreur lors de la suppression: {str(e)}'
+        flash(error_msg, 'error')
     
-    return redirect(url_for('admin_jobs'))
-    return redirect(url_for('admin_jobs'))
+    # Rediriger vers la bonne version selon la langue
+    if lang == 'ar':
+        return redirect(url_for('admin_jobs_ar'))
+    else:
+        return redirect(url_for('admin_jobs'))
 
 @app.route('/admin/jobs/<int:job_id>/data')
 @login_required
