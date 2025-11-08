@@ -238,6 +238,7 @@
                                         <div class="action-buttons-inline">
                                             {% if permissions.edit_employee %}
                                             <form method="POST" action="{{ url_for('admin_toggle_employee_status', emp_id=emp.id) }}" style="display: inline;">
+                                                <input type="hidden" name="lang" value="{{ lang }}">
                                                 <button type="submit" class="btn-toggle" title="{% if lang == 'ar' %}{{ 'تفعيل' if emp.status == 'inactif' else 'تعطيل' }}{% else %}{{ 'Activer' if emp.status == 'inactif' else 'Désactiver' }}{% endif %}">
                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -248,6 +249,7 @@
                                             {% endif %}
                                             {% if permissions.delete_employee %}
                                             <form method="POST" action="{{ url_for('admin_delete_employee', emp_id=emp.id) }}" style="display: inline;" onsubmit="return confirm(&quot;{% if lang == 'ar' %}هل أنت متأكد من حذف هذا الموظف؟{% else %}Êtes-vous sûr de vouloir supprimer cet employé ?{% endif %}&quot;);">
+                                                <input type="hidden" name="lang" value="{{ lang }}">
                                                 <button type="submit" class="btn-delete-job" title="{% if lang == 'ar' %}حذف{% else %}Supprimer{% endif %}">
                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                         <polyline points="3 6 5 6 21 6"></polyline>
@@ -278,6 +280,7 @@
                 <span class="close" onclick="closeEmployeeModal()">&times;</span>
             </div>
             <form id="employeeForm" method="POST" action="{{ url_for('admin_add_employee') }}">
+                <input type="hidden" name="lang" value="{{ lang }}">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="prenom">{% if lang == 'ar' %}الاسم الأول *{% else %}Prénom *{% endif %}</label>

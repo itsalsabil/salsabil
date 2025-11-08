@@ -39,6 +39,100 @@
             border-color: #667eea;
             cursor: default;
         }
+        
+        /* Styles pour les boutons de téléchargement de rapport */
+        .report-download-section {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-download-report {
+            flex: 1;
+            min-width: 250px;
+            max-width: 350px;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-download-report::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-download-report:hover::before {
+            left: 100%;
+        }
+        
+        .btn-download-report-fr {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-download-report-fr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-download-report-ar {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-download-report-ar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn-download-report svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 2.5;
+        }
+        
+        .btn-download-report .download-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-download-report:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .report-download-section {
+                flex-direction: column;
+            }
+            .btn-download-report {
+                max-width: 100%;
+            }
+        }
     </style>
     {% if lang == 'ar' %}
     <style>
@@ -54,6 +148,8 @@
         .action-buttons { flex-direction: row-reverse; }
         .btn svg { margin-left: 8px; margin-right: 0; }
         .language-toggle { margin-right: 0; margin-left: 1rem; }
+        .report-download-section { flex-direction: row-reverse; }
+        .btn-download-report { flex-direction: row-reverse; }
     </style>
     {% endif %}
 </head>
@@ -207,6 +303,31 @@
             </div>
 
             <div class="detail-container">
+                <!-- Boutons de téléchargement de rapport -->
+                <div class="report-download-section">
+                    <a href="{{ url_for('admin_download_candidate_report_lang', app_id=application.id, lang='fr') }}?interface_lang={{ lang }}" class="btn-download-report btn-download-report-fr">
+                        <div class="download-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </div>
+                        <span>{% if lang == 'ar' %}تحميل تقرير المرشح (FR){% else %}Télécharger Rapport (FR){% endif %}</span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_download_candidate_report_lang', app_id=application.id, lang='ar') }}?interface_lang={{ lang }}" class="btn-download-report btn-download-report-ar">
+                        <div class="download-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                        </div>
+                        <span>{% if lang == 'ar' %}تحميل تقرير المرشح (AR){% else %}Télécharger Rapport (AR){% endif %}</span>
+                    </a>
+                </div>
+                
                 <!-- Candidate Info Card -->
                 <div class="detail-card">
                     <div class="card-header">
