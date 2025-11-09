@@ -339,6 +339,157 @@
     {% endwith %}
 
     <script>
+        // ============================================
+        // SYSTÈME DE SYNCHRONISATION CROSS-LANGUE
+        // ============================================
+        
+        // Mappings des traductions pour la synchronisation
+        const FR_TO_AR_TRANSLATIONS = {
+            // Départements
+            'Administration': 'الإدارة',
+            'Ressources Humaines': 'الموارد البشرية',
+            'Finance et Comptabilité': 'المالية والمحاسبة',
+            'Informatique et Technologie': 'المعلوماتية والتكنولوجيا',
+            'Marketing et Communication': 'التسويق والاتصال',
+            'Ventes et Commerce': 'المبيعات والتجارة',
+            'Production et Opérations': 'الإنتاج والعمليات',
+            'Logistique et Supply Chain': 'اللوجستيات وسلسلة التوريد',
+            'Qualité et Contrôle': 'الجودة والمراقبة',
+            'Recherche et Développement': 'البحث والتطوير',
+            'Service Client': 'خدمة العملاء',
+            'Juridique': 'القانونية',
+            'Santé et Sécurité': 'الصحة والسلامة',
+            'Éducation et Formation': 'التعليم والتدريب',
+            'Autres': 'أخرى',
+            
+            // Localisations
+            'Moroni': 'موروني',
+            'Itsandra': 'إتساندرا',
+            'Hahaya': 'هاهايا',
+            'Mvouni': 'مفوني',
+            'Ikoni': 'إيكوني',
+            'Oichili': 'أويشيلي',
+            'Ivembeni': 'إيفيمبيني',
+            'Mitsamiouli': 'متساميولي',
+            'Mbeni': 'مبيني',
+            'Nioumamilima': 'نيوماميليما',
+            'Bangoi': 'بانغوي',
+            'Foumbouni': 'فومبوني',
+            'Mitsoudjé': 'متسودجي',
+            'Dimadjou': 'ديمادجو',
+            'Ourovéni': 'أوروفيني',
+            'Séléa': 'سيليا',
+            'Mbéni': 'مبيني',
+            'Itsandzéni': 'إتسانديني',
+            'Simboussa': 'سيمبوسا',
+            'Télétravail': 'العمل عن بُعد',
+            'Plusieurs sites': 'عدة مواقع',
+            
+            // Types de contrat
+            'CDI': 'عقد دائم',
+            'CDD': 'عقد محدد المدة',
+            'Stage': 'تدريب',
+            'Freelance': 'مستقل',
+            'Temps partiel': 'دوام جزئي',
+            'Temps plein': 'دوام كامل'
+        };
+        
+        // Traductions inverses (AR vers FR)
+        const AR_TO_FR_TRANSLATIONS = {};
+        Object.keys(FR_TO_AR_TRANSLATIONS).forEach(fr => {
+            AR_TO_FR_TRANSLATIONS[FR_TO_AR_TRANSLATIONS[fr]] = fr;
+        });
+        
+        // Fonction pour sauvegarder l'état des filtres
+        function saveFiltersState() {
+            const filtersState = {
+                search: document.getElementById('searchInput').value,
+                department: document.getElementById('departmentFilter').value,
+                location: document.getElementById('locationFilter').value,
+                type: document.getElementById('typeFilter').value,
+                language: document.getElementById('languageFilter').value,
+                timestamp: Date.now(),
+                currentLang: 'fr'
+            };
+            localStorage.setItem('jobFiltersState', JSON.stringify(filtersState));
+        }
+        
+        // Fonction pour charger l'état des filtres depuis l'autre langue
+        function loadFiltersState() {
+            try {
+                const savedState = localStorage.getItem('jobFiltersState');
+                if (!savedState) return;
+                
+                const state = JSON.parse(savedState);
+                console.log('État chargé:', state); // Debug
+                
+                // Vérifier si l'état est récent (moins de 5 minutes)
+                if (Date.now() - state.timestamp > 300000) {
+                    console.log('État expiré');
+                    return;
+                }
+                
+                // Si l'état vient de la même langue, l'ignorer
+                if (state.currentLang === 'fr') {
+                    console.log('État de la même langue, ignoré');
+                    return;
+                }
+                
+                console.log('Application des filtres depuis la version arabe...');
+                
+                // Appliquer les filtres traduits
+                if (state.search) {
+                    document.getElementById('searchInput').value = state.search;
+                    console.log('Recherche appliquée:', state.search);
+                }
+                
+                if (state.department) {
+                    const translatedDept = AR_TO_FR_TRANSLATIONS[state.department] || state.department;
+                    const deptSelect = document.getElementById('departmentFilter');
+                    console.log('Département traduit:', state.department, '->', translatedDept);
+                    
+                    // Chercher l'option correspondante
+                    for (let option of deptSelect.options) {
+                        if (option.value === translatedDept) {
+                            deptSelect.value = translatedDept;
+                            console.log('Département sélectionné:', translatedDept);
+                            break;
+                        }
+                    }
+                }
+                
+                if (state.location) {
+                    const translatedLoc = AR_TO_FR_TRANSLATIONS[state.location] || state.location;
+                    const locSelect = document.getElementById('locationFilter');
+                    console.log('Localisation traduite:', state.location, '->', translatedLoc);
+                    
+                    for (let option of locSelect.options) {
+                        if (option.value === translatedLoc) {
+                            locSelect.value = translatedLoc;
+                            console.log('Localisation sélectionnée:', translatedLoc);
+                            break;
+                        }
+                    }
+                }
+                
+                if (state.type) {
+                    document.getElementById('typeFilter').value = state.type;
+                    console.log('Type appliqué:', state.type);
+                }
+                
+                if (state.language) {
+                    document.getElementById('languageFilter').value = state.language;
+                    console.log('Langue appliquée:', state.language);
+                }
+                
+                // Appliquer les filtres sans sauvegarder (éviter la boucle)
+                filterJobsWithoutSave();
+                
+            } catch (error) {
+                console.log('Erreur lors du chargement des filtres:', error);
+            }
+        }
+
         function toggleMenu() {
             const navLinks = document.getElementById('navLinks');
             const menuToggle = document.querySelector('.menu-toggle');
@@ -360,6 +511,23 @@
 
         // Toggle dropdown on mobile
         document.addEventListener('DOMContentLoaded', function() {
+            // Charger l'état des filtres depuis l'autre langue
+            loadFiltersState();
+            
+            // Ajouter les événements de synchronisation
+            document.getElementById('searchInput').addEventListener('input', saveFiltersState);
+            document.getElementById('departmentFilter').addEventListener('change', saveFiltersState);
+            document.getElementById('locationFilter').addEventListener('change', saveFiltersState);
+            document.getElementById('typeFilter').addEventListener('change', saveFiltersState);
+            document.getElementById('languageFilter').addEventListener('change', saveFiltersState);
+            
+            // Écouter les changements de localStorage pour synchronisation temps réel
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'jobFiltersState') {
+                    loadFiltersState();
+                }
+            });
+            
             // Masquer les filtres par défaut sur mobile
             if (window.innerWidth <= 768) {
                 const container = document.getElementById('filtersContainer');
@@ -418,6 +586,12 @@
         }
         
         function filterJobs() {
+            filterJobsWithoutSave();
+            // Sauvegarder l'état des filtres pour synchronisation cross-langue
+            saveFiltersState();
+        }
+        
+        function filterJobsWithoutSave() {
             const searchValue = document.getElementById('searchInput').value.toLowerCase();
             const departmentValue = document.getElementById('departmentFilter').value;
             const locationValue = document.getElementById('locationFilter').value;
@@ -505,6 +679,9 @@
             setTimeout(() => {
                 resetBtn.style.transform = 'rotate(0deg)';
             }, 300);
+            
+            // Effacer l'état sauvegardé aussi
+            localStorage.removeItem('jobFiltersState');
         }
         
         // Animation fadeIn pour les cartes
