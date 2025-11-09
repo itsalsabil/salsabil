@@ -216,7 +216,7 @@
                             </p>
                         {% else %}
                             <div style="display: flex; align-items: center; gap: 0.5rem; color: #f59e0b;">
-                                <span style="font-size: 1.5rem;">🔒</span>
+                                <span style="font-size: 1.5rem;">🔐</span>
                                 <strong>
                                     {% if lang == 'ar' %}
                                         مغلقة مؤقتاً
@@ -236,9 +236,11 @@
                     </div>
                     
                     <form method="POST" action="{{ url_for('admin_toggle_spontaneous') }}" style="margin: 0;">
+                        <!-- Preserve current page so the toggle action can redirect back without changing language -->
+                        <input type="hidden" name="return_to" value="{{ request.path }}">
                         {% if spontaneous_open %}
                             <button type="submit" class="btn" style="background: #f59e0b; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s;">
-                                <span>🔒</span>
+                                <span>🔐</span>
                                 {% if lang == 'ar' %}
                                     إغلاق مؤقتاً
                                 {% else %}
