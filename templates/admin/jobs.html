@@ -304,6 +304,73 @@
                         <input type="text" id="title_ar" name="title_ar" required placeholder="مثال: مطور ويب متكامل" dir="rtl">
                     </div>
 
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="department_ar">القسم (AR) *</label>
+                            <select id="department_ar" name="department_ar" required onchange="syncDepartment('ar'); toggleAutreDepartementAr();">
+                                <option value="">-- اختر القسم --</option>
+                                <option value="الإدارة">الإدارة</option>
+                                <option value="الموارد البشرية">الموارد البشرية</option>
+                                <option value="المالية والمحاسبة">المالية والمحاسبة</option>
+                                <option value="المعلوماتية والتكنولوجيا">المعلوماتية والتكنولوجيا</option>
+                                <option value="التسويق والاتصال">التسويق والاتصال</option>
+                                <option value="المبيعات والتجارة">المبيعات والتجارة</option>
+                                <option value="الإنتاج والعمليات">الإنتاج والعمليات</option>
+                                <option value="اللوجستيات وسلسلة التوريد">اللوجستيات وسلسلة التوريد</option>
+                                <option value="الجودة والمراقبة">الجودة والمراقبة</option>
+                                <option value="البحث والتطوير">البحث والتطوير</option>
+                                <option value="خدمة العملاء">خدمة العملاء</option>
+                                <option value="القانونية">القانونية</option>
+                                <option value="الصحة والسلامة">الصحة والسلامة</option>
+                                <option value="التعليم والتدريب">التعليم والتدريب</option>
+                                <option value="أخرى">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="location_ar">الموقع (AR) *</label>
+                            <select id="location_ar" name="location_ar" required onchange="syncLocation('ar')">
+                                <option value="">-- اختر الموقع --</option>
+                                <optgroup label="موروني والمناطق المحيطة">
+                                    <option value="موروني">موروني</option>
+                                    <option value="إتساندرا">إتساندرا</option>
+                                    <option value="هاهايا">هاهايا</option>
+                                    <option value="مفوني">مفوني</option>
+                                    <option value="إيكوني">إيكوني</option>
+                                    <option value="أويشيلي">أويشيلي</option>
+                                    <option value="إيفيمبيني">إيفيمبيني</option>
+                                </optgroup>
+                                <optgroup label="المنطقة الشمالية">
+                                    <option value="متساميولي">متساميولي</option>
+                                    <option value="مبيني">مبيني</option>
+                                    <option value="نيوماميليما">نيوماميليما</option>
+                                    <option value="بانغوي">بانغوي</option>
+                                </optgroup>
+                                <optgroup label="المنطقة الجنوبية">
+                                    <option value="فومبوني">فومبوني</option>
+                                    <option value="متسودجي">متسودجي</option>
+                                    <option value="ديمادجو">ديمادجو</option>
+                                    <option value="أوروفيني">أوروفيني</option>
+                                    <option value="سيليا">سيليا</option>
+                                </optgroup>
+                                <optgroup label="المنطقة الغربية">
+                                    <option value="مبيني">مبيني</option>
+                                    <option value="إتسانديني">إتسانديني</option>
+                                    <option value="سيمبوسا">سيمبوسا</option>
+                                </optgroup>
+                                <optgroup label="أخرى">
+                                    <option value="العمل عن بُعد">العمل عن بُعد</option>
+                                    <option value="عدة مواقع">عدة مواقع</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Champ "Autre département" arabe -->
+                    <div id="autre-department-field-ar" class="form-group" style="display: none;">
+                        <label for="autre_department_ar">حدد القسم *</label>
+                        <input type="text" id="autre_department_ar" name="autre_department_ar" placeholder="اكتب اسم القسم" dir="rtl">
+                    </div>
+
                     <div class="form-group">
                         <label for="description_ar">الوصف (AR) *</label>
                         <textarea id="description_ar" name="description_ar" rows="5" required placeholder="اكتب وصف الوظيفة بالعربية..." dir="rtl"></textarea>
@@ -323,12 +390,12 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="title">Titre du poste (FR) *</label>
-                            <input type="text" id="title" name="title" required placeholder="Ex: Développeur Full Stack">
+                            <label for="title_fr">Titre du poste (FR) *</label>
+                            <input type="text" id="title_fr" name="title" required placeholder="Ex: Développeur Full Stack">
                         </div>
                         <div class="form-group">
-                            <label for="department">Département (FR) *</label>
-                            <select id="department" name="department" required onchange="toggleAutreDepartement()">
+                            <label for="department_fr">Département (FR) *</label>
+                            <select id="department_fr" name="department" required onchange="toggleAutreDepartementFr(); syncDepartment('fr')">
                                 <option value="">-- Sélectionnez un département --</option>
                                 <option value="Administration">Administration</option>
                                 <option value="Ressources Humaines">Ressources Humaines</option>
@@ -350,14 +417,14 @@
                     </div>
 
                     <!-- Champ "Autre département" (masqué par défaut) -->
-                    <div id="autre-department-field" class="form-group" style="display: none;">
-                        <label for="autre_department">{% if lang == 'ar' %}حدد القسم{% else %}Précisez le département{% endif %} *</label>
-                        <input type="text" id="autre_department" name="autre_department" placeholder="{% if lang == 'ar' %}اكتب اسم القسم{% else %}Ex: Département personnalisé{% endif %}">
+                    <div id="autre-department-field-fr" class="form-group" style="display: none;">
+                        <label for="autre_department_fr">{% if lang == 'ar' %}حدد القسم{% else %}Précisez le département{% endif %} *</label>
+                        <input type="text" id="autre_department_fr" name="autre_department" placeholder="{% if lang == 'ar' %}اكتب اسم القسم{% else %}Ex: Département personnalisé{% endif %}">
                     </div>
 
                     <div class="form-group">
-                        <label for="location">Localisation (FR) *</label>
-                        <select id="location" name="location" required>
+                        <label for="location_fr">Localisation (FR) *</label>
+                        <select id="location_fr" name="location" required onchange="syncLocation('fr')">
                             <option value="">-- Sélectionnez une localisation --</option>
                             <optgroup label="Moroni et environs">
                                 <option value="Moroni">Moroni</option>
@@ -394,13 +461,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="description">Description (FR) *</label>
-                        <textarea id="description" name="description" rows="5" required placeholder="Décrivez le poste en français..."></textarea>
+                        <label for="description_fr">Description (FR) *</label>
+                        <textarea id="description_fr" name="description" rows="5" required placeholder="Décrivez le poste en français..."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="requirements">Exigences (FR) - Une par ligne *</label>
-                        <textarea id="requirements" name="requirements" rows="4" required placeholder="Ex:&#10;Python/Flask&#10;3+ ans d'expérience&#10;Anglais courant"></textarea>
+                        <label for="requirements_fr">Exigences (FR) - Une par ligne *</label>
+                        <textarea id="requirements_fr" name="requirements" rows="4" required placeholder="Ex:&#10;Python/Flask&#10;3+ ans d'expérience&#10;Anglais courant"></textarea>
                     </div>
                 </div>
                 {% else %}
@@ -417,7 +484,7 @@
                         </div>
                         <div class="form-group">
                             <label for="department">Département (FR) *</label>
-                            <select id="department" name="department" required onchange="toggleAutreDepartement()">
+                            <select id="department" name="department" required onchange="toggleAutreDepartement(); syncDepartment('fr')">
                                 <option value="">-- Sélectionnez un département --</option>
                                 <option value="Administration">Administration</option>
                                 <option value="Ressources Humaines">Ressources Humaines</option>
@@ -446,7 +513,7 @@
 
                     <div class="form-group">
                         <label for="location">Localisation (FR) *</label>
-                        <select id="location" name="location" required>
+                        <select id="location" name="location" required onchange="syncLocation('fr')">
                             <option value="">-- Sélectionnez une localisation --</option>
                             <optgroup label="Moroni et environs">
                                 <option value="Moroni">Moroni</option>
@@ -502,6 +569,73 @@
                     <div class="form-group">
                         <label for="title_ar">عنوان المنصب (AR) *</label>
                         <input type="text" id="title_ar" name="title_ar" required placeholder="مثال: مطور ويب متكامل" dir="rtl">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="department_ar">القسم (AR) *</label>
+                            <select id="department_ar" name="department_ar" required onchange="syncDepartment('ar'); toggleAutreDepartementAr();">
+                                <option value="">-- اختر القسم --</option>
+                                <option value="الإدارة">الإدارة</option>
+                                <option value="الموارد البشرية">الموارد البشرية</option>
+                                <option value="المالية والمحاسبة">المالية والمحاسبة</option>
+                                <option value="المعلوماتية والتكنولوجيا">المعلوماتية والتكنولوجيا</option>
+                                <option value="التسويق والاتصال">التسويق والاتصال</option>
+                                <option value="المبيعات والتجارة">المبيعات والتجارة</option>
+                                <option value="الإنتاج والعمليات">الإنتاج والعمليات</option>
+                                <option value="اللوجستيات وسلسلة التوريد">اللوجستيات وسلسلة التوريد</option>
+                                <option value="الجودة والمراقبة">الجودة والمراقبة</option>
+                                <option value="البحث والتطوير">البحث والتطوير</option>
+                                <option value="خدمة العملاء">خدمة العملاء</option>
+                                <option value="القانونية">القانونية</option>
+                                <option value="الصحة والسلامة">الصحة والسلامة</option>
+                                <option value="التعليم والتدريب">التعليم والتدريب</option>
+                                <option value="أخرى">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="location_ar">الموقع (AR) *</label>
+                            <select id="location_ar" name="location_ar" required onchange="syncLocation('ar')">
+                                <option value="">-- اختر الموقع --</option>
+                                <optgroup label="موروني والمناطق المحيطة">
+                                    <option value="موروني">موروني</option>
+                                    <option value="إتساندرا">إتساندرا</option>
+                                    <option value="هاهايا">هاهايا</option>
+                                    <option value="مفوني">مفوني</option>
+                                    <option value="إيكوني">إيكوني</option>
+                                    <option value="أويشيلي">أويشيلي</option>
+                                    <option value="إيفيمبيني">إيفيمبيني</option>
+                                </optgroup>
+                                <optgroup label="المنطقة الشمالية">
+                                    <option value="متساميولي">متساميولي</option>
+                                    <option value="مبيني">مبيني</option>
+                                    <option value="نيوماميليما">نيوماميليما</option>
+                                    <option value="بانغوي">بانغوي</option>
+                                </optgroup>
+                                <optgroup label="المنطقة الجنوبية">
+                                    <option value="فومبوني">فومبوني</option>
+                                    <option value="متسودجي">متسودجي</option>
+                                    <option value="ديمادجو">ديمادجو</option>
+                                    <option value="أوروفيني">أوروفيني</option>
+                                    <option value="سيليا">سيليا</option>
+                                </optgroup>
+                                <optgroup label="المنطقة الغربية">
+                                    <option value="مبيني">مبيني</option>
+                                    <option value="إتسانديني">إتسانديني</option>
+                                    <option value="سيمبوسا">سيمبوسا</option>
+                                </optgroup>
+                                <optgroup label="أخرى">
+                                    <option value="العمل عن بُعد">العمل عن بُعد</option>
+                                    <option value="عدة مواقع">عدة مواقع</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Champ "Autre département" arabe -->
+                    <div id="autre-department-field-ar" class="form-group" style="display: none;">
+                        <label for="autre_department_ar">حدد القسم *</label>
+                        <input type="text" id="autre_department_ar" name="autre_department_ar" placeholder="اكتب اسم القسم" dir="rtl">
                     </div>
 
                     <div class="form-group">
@@ -597,17 +731,24 @@
         const lang = '{{ lang if lang else "fr" }}';
         
         function openJobModal(jobData = null) {
+            console.log('OpenJobModal called with:', jobData);
             const modal = document.getElementById('jobModal');
             const form = document.getElementById('jobForm');
             const modalTitle = document.getElementById('modalTitle');
             
             if (jobData) {
+                console.log('Setting up modal for editing job');
                 modalTitle.textContent = lang === 'ar' ? 'تعديل عرض العمل' : 'Modifier l\'offre d\'emploi';
                 form.action = '{{ url_for("admin_edit_job") }}';
                 document.getElementById('jobId').value = jobData.id;
                 
-                // Champs français
-                document.getElementById('title').value = jobData.titre || jobData.title || '';
+                // Champs français (avec détection automatique des IDs)
+                const titleField = document.getElementById('title') || document.getElementById('title_fr');
+                console.log('Title field found:', titleField);
+                if (titleField) {
+                    titleField.value = jobData.titre || jobData.title || '';
+                    console.log('Set title to:', titleField.value);
+                }
                 
                 // Gérer le département avec les départements prédéfinis
                 const departmentsPredefined = [
@@ -619,24 +760,51 @@
                 ];
                 
                 const departmentValue = jobData.department || '';
-                if (departmentsPredefined.includes(departmentValue)) {
-                    document.getElementById('department').value = departmentValue;
-                } else if (departmentValue) {
-                    // Si le département n'est pas dans la liste, c'est un département personnalisé
-                    document.getElementById('department').value = 'Autres';
-                    if (document.getElementById('autre_department')) {
-                        document.getElementById('autre_department').value = departmentValue;
+                const departmentField = document.getElementById('department') || document.getElementById('department_fr');
+                const autreDepartmentField = document.getElementById('autre_department') || document.getElementById('autre_department_fr');
+                
+                if (departmentField) {
+                    if (departmentsPredefined.includes(departmentValue)) {
+                        departmentField.value = departmentValue;
+                    } else if (departmentValue) {
+                        // Si le département n'est pas dans la liste, c'est un département personnalisé
+                        departmentField.value = 'Autres';
+                        if (autreDepartmentField) {
+                            autreDepartmentField.value = departmentValue;
+                        }
                     }
                 }
                 
-                document.getElementById('location').value = jobData.lieu || jobData.location || '';
+                const locationField = document.getElementById('location') || document.getElementById('location_fr');
+                if (locationField) {
+                    locationField.value = jobData.lieu || jobData.location || '';
+                }
+                
                 document.getElementById('type').value = jobData.type || '';
-                document.getElementById('description').value = jobData.description || '';
-                document.getElementById('requirements').value = Array.isArray(jobData.requirements) ? jobData.requirements.join('\n') : jobData.requirements || '';
+                
+                const descriptionField = document.getElementById('description') || document.getElementById('description_fr');
+                if (descriptionField) {
+                    descriptionField.value = jobData.description || '';
+                }
+                
+                const requirementsField = document.getElementById('requirements') || document.getElementById('requirements_fr');
+                if (requirementsField) {
+                    requirementsField.value = Array.isArray(jobData.requirements) ? jobData.requirements.join('\n') : jobData.requirements || '';
+                }
+                
                 document.getElementById('deadline').value = jobData.deadline || jobData.date_limite || '';
                 
                 // Déclencher l'affichage du champ "Autre" si nécessaire
-                toggleAutreDepartement();
+                if (document.getElementById('department')) {
+                    toggleAutreDepartement();
+                } else if (document.getElementById('department_fr')) {
+                    toggleAutreDepartementFr();
+                }
+                
+                // Seulement déclencher toggleAutreDepartementAr si les champs arabes existent
+                if (document.getElementById('department_ar')) {
+                    toggleAutreDepartementAr();
+                }
                 
                 // Champs arabes (nouveaux)
                 if (document.getElementById('title_ar')) {
@@ -693,6 +861,11 @@
             const autreDepartmentField2 = document.getElementById('autre-department-field-2');
             const autreDepartmentInput = document.getElementById('autre_department');
             
+            // Vérifier si l'élément existe
+            if (!departmentSelect) {
+                return;
+            }
+            
             // Afficher le champ "Autre" si "Autres" est sélectionné
             if (departmentSelect.value === 'Autres') {
                 if (autreDepartmentField) {
@@ -716,15 +889,252 @@
                     autreDepartmentInput.value = '';
                 }
             }
+            
+            // Gérer le champ "Autre" arabe aussi
+            const departmentSelectAr = document.getElementById('department_ar');
+            const autreDepartmentFieldAr = document.getElementById('autre-department-field-ar');
+            const autreDepartmentInputAr = document.getElementById('autre_department_ar');
+            
+            if (departmentSelectAr && departmentSelectAr.value === 'أخرى') {
+                if (autreDepartmentFieldAr) {
+                    autreDepartmentFieldAr.style.display = 'block';
+                }
+                if (autreDepartmentInputAr) {
+                    autreDepartmentInputAr.required = true;
+                }
+            } else if (departmentSelectAr) {
+                if (autreDepartmentFieldAr) {
+                    autreDepartmentFieldAr.style.display = 'none';
+                }
+                if (autreDepartmentInputAr) {
+                    autreDepartmentInputAr.required = false;
+                    autreDepartmentInputAr.value = '';
+                }
+            }
+        }
+
+        // Mappings de traduction pour la synchronisation
+        const departmentMappings = {
+            'fr_to_ar': {
+                'Administration': 'الإدارة',
+                'Ressources Humaines': 'الموارد البشرية',
+                'Finance et Comptabilité': 'المالية والمحاسبة',
+                'Informatique et Technologie': 'المعلوماتية والتكنولوجيا',
+                'Marketing et Communication': 'التسويق والاتصال',
+                'Ventes et Commerce': 'المبيعات والتجارة',
+                'Production et Opérations': 'الإنتاج والعمليات',
+                'Logistique et Supply Chain': 'اللوجستيات وسلسلة التوريد',
+                'Qualité et Contrôle': 'الجودة والمراقبة',
+                'Recherche et Développement': 'البحث والتطوير',
+                'Service Client': 'خدمة العملاء',
+                'Juridique': 'القانونية',
+                'Santé et Sécurité': 'الصحة والسلامة',
+                'Éducation et Formation': 'التعليم والتدريب',
+                'Autres': 'أخرى'
+            },
+            'ar_to_fr': {
+                'الإدارة': 'Administration',
+                'الموارد البشرية': 'Ressources Humaines',
+                'المالية والمحاسبة': 'Finance et Comptabilité',
+                'المعلوماتية والتكنولوجيا': 'Informatique et Technologie',
+                'التسويق والاتصال': 'Marketing et Communication',
+                'المبيعات والتجارة': 'Ventes et Commerce',
+                'الإنتاج والعمليات': 'Production et Opérations',
+                'اللوجستيات وسلسلة التوريد': 'Logistique et Supply Chain',
+                'الجودة والمراقبة': 'Qualité et Contrôle',
+                'البحث والتطوير': 'Recherche et Développement',
+                'خدمة العملاء': 'Service Client',
+                'القانونية': 'Juridique',
+                'الصحة والسلامة': 'Santé et Sécurité',
+                'التعليم والتدريب': 'Éducation et Formation',
+                'أخرى': 'Autres'
+            }
+        };
+
+        const locationMappings = {
+            'fr_to_ar': {
+                'Moroni': 'موروني',
+                'Itsandra': 'إتساندرا',
+                'Hahaya': 'هاهايا',
+                'Mvouni': 'مفوني',
+                'Ikoni': 'إيكوني',
+                'Oichili': 'أويشيلي',
+                'Ivembeni': 'إيفيمبيني',
+                'Mitsamiouli': 'متساميولي',
+                'Mbeni': 'مبيني',
+                'Nioumamilima': 'نيوماميليما',
+                'Bangoi': 'بانغوي',
+                'Foumbouni': 'فومبوني',
+                'Mitsoudjé': 'متسودجي',
+                'Dimadjou': 'ديمادجو',
+                'Ourovéni': 'أوروفيني',
+                'Séléa': 'سيليا',
+                'Mbéni': 'مبيني',
+                'Itsandzéni': 'إتسانديني',
+                'Simboussa': 'سيمبوسا',
+                'Télétravail': 'العمل عن بُعد',
+                'Plusieurs sites': 'عدة مواقع'
+            },
+            'ar_to_fr': {
+                'موروني': 'Moroni',
+                'إتساندرا': 'Itsandra',
+                'هاهايا': 'Hahaya',
+                'مفوني': 'Mvouni',
+                'إيكوني': 'Ikoni',
+                'أويشيلي': 'Oichili',
+                'إيفيمبيني': 'Ivembeni',
+                'متساميولي': 'Mitsamiouli',
+                'مبيني': 'Mbeni',
+                'نيوماميليما': 'Nioumamilima',
+                'بانغوي': 'Bangoi',
+                'فومبوني': 'Foumbouni',
+                'متسودجي': 'Mitsoudjé',
+                'ديمادجو': 'Dimadjou',
+                'أوروفيني': 'Ourovéni',
+                'سيليا': 'Séléa',
+                'مبيني': 'Mbéni',
+                'إتسانديني': 'Itsandzéni',
+                'سيمبوسا': 'Simboussa',
+                'العمل عن بُعد': 'Télétravail',
+                'عدة مواقع': 'Plusieurs sites'
+            }
+        };
+
+        function syncDepartment(sourceLang) {
+            // Détecter les éléments disponibles (avec ou sans suffixe _fr)
+            const frSelect = document.getElementById('department') || document.getElementById('department_fr');
+            const arSelect = document.getElementById('department_ar');
+            
+            if (!frSelect || !arSelect) return;
+            
+            if (sourceLang === 'fr') {
+                // Synchroniser de FR vers AR
+                const frValue = frSelect.value;
+                const arValue = departmentMappings.fr_to_ar[frValue];
+                if (arValue) {
+                    arSelect.value = arValue;
+                }
+                // Gérer l'affichage du champ "Autre" arabe
+                if (frValue === 'Autres') {
+                    const arField = document.getElementById('autre-department-field-ar');
+                    if (arField) arField.style.display = 'block';
+                    const arInput = document.getElementById('autre_department_ar');
+                    if (arInput) arInput.required = true;
+                } else {
+                    const arField = document.getElementById('autre-department-field-ar');
+                    if (arField) arField.style.display = 'none';
+                    const arInput = document.getElementById('autre_department_ar');
+                    if (arInput) {
+                        arInput.required = false;
+                        arInput.value = '';
+                    }
+                }
+            } else if (sourceLang === 'ar') {
+                // Synchroniser de AR vers FR
+                const arValue = arSelect.value;
+                const frValue = departmentMappings.ar_to_fr[arValue];
+                if (frValue) {
+                    frSelect.value = frValue;
+                }
+                // Déclencher toggleAutreDepartement pour gérer le champ français
+                if (document.getElementById('department')) {
+                    toggleAutreDepartement();
+                } else if (document.getElementById('department_fr')) {
+                    toggleAutreDepartementFr();
+                }
+            }
+        }
+
+        function syncLocation(sourceLang) {
+            // Détecter les éléments disponibles (avec ou sans suffixe _fr)
+            const frSelect = document.getElementById('location') || document.getElementById('location_fr');
+            const arSelect = document.getElementById('location_ar');
+            
+            if (!frSelect || !arSelect) return;
+            
+            if (sourceLang === 'fr') {
+                // Synchroniser de FR vers AR
+                const frValue = frSelect.value;
+                const arValue = locationMappings.fr_to_ar[frValue];
+                if (arValue) {
+                    arSelect.value = arValue;
+                }
+            } else if (sourceLang === 'ar') {
+                // Synchroniser de AR vers FR
+                const arValue = arSelect.value;
+                const frValue = locationMappings.ar_to_fr[arValue];
+                if (frValue) {
+                    frSelect.value = frValue;
+                }
+            }
+        }
+
+        function toggleAutreDepartementAr() {
+            const departmentSelectAr = document.getElementById('department_ar');
+            const autreDepartmentFieldAr = document.getElementById('autre-department-field-ar');
+            const autreDepartmentInputAr = document.getElementById('autre_department_ar');
+            
+            // Vérifier si les éléments existent (ils n'existent que dans la version arabe)
+            if (!departmentSelectAr) {
+                return;
+            }
+            
+            // Afficher le champ "Autre" arabe si "أخرى" est sélectionné
+            if (departmentSelectAr.value === 'أخرى') {
+                if (autreDepartmentFieldAr) {
+                    autreDepartmentFieldAr.style.display = 'block';
+                }
+                if (autreDepartmentInputAr) {
+                    autreDepartmentInputAr.required = true;
+                }
+            } else {
+                if (autreDepartmentFieldAr) {
+                    autreDepartmentFieldAr.style.display = 'none';
+                }
+                if (autreDepartmentInputAr) {
+                    autreDepartmentInputAr.required = false;
+                    autreDepartmentInputAr.value = '';
+                }
+            }
+        }
+
+        function toggleAutreDepartementFr() {
+            const departmentSelectFr = document.getElementById('department_fr');
+            const autreDepartmentFieldFr = document.getElementById('autre-department-field-fr');
+            const autreDepartmentInputFr = document.getElementById('autre_department_fr');
+            
+            // Afficher le champ "Autre" français si "Autres" est sélectionné
+            if (departmentSelectFr && departmentSelectFr.value === 'Autres') {
+                if (autreDepartmentFieldFr) {
+                    autreDepartmentFieldFr.style.display = 'block';
+                }
+                if (autreDepartmentInputFr) {
+                    autreDepartmentInputFr.required = true;
+                }
+            } else if (departmentSelectFr) {
+                if (autreDepartmentFieldFr) {
+                    autreDepartmentFieldFr.style.display = 'none';
+                }
+                if (autreDepartmentInputFr) {
+                    autreDepartmentInputFr.required = false;
+                    autreDepartmentInputFr.value = '';
+                }
+            }
         }
 
         function editJob(jobId) {
+            console.log('EditJob called with jobId:', jobId);
             fetch(`/admin/jobs/${jobId}/data`)
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Job data received:', data);
                     openJobModal(data);
                 })
                 .catch(error => {
+                    console.error('Error fetching job data:', error);
                     alert(lang === 'ar' ? 'خطأ في تحميل البيانات' : 'Erreur lors du chargement des données');
                 });
         }

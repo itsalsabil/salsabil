@@ -470,87 +470,87 @@
                         <select id="workChoiceFilter" onchange="filterApplications()">
                             <option value="all">{% if lang == 'ar' %}كل المناصب{% else %}Tous les postes{% endif %}</option>
                             <optgroup label="{% if lang == 'ar' %}🏭 الإنتاج{% else %}🏭 Production{% endif %}">
-                                <option value="Chef du département de production">Chef du département de production</option>
-                                <option value="Responsable de production">Responsable de production</option>
-                                <option value="Superviseur de ligne de production">Superviseur de ligne de production</option>
-                                <option value="Chef d'équipe de production">Chef d'équipe de production</option>
-                                <option value="Opérateur de machine">Opérateur de machine</option>
-                                <option value="Technicien de production">Technicien de production</option>
-                                <option value="Ouvrier de production">Ouvrier de production</option>
-                                <option value="Contrôleur de production">Contrôleur de production</option>
+                                <option value="Chef du département de production">{% if lang == 'ar' %}{{ 'Chef du département de production'|translate }}{% else %}Chef du département de production{% endif %}</option>
+                                <option value="Responsable de production">{% if lang == 'ar' %}{{ 'Responsable de production'|translate }}{% else %}Responsable de production{% endif %}</option>
+                                <option value="Superviseur de ligne de production">{% if lang == 'ar' %}{{ 'Superviseur de ligne de production'|translate }}{% else %}Superviseur de ligne de production{% endif %}</option>
+                                <option value="Chef d'équipe de production">{% if lang == 'ar' %}{{ "Chef d'équipe de production"|translate }}{% else %}Chef d'équipe de production{% endif %}</option>
+                                <option value="Opérateur de machine">{% if lang == 'ar' %}{{ 'Opérateur de machine'|translate }}{% else %}Opérateur de machine{% endif %}</option>
+                                <option value="Technicien de production">{% if lang == 'ar' %}{{ 'Technicien de production'|translate }}{% else %}Technicien de production{% endif %}</option>
+                                <option value="Ouvrier de production">{% if lang == 'ar' %}{{ 'Ouvrier de production'|translate }}{% else %}Ouvrier de production{% endif %}</option>
+                                <option value="Contrôleur de production">{% if lang == 'ar' %}{{ 'Contrôleur de production'|translate }}{% else %}Contrôleur de production{% endif %}</option>
                             </optgroup>
                             <optgroup label="📦 Entrepôts et logistique">
-                                <option value="Responsable des entrepôts">Responsable des entrepôts</option>
-                                <option value="Chef magasinier">Chef magasinier</option>
-                                <option value="Magasinier / Gestionnaire de stock">Magasinier / Gestionnaire de stock</option>
-                                <option value="Opérateur logistique">Opérateur logistique</option>
-                                <option value="Cariste / Conducteur de chariot élévateur">Cariste / Conducteur de chariot élévateur</option>
-                                <option value="Préparateur de commandes">Préparateur de commandes</option>
-                                <option value="Agent d'expédition / réception">Agent d'expédition / réception</option>
+                                <option value="Responsable des entrepôts">{% if lang == 'ar' %}{{ 'Responsable des entrepôts'|translate }}{% else %}Responsable des entrepôts{% endif %}</option>
+                                <option value="Chef magasinier">{% if lang == 'ar' %}{{ 'Chef magasinier'|translate }}{% else %}Chef magasinier{% endif %}</option>
+                                <option value="Magasinier / Gestionnaire de stock">{% if lang == 'ar' %}{{ 'Magasinier / Gestionnaire de stock'|translate }}{% else %}Magasinier / Gestionnaire de stock{% endif %}</option>
+                                <option value="Opérateur logistique">{% if lang == 'ar' %}{{ 'Opérateur logistique'|translate }}{% else %}Opérateur logistique{% endif %}</option>
+                                <option value="Cariste / Conducteur de chariot élévateur">{% if lang == 'ar' %}{{ 'Cariste / Conducteur de chariot élévateur'|translate }}{% else %}Cariste / Conducteur de chariot élévateur{% endif %}</option>
+                                <option value="Préparateur de commandes">{% if lang == 'ar' %}{{ 'Préparateur de commandes'|translate }}{% else %}Préparateur de commandes{% endif %}</option>
+                                <option value="Agent d'expédition / réception">{% if lang == 'ar' %}{{ "Agent d'expédition / réception"|translate }}{% else %}Agent d'expédition / réception{% endif %}</option>
                             </optgroup>
                             <optgroup label="🛒 Unité des achats">
-                                <option value="Superviseur des achats">Superviseur des achats</option>
-                                <option value="Responsable des achats locaux">Responsable des achats locaux</option>
-                                <option value="Responsable des achats locaux et administratifs">Responsable des achats locaux et administratifs</option>
-                                <option value="Agent de suivi des livraisons">Agent de suivi des livraisons</option>
-                                <option value="Contrôleur ou analyste des achats">Contrôleur ou analyste des achats</option>
+                                <option value="Superviseur des achats">{% if lang == 'ar' %}{{ 'Superviseur des achats'|translate }}{% else %}Superviseur des achats{% endif %}</option>
+                                <option value="Responsable des achats locaux">{% if lang == 'ar' %}{{ 'Responsable des achats locaux'|translate }}{% else %}Responsable des achats locaux{% endif %}</option>
+                                <option value="Responsable des achats locaux et administratifs">{% if lang == 'ar' %}{{ 'Responsable des achats locaux et administratifs'|translate }}{% else %}Responsable des achats locaux et administratifs{% endif %}</option>
+                                <option value="Agent de suivi des livraisons">{% if lang == 'ar' %}{{ 'Agent de suivi des livraisons'|translate }}{% else %}Agent de suivi des livraisons{% endif %}</option>
+                                <option value="Contrôleur ou analyste des achats">{% if lang == 'ar' %}{{ 'Contrôleur ou analyste des achats'|translate }}{% else %}Contrôleur ou analyste des achats{% endif %}</option>
                             </optgroup>
                             <optgroup label="💼 Administratif et comptable">
-                                <option value="Comptable">Comptable</option>
-                                <option value="Assistant comptable">Assistant comptable</option>
-                                <option value="Contrôleur financier">Contrôleur financier</option>
-                                <option value="Secrétaire / Assistant administratif">Secrétaire / Assistant administratif</option>
-                                <option value="Gestionnaire de paie">Gestionnaire de paie</option>
-                                <option value="Responsable des ressources humaines (RH)">Responsable des ressources humaines (RH)</option>
+                                <option value="Comptable">{% if lang == 'ar' %}{{ 'Comptable'|translate }}{% else %}Comptable{% endif %}</option>
+                                <option value="Assistant comptable">{% if lang == 'ar' %}{{ 'Assistant comptable'|translate }}{% else %}Assistant comptable{% endif %}</option>
+                                <option value="Contrôleur financier">{% if lang == 'ar' %}{{ 'Contrôleur financier'|translate }}{% else %}Contrôleur financier{% endif %}</option>
+                                <option value="Secrétaire / Assistant administratif">{% if lang == 'ar' %}{{ 'Secrétaire / Assistant administratif'|translate }}{% else %}Secrétaire / Assistant administratif{% endif %}</option>
+                                <option value="Gestionnaire de paie">{% if lang == 'ar' %}{{ 'Gestionnaire de paie'|translate }}{% else %}Gestionnaire de paie{% endif %}</option>
+                                <option value="Responsable des ressources humaines (RH)">{% if lang == 'ar' %}{{ 'Responsable des ressources humaines (RH)'|translate }}{% else %}Responsable des ressources humaines (RH){% endif %}</option>
                             </optgroup>
                             <optgroup label="🛡️ Santé, sécurité et qualité">
-                                <option value="Directeur santé et sécurité au travail">Directeur santé et sécurité au travail</option>
-                                <option value="Responsable hygiène, sécurité et environnement (HSE)">Responsable hygiène, sécurité et environnement (HSE)</option>
-                                <option value="Chef HSE">Chef HSE</option>
-                                <option value="Agent HSE">Agent HSE</option>
-                                <option value="Ingénieur sécurité">Ingénieur sécurité</option>
-                                <option value="Technicien en hygiène et sécurité">Technicien en hygiène et sécurité</option>
-                                <option value="Responsable qualité">Responsable qualité</option>
-                                <option value="Auditeur qualité interne">Auditeur qualité interne</option>
-                                <option value="Contrôleur de sécurité">Contrôleur de sécurité</option>
-                                <option value="Secouriste industriel / Technicien de premiers secours">Secouriste industriel / Technicien de premiers secours</option>
+                                <option value="Directeur santé et sécurité au travail">{% if lang == 'ar' %}{{ 'Directeur santé et sécurité au travail'|translate }}{% else %}Directeur santé et sécurité au travail{% endif %}</option>
+                                <option value="Responsable hygiène, sécurité et environnement (HSE)">{% if lang == 'ar' %}{{ 'Responsable hygiène, sécurité et environnement (HSE)'|translate }}{% else %}Responsable hygiène, sécurité et environnement (HSE){% endif %}</option>
+                                <option value="Chef HSE">{% if lang == 'ar' %}{{ 'Chef HSE'|translate }}{% else %}Chef HSE{% endif %}</option>
+                                <option value="Agent HSE">{% if lang == 'ar' %}{{ 'Agent HSE'|translate }}{% else %}Agent HSE{% endif %}</option>
+                                <option value="Ingénieur sécurité">{% if lang == 'ar' %}{{ 'Ingénieur sécurité'|translate }}{% else %}Ingénieur sécurité{% endif %}</option>
+                                <option value="Technicien en hygiène et sécurité">{% if lang == 'ar' %}{{ 'Technicien en hygiène et sécurité'|translate }}{% else %}Technicien en hygiène et sécurité{% endif %}</option>
+                                <option value="Responsable qualité">{% if lang == 'ar' %}{{ 'Responsable qualité'|translate }}{% else %}Responsable qualité{% endif %}</option>
+                                <option value="Auditeur qualité interne">{% if lang == 'ar' %}{{ 'Auditeur qualité interne'|translate }}{% else %}Auditeur qualité interne{% endif %}</option>
+                                <option value="Contrôleur de sécurité">{% if lang == 'ar' %}{{ 'Contrôleur de sécurité'|translate }}{% else %}Contrôleur de sécurité{% endif %}</option>
+                                <option value="Secouriste industriel / Technicien de premiers secours">{% if lang == 'ar' %}{{ 'Secouriste industriel / Technicien de premiers secours'|translate }}{% else %}Secouriste industriel / Technicien de premiers secours{% endif %}</option>
                             </optgroup>
                             <optgroup label="📢 Marketing et ventes">
-                                <option value="Responsable marketing">Responsable marketing</option>
-                                <option value="Chef de produit">Chef de produit</option>
-                                <option value="Chargé de communication">Chargé de communication</option>
-                                <option value="Commercial / Vendeur">Commercial / Vendeur</option>
-                                <option value="Assistant marketing">Assistant marketing</option>
-                                <option value="Responsable relations clients">Responsable relations clients</option>
+                                <option value="Responsable marketing">{% if lang == 'ar' %}{{ 'Responsable marketing'|translate }}{% else %}Responsable marketing{% endif %}</option>
+                                <option value="Chef de produit">{% if lang == 'ar' %}{{ 'Chef de produit'|translate }}{% else %}Chef de produit{% endif %}</option>
+                                <option value="Chargé de communication">{% if lang == 'ar' %}{{ 'Chargé de communication'|translate }}{% else %}Chargé de communication{% endif %}</option>
+                                <option value="Commercial / Vendeur">{% if lang == 'ar' %}{{ 'Commercial / Vendeur'|translate }}{% else %}Commercial / Vendeur{% endif %}</option>
+                                <option value="Assistant marketing">{% if lang == 'ar' %}{{ 'Assistant marketing'|translate }}{% else %}Assistant marketing{% endif %}</option>
+                                <option value="Responsable relations clients">{% if lang == 'ar' %}{{ 'Responsable relations clients'|translate }}{% else %}Responsable relations clients{% endif %}</option>
                             </optgroup>
-                            <optgroup label="� Maintenance">
-                                <option value="Responsable maintenance">Responsable maintenance</option>
-                                <option value="Technicien de maintenance industrielle">Technicien de maintenance industrielle</option>
-                                <option value="Électricien industriel">Électricien industriel</option>
-                                <option value="Mécanicien industriel">Mécanicien industriel</option>
-                                <option value="Automaticien / Technicien en automatisme">Automaticien / Technicien en automatisme</option>
-                                <option value="Technicien frigoriste">Technicien frigoriste</option>
-                                <option value="Soudeur industriel">Soudeur industriel</option>
-                                <option value="Plombier industriel">Plombier industriel</option>
-                                <option value="Chaudronnier">Chaudronnier</option>
-                                <option value="Technicien en instrumentation">Technicien en instrumentation</option>
-                                <option value="Technicien des pompes et systèmes d'eau">Technicien des pompes et systèmes d'eau</option>
+                            <optgroup label="🔧 Maintenance">
+                                <option value="Responsable maintenance">{% if lang == 'ar' %}{{ 'Responsable maintenance'|translate }}{% else %}Responsable maintenance{% endif %}</option>
+                                <option value="Technicien de maintenance industrielle">{% if lang == 'ar' %}{{ 'Technicien de maintenance industrielle'|translate }}{% else %}Technicien de maintenance industrielle{% endif %}</option>
+                                <option value="Électricien industriel">{% if lang == 'ar' %}{{ 'Électricien industriel'|translate }}{% else %}Électricien industriel{% endif %}</option>
+                                <option value="Mécanicien industriel">{% if lang == 'ar' %}{{ 'Mécanicien industriel'|translate }}{% else %}Mécanicien industriel{% endif %}</option>
+                                <option value="Automaticien / Technicien en automatisme">{% if lang == 'ar' %}{{ 'Automaticien / Technicien en automatisme'|translate }}{% else %}Automaticien / Technicien en automatisme{% endif %}</option>
+                                <option value="Technicien frigoriste">{% if lang == 'ar' %}{{ 'Technicien frigoriste'|translate }}{% else %}Technicien frigoriste{% endif %}</option>
+                                <option value="Soudeur industriel">{% if lang == 'ar' %}{{ 'Soudeur industriel'|translate }}{% else %}Soudeur industriel{% endif %}</option>
+                                <option value="Plombier industriel">{% if lang == 'ar' %}{{ 'Plombier industriel'|translate }}{% else %}Plombier industriel{% endif %}</option>
+                                <option value="Chaudronnier">{% if lang == 'ar' %}{{ 'Chaudronnier'|translate }}{% else %}Chaudronnier{% endif %}</option>
+                                <option value="Technicien en instrumentation">{% if lang == 'ar' %}{{ 'Technicien en instrumentation'|translate }}{% else %}Technicien en instrumentation{% endif %}</option>
+                                <option value="Technicien des pompes et systèmes d'eau">{% if lang == 'ar' %}{{ "Technicien des pompes et systèmes d'eau"|translate }}{% else %}Technicien des pompes et systèmes d'eau{% endif %}</option>
                             </optgroup>
                             <optgroup label="✅ Qualité et contrôle">
-                                <option value="Responsable contrôle qualité">Responsable contrôle qualité</option>
-                                <option value="Technicien de contrôle qualité">Technicien de contrôle qualité</option>
-                                <option value="Contrôleur qualité produits">Contrôleur qualité produits</option>
-                                <option value="Analyste qualité">Analyste qualité</option>
-                                <option value="Spécialiste en sécurité alimentaire">Spécialiste en sécurité alimentaire</option>
-                                <option value="Technicien de laboratoire (analyse de l'eau)">Technicien de laboratoire (analyse de l'eau)</option>
-                                <option value="Inspecteur qualité">Inspecteur qualité</option>
+                                <option value="Responsable contrôle qualité">{% if lang == 'ar' %}{{ 'Responsable contrôle qualité'|translate }}{% else %}Responsable contrôle qualité{% endif %}</option>
+                                <option value="Technicien de contrôle qualité">{% if lang == 'ar' %}{{ 'Technicien de contrôle qualité'|translate }}{% else %}Technicien de contrôle qualité{% endif %}</option>
+                                <option value="Contrôleur qualité produits">{% if lang == 'ar' %}{{ 'Contrôleur qualité produits'|translate }}{% else %}Contrôleur qualité produits{% endif %}</option>
+                                <option value="Analyste qualité">{% if lang == 'ar' %}{{ 'Analyste qualité'|translate }}{% else %}Analyste qualité{% endif %}</option>
+                                <option value="Spécialiste en sécurité alimentaire">{% if lang == 'ar' %}{{ 'Spécialiste en sécurité alimentaire'|translate }}{% else %}Spécialiste en sécurité alimentaire{% endif %}</option>
+                                <option value="Technicien de laboratoire (analyse de l'eau)">{% if lang == 'ar' %}{{ "Technicien de laboratoire (analyse de l'eau)"|translate }}{% else %}Technicien de laboratoire (analyse de l'eau){% endif %}</option>
+                                <option value="Inspecteur qualité">{% if lang == 'ar' %}{{ 'Inspecteur qualité'|translate }}{% else %}Inspecteur qualité{% endif %}</option>
                             </optgroup>
-                            <optgroup label="� IT (Technologies de l'information)">
-                                <option value="Responsable IT / Directeur des systèmes d'information">Responsable IT / Directeur des systèmes d'information</option>
-                                <option value="Développeur / Ingénieur logiciel">Développeur / Ingénieur logiciel</option>
-                                <option value="Administrateur réseau et systèmes">Administrateur réseau et systèmes</option>
-                                <option value="Technicien support informatique">Technicien support informatique</option>
-                                <option value="Spécialiste cybersécurité">Spécialiste cybersécurité</option>
+                            <optgroup label="💻 IT (Technologies de l'information)">
+                                <option value="Responsable IT / Directeur des systèmes d'information">{% if lang == 'ar' %}{{ "Responsable IT / Directeur des systèmes d'information"|translate }}{% else %}Responsable IT / Directeur des systèmes d'information{% endif %}</option>
+                                <option value="Développeur / Ingénieur logiciel">{% if lang == 'ar' %}{{ 'Développeur / Ingénieur logiciel'|translate }}{% else %}Développeur / Ingénieur logiciel{% endif %}</option>
+                                <option value="Administrateur réseau et systèmes">{% if lang == 'ar' %}{{ 'Administrateur réseau et systèmes'|translate }}{% else %}Administrateur réseau et systèmes{% endif %}</option>
+                                <option value="Technicien support informatique">{% if lang == 'ar' %}{{ 'Technicien support informatique'|translate }}{% else %}Technicien support informatique{% endif %}</option>
+                                <option value="Spécialiste cybersécurité">{% if lang == 'ar' %}{{ 'Spécialiste cybersécurité'|translate }}{% else %}Spécialiste cybersécurité{% endif %}</option>
                             </optgroup>
                         </select>
                     </div>
@@ -840,6 +840,99 @@
             'it': ['Responsable IT / Directeur des systèmes d\'information', 'Développeur / Ingénieur logiciel', 'Administrateur réseau et systèmes', 'Technicien support informatique', 'Spécialiste cybersécurité']
         };
 
+        // Job title translations for filter synchronization (FR -> AR)
+        const jobTranslations = {
+            'Chef du département de production': 'رئيس قسم الإنتاج',
+            'Responsable de production': 'مسؤول الإنتاج',
+            'Superviseur de ligne de production': 'مشرف خط إنتاج',
+            'Chef d\'équipe de production': 'قائد فريق الإنتاج',
+            'Opérateur de machine': 'مشغل آلة',
+            'Technicien de production': 'فني إنتاج',
+            'Ouvrier de production': 'عامل إنتاج',
+            'Contrôleur de production': 'مراقب إنتاج',
+            'Responsable des entrepôts': 'مدير المستودعات',
+            'Chef magasinier': 'رئيس المخزن',
+            'Magasinier / Gestionnaire de stock': 'عامل مخزن / مدير المخزون',
+            'Opérateur logistique': 'مشغل لوجستي',
+            'Cariste / Conducteur de chariot élévateur': 'سائق رافعة شوكية',
+            'Préparateur de commandes': 'معد الطلبات',
+            'Agent d\'expédition / réception': 'وكيل الشحن / الاستلام',
+            'Superviseur des achats': 'مشرف المشتريات',
+            'Responsable des achats locaux': 'مسؤول المشتريات المحلية',
+            'Responsable des achats locaux et administratifs': 'مسؤول المشتريات المحلية والإدارية',
+            'Agent de suivi des livraisons': 'وكيل متابعة التسليمات',
+            'Contrôleur ou analyste des achats': 'مراقب / محلل المشتريات',
+            'Comptable': 'محاسب',
+            'Assistant comptable': 'مساعد محاسب',
+            'Contrôleur financier': 'مراقب مالي',
+            'Secrétaire / Assistant administratif': 'كاتب / مساعد إداري',
+            'Gestionnaire de paie': 'مسؤول الرواتب',
+            'Responsable des ressources humaines (RH)': 'مسؤول الموارد البشرية',
+            'Directeur santé et sécurité au travail': 'مدير الصحة والسلامة المهنية',
+            'Responsable hygiène, sécurité et environnement (HSE)': 'مسؤول النظافة والسلامة والبيئة (HSE)',
+            'Chef HSE': 'رئيس HSE',
+            'Agent HSE': 'موظف HSE',
+            'Ingénieur sécurité': 'مهندس السلامة',
+            'Technicien en hygiène et sécurité': 'فني النظافة والسلامة',
+            'Responsable qualité': 'مسؤول الجودة',
+            'Auditeur qualité interne': 'مدقق جودة داخلي',
+            'Contrôleur de sécurité': 'مراقب السلامة',
+            'Secouriste industriel / Technicien de premiers secours': 'مسعف صناعي / فني إسعافات أولية',
+            'Responsable marketing': 'مدير التسويق',
+            'Chef de produit': 'مدير المنتج',
+            'Chargé de communication': 'مندوب اتصال',
+            'Commercial / Vendeur': 'مندوب مبيعات',
+            'Assistant marketing': 'مساعد تسويق',
+            'Responsable relations clients': 'مسؤول علاقات العملاء',
+            'Responsable maintenance': 'مسؤول الصيانة',
+            'Technicien de maintenance industrielle': 'فني صيانة صناعية',
+            'Électricien industriel': 'فني كهرباء صناعي',
+            'Mécanicien industriel': 'ميكانيكي صناعي',
+            'Automaticien / Technicien en automatisme': 'فني أتمتة',
+            'Technicien frigoriste': 'فني تبريد',
+            'Soudeur industriel': 'لحام صناعي',
+            'Plombier industriel': 'سباك صناعي',
+            'Chaudronnier': 'صانع غلايات',
+            'Technicien en instrumentation': 'فني أدوات قياس',
+            'Technicien des pompes et systèmes d\'eau': 'فني مضخات وأنظمة المياه',
+            'Responsable contrôle qualité': 'مسؤول مراقبة الجودة',
+            'Technicien de contrôle qualité': 'فني مراقبة الجودة',
+            'Contrôleur qualité produits': 'مراقب جودة المنتجات',
+            'Analyste qualité': 'محلل الجودة',
+            'Spécialiste en sécurité alimentaire': 'أخصائي سلامة الغذاء',
+            'Technicien de laboratoire (analyse de l\'eau)': 'فني مختبر (تحليل المياه)',
+            'Inspecteur qualité': 'مفتش جودة',
+            'Responsable IT / Directeur des systèmes d\'information': 'مسؤول تقنية المعلومات / مدير نظم المعلومات',
+            'Développeur / Ingénieur logiciel': 'مطور / مهندس برمجيات',
+            'Administrateur réseau et systèmes': 'مدير الشبكات والأنظمة',
+            'Technicien support informatique': 'فني دعم تقني',
+            'Spécialiste cybersécurité': 'أخصائي الأمن السيبراني'
+        };
+
+        // Create reverse mapping (AR -> FR) for filtering
+        const reverseJobTranslations = {};
+        for (const [fr, ar] of Object.entries(jobTranslations)) {
+            reverseJobTranslations[ar] = fr;
+        }
+
+        // Helper function to check if work choice matches filter
+        function workChoiceMatches(workChoice, filterValue) {
+            if (filterValue === 'all') return true;
+            
+            // Direct match (French title)
+            if (workChoice.includes(filterValue)) return true;
+            
+            // Check if workChoice contains Arabic translation of filterValue
+            const arabicTranslation = jobTranslations[filterValue];
+            if (arabicTranslation && workChoice.includes(arabicTranslation)) return true;
+            
+            // Check if workChoice contains French equivalent of Arabic filter
+            const frenchEquivalent = reverseJobTranslations[filterValue];
+            if (frenchEquivalent && workChoice.includes(frenchEquivalent)) return true;
+            
+            return false;
+        }
+
         // Main filter function
         function filterApplications() {
             const statusFilter = document.getElementById('statusFilter').value;
@@ -892,17 +985,24 @@
                     showRow = false;
                 }
                 
-                // Department filter - check if any of the candidate's work choices match the department
+                // Department filter - check if any of the candidate's work choices match the department (bilingual support)
                 if (departmentFilter !== 'all') {
                     const deptPositions = departmentKeywords[departmentFilter] || [];
-                    const hasMatchingPosition = deptPositions.some(position => workChoice.includes(position));
+                    const hasMatchingPosition = deptPositions.some(position => {
+                        // Check French title
+                        if (workChoice.includes(position)) return true;
+                        // Check Arabic translation
+                        const arabicTranslation = jobTranslations[position];
+                        if (arabicTranslation && workChoice.includes(arabicTranslation)) return true;
+                        return false;
+                    });
                     if (!hasMatchingPosition) {
                         showRow = false;
                     }
                 }
                 
-                // Work choice filter - specific position
-                if (workChoiceFilter !== 'all' && !workChoice.includes(workChoiceFilter)) {
+                // Work choice filter - specific position with bilingual support
+                if (workChoiceFilter !== 'all' && !workChoiceMatches(workChoice, workChoiceFilter)) {
                     showRow = false;
                 }
                 
