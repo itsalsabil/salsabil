@@ -968,6 +968,8 @@ def admin_toggle_spontaneous():
     
     # Sauvegarder la langue
     lang = session.get('lang', 'fr')
+    # If the form provided a return path, use it to redirect back (prevents unexpected language switch)
+    return_to = request.form.get('return_to') or None
     
     try:
         new_status = toggle_spontaneous_applications()
@@ -985,7 +987,11 @@ def admin_toggle_spontaneous():
     except Exception as e:
         flash(f'Erreur: {str(e)}', 'error')
     
-    # Rediriger vers la bonne version selon la langue
+    # Prefer redirecting back to the page that submitted the form (preserves current language/view)
+    if return_to and return_to.startswith('/admin'):
+        return redirect(return_to)
+
+    # Fallback: redirect according to session language
     if lang == 'ar':
         return redirect(url_for('admin_spontaneous_applications_ar'))
     else:
