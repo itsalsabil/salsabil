@@ -124,20 +124,25 @@ def get_job_title_for_language(application_data, lang='fr'):
         if job:
             # Retourner le titre dans la langue appropriée
             if lang == 'ar' and job['titre_ar']:
-                print(f"📋 Job ID {application_data['job_id']} - titre AR: {job['titre_ar']}")
-                return job['titre_ar']
+                print(f"📋 Job ID {application_data['job_id']} - titre AR brut: {job['titre_ar']}")
+                title_reshaped = reshape_arabic_text(job['titre_ar'], lang)
+                print(f"📋 Job ID {application_data['job_id']} - titre AR reshaped: {title_reshaped}")
+                return title_reshaped
             else:
                 print(f"📋 Job ID {application_data['job_id']} - titre FR: {job['titre']}")
                 return job['titre']
         else:
             # Fallback si le job n'existe pas
             fallback = application_data.get('job_title', 'Poste non spécifié' if lang == 'fr' else 'منصب غير محدد')
-            print(f"⚠️ Job ID {application_data['job_id']} introuvable - fallback: {fallback}")
-            return fallback
+            print(f"⚠️ Job ID {application_data['job_id']} introuvable - fallback brut: {fallback}")
+            fallback_reshaped = reshape_arabic_text(fallback, lang)
+            print(f"⚠️ Job ID {application_data['job_id']} introuvable - fallback reshaped: {fallback_reshaped}")
+            return fallback_reshaped
     except Exception as e:
         print(f"❌ Erreur lors de la récupération du titre du job: {e}")
         # En cas d'erreur, utiliser le titre dans application_data
-        return application_data.get('job_title', 'Poste non spécifié' if lang == 'fr' else 'منصب غير محدد')
+        error_fallback = application_data.get('job_title', 'Poste non spécifié' if lang == 'fr' else 'منصب غير محدد')
+        return reshape_arabic_text(error_fallback, lang)
 
 
 # ============================================================================
@@ -211,7 +216,7 @@ ACCEPTANCE_TEXTS = {
         'integration': 'Nous vous souhaitons la bienvenue au sein de notre équipe et sommes impatients de collaborer avec vous.',
         'contract_details': 'Détails du contrat',
         'position': 'Poste',
-        'start_date': 'Date de début',
+        'start_date': 'Date de début de travail',
         'contract_type': 'Type de contrat',
         'salary': 'Salaire',
         'next_steps': 'Prochaines étapes',
@@ -241,7 +246,7 @@ ACCEPTANCE_TEXTS = {
         'integration': 'نرحب بكم في فريقنا ونتطلع إلى التعاون معكم.',
         'contract_details': 'تفاصيل العقد',
         'position': 'المنصب',
-        'start_date': 'تاريخ البداية',
+        'start_date': 'تاريخ بداية العمل',
         'contract_type': 'نوع العقد',
         'salary': 'الراتب',
         'next_steps': 'الخطوات القادمة',
