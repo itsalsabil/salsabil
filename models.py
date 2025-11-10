@@ -45,9 +45,14 @@ def delete_file_if_exists(filename):
     return False
 
 def delete_application_files(application):
-    """Supprimer tous les fichiers associés à une candidature (locaux et Cloudinary)"""
+    """Supprimer tous les fichiers associés à une candidature (locaux et Cloudinary) - Version optimisée"""
     import os
     from cloudinary_config import delete_file_from_cloudinary
+    import threading
+    import time
+    
+    start_time = time.time()
+    print(f"🚀 Début suppression des fichiers pour candidature {application.get('id')}")
     
     files_to_delete = [
         application.get('photo'),
@@ -60,6 +65,23 @@ def delete_application_files(application):
     ]
     
     deleted_count = 0
+    
+    # Fonction pour supprimer un fichier Cloudinary en arrière-plan
+    def delete_cloudinary_async(public_id):
+        nonlocal deleted_count
+        try:
+            if delete_file_from_cloudinary(public_id):
+                deleted_count += 1
+                print(f"☁️ Fichier Cloudinary supprimé: {public_id}")
+            else:
+                print(f"⚠️ Échec suppression Cloudinary: {public_id}")
+        except Exception as e:
+            print(f"⚠️ Erreur suppression Cloudinary: {e}")
+    
+    # Threads pour les suppressions Cloudinary (non-bloquantes)
+    cloudinary_threads = []
+    
+    # Traitement rapide des fichiers
     for file_url_or_name in files_to_delete:
         if not file_url_or_name:
             continue
@@ -83,59 +105,76 @@ def delete_application_files(application):
                             # Reconstruire le public_id
                             public_id = '/'.join(path_parts[1:-1] + [filename_without_ext])
                             
-                            if delete_file_from_cloudinary(public_id):
-                                deleted_count += 1
-                                print(f"☁️ Fichier Cloudinary supprimé: {public_id}")
-                            else:
-                                print(f"⚠️ Échec suppression Cloudinary: {public_id}")
+                            # Lancer la suppression Cloudinary en arrière-plan
+                            thread = threading.Thread(target=delete_cloudinary_async, args=(public_id,))
+                            thread.daemon = True
+                            thread.start()
+                            cloudinary_threads.append(thread)
                 except Exception as e:
-                    print(f"⚠️ Erreur lors de la suppression Cloudinary: {e}")
+                    print(f"⚠️ Erreur lors du parsing URL Cloudinary: {e}")
         else:
-            # C'est un fichier local
+            # C'est un fichier local - suppression immédiate
             if delete_file_if_exists(file_url_or_name):
                 deleted_count += 1
     
-    # Supprimer le PDF de convocation s'il existe
+    # Supprimer les PDF rapidement (sans verification excessive)
+    app_id = application.get('id', 0)
+    
+    # PDF de convocation
     pdf_filename = application.get('interview_invitation_pdf')
     if pdf_filename:
         pdf_path = os.path.join('static', 'convocations', pdf_filename)
-        if os.path.exists(pdf_path):
-            try:
+        try:
+            if os.path.exists(pdf_path):
                 os.remove(pdf_path)
                 deleted_count += 1
-                print(f"📄 PDF de convocation supprimé: {pdf_filename}")
-            except Exception as e:
-                print(f"⚠️ Erreur lors de la suppression du PDF: {e}")
+                print(f"📄 PDF convocation supprimé: {pdf_filename}")
+        except Exception as e:
+            print(f"⚠️ Erreur PDF convocation: {e}")
     
-    # Supprimer le PDF de lettre d'acceptation s'il existe
+    # PDF de lettre d'acceptation
     acceptance_pdf_filename = application.get('acceptance_letter_pdf')
     if acceptance_pdf_filename:
         acceptance_pdf_path = os.path.join('static', 'acceptances', acceptance_pdf_filename)
-        if os.path.exists(acceptance_pdf_path):
-            try:
+        try:
+            if os.path.exists(acceptance_pdf_path):
                 os.remove(acceptance_pdf_path)
                 deleted_count += 1
-                print(f"✅ PDF de lettre d'acceptation supprimé: {acceptance_pdf_filename}")
-            except Exception as e:
-                print(f"⚠️ Erreur lors de la suppression de la lettre d'acceptation: {e}")
+                print(f"✅ PDF acceptation supprimé: {acceptance_pdf_filename}")
+        except Exception as e:
+            print(f"⚠️ Erreur PDF acceptation: {e}")
     
-    # Supprimer les rapports de candidat (FR et AR) s'ils existent
+    # Supprimer les rapports de candidat (optimisé - construction directe du nom au lieu de glob)
     reports_dir = os.path.join('static', 'reports')
-    if os.path.exists(reports_dir):
-        import glob
-        app_id = application.get('id')
-        # Rechercher tous les fichiers de rapport pour cette candidature (FR et AR)
-        # Pattern: Rapport_Candidature_*_<app_id>_*.pdf
-        report_pattern = os.path.join(reports_dir, f"Rapport_Candidature_*_{app_id}_*.pdf")
-        report_files = glob.glob(report_pattern)
+    if os.path.exists(reports_dir) and app_id:
+        # Construire les noms de fichiers probables au lieu d'utiliser glob
+        nom = application.get('nom', '').replace(' ', '_')
+        prenom = application.get('prenom', '').replace(' ', '_')
         
-        for report_file in report_files:
+        # Patterns possibles pour les rapports
+        possible_reports = [
+            f"Rapport_Candidature_{nom}_{prenom}_{app_id}_FR.pdf",
+            f"Rapport_Candidature_{nom}_{prenom}_{app_id}_AR.pdf",
+            f"Rapport_Candidature_{prenom}_{nom}_{app_id}_FR.pdf",
+            f"Rapport_Candidature_{prenom}_{nom}_{app_id}_AR.pdf"
+        ]
+        
+        for report_filename in possible_reports:
+            report_path = os.path.join(reports_dir, report_filename)
             try:
-                os.remove(report_file)
-                deleted_count += 1
-                print(f"📊 Rapport de candidat supprimé: {os.path.basename(report_file)}")
+                if os.path.exists(report_path):
+                    os.remove(report_path)
+                    deleted_count += 1
+                    print(f"📊 Rapport supprimé: {report_filename}")
             except Exception as e:
-                print(f"⚠️ Erreur lors de la suppression du rapport: {e}")
+                print(f"⚠️ Erreur rapport {report_filename}: {e}")
+    
+    # Attendre les threads Cloudinary (max 5 secondes pour éviter les timeouts)
+    for thread in cloudinary_threads:
+        thread.join(timeout=0.5)  # Timeout court par thread
+    
+    elapsed_time = time.time() - start_time
+    print(f"⏱️ Suppression terminée en {elapsed_time:.2f}s - {deleted_count} fichier(s) supprimé(s)")
     
     return deleted_count
 
@@ -461,32 +500,150 @@ def update_application_status(app_id, status):
     conn.close()
 
 def delete_application(app_id):
-    """Supprimer une candidature et tous ses fichiers associés"""
-    # Récupérer d'abord les informations de la candidature
-    application = get_application_by_id(app_id)
+    """Supprimer une candidature - Version ultra-rapide (suppression en base prioritaire)"""
+    import time
+    start_time = time.time()
     
-    if application:
-        # Supprimer les fichiers physiques
-        deleted_files = delete_application_files(application)
-        print(f"📁 {deleted_files} fichier(s) supprimé(s) du système de fichiers")
+    print(f"🚀 Suppression RAPIDE candidature {app_id}")
     
-    # Supprimer l'enregistrement de la base de données
+    # PRIORITÉ 1: Supprimer de la base de données IMMÉDIATEMENT
     conn = get_db_connection()
     
-    # Supprimer les codes de vérification associés
-    verification_count = conn.execute(
-        'SELECT COUNT(*) as count FROM document_verifications WHERE application_id = ?', 
-        (app_id,)
-    ).fetchone()['count']
-    
-    if verification_count > 0:
+    try:
+        # Vérifier que la candidature existe
+        app_exists = conn.execute('SELECT id FROM applications WHERE id = ?', (app_id,)).fetchone()
+        if not app_exists:
+            print(f"⚠️ Candidature {app_id} déjà supprimée ou inexistante")
+            conn.close()
+            return
+        
+        # Suppression rapide des codes de vérification
         conn.execute('DELETE FROM document_verifications WHERE application_id = ?', (app_id,))
-        print(f"🔐 {verification_count} code(s) de vérification supprimé(s)")
+        
+        # Suppression rapide de la candidature
+        conn.execute('DELETE FROM applications WHERE id = ?', (app_id,))
+        conn.commit()
+        
+        print(f"✅ Candidature {app_id} supprimée de la base de données")
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Erreur suppression base: {e}")
+        raise e
+    finally:
+        conn.close()
     
-    # Supprimer la candidature
-    conn.execute('DELETE FROM applications WHERE id = ?', (app_id,))
-    conn.commit()
-    conn.close()
+    elapsed_time = time.time() - start_time
+    print(f"🎯 Suppression candidature {app_id} terminée en {elapsed_time:.2f}s")
+    
+    # OPTIONNEL: Lancer la suppression des fichiers en arrière-plan (non-bloquant)
+    try:
+        application = get_application_by_id_simple(app_id)  # Version légère
+        if application:
+            # Suppression des fichiers en arrière-plan (ne pas attendre)
+            import threading
+            cleanup_thread = threading.Thread(target=cleanup_files_background, args=(application,))
+            cleanup_thread.daemon = True
+            cleanup_thread.start()
+            print(f"🧹 Nettoyage des fichiers lancé en arrière-plan")
+    except Exception as e:
+        print(f"⚠️ Erreur lancement nettoyage: {e}")
+        # Ignorer - l'important c'est que la candidature soit supprimée
+
+
+def get_application_by_id_simple(app_id):
+    """Version simple pour récupérer les infos de fichiers (pour nettoyage)"""
+    try:
+        conn = get_db_connection()
+        app = conn.execute('''
+            SELECT id, nom, prenom, photo, cv, lettre_demande, carte_id, 
+                   lettre_recommandation, casier_judiciaire, diplome,
+                   interview_invitation_pdf, acceptance_letter_pdf
+            FROM applications WHERE id = ?
+        ''', (app_id,)).fetchone()
+        conn.close()
+        return dict(app) if app else None
+    except:
+        return None
+
+
+def delete_file_if_exists(filename):
+    """Supprimer un fichier local s'il existe"""
+    if not filename:
+        return False
+        
+    # Chemins à vérifier
+    possible_paths = [
+        os.path.join('uploads', filename),
+        os.path.join('static', 'uploads', filename),
+        filename  # Si c'est déjà un chemin complet
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+                return True
+            except Exception as e:
+                print(f"⚠️ Erreur suppression {path}: {e}")
+                
+    return False
+
+
+def cleanup_files_background(application):
+    """Nettoyage des fichiers en arrière-plan (non-bloquant)"""
+    import time
+    print(f"🧹 Début nettoyage fichiers candidature {application.get('id')}")
+    
+    # Liste simple des fichiers à supprimer
+    files_to_clean = [
+        ('photo', application.get('photo')),
+        ('cv', application.get('cv')),
+        ('lettre_demande', application.get('lettre_demande')),
+        ('carte_id', application.get('carte_id')),
+        ('lettre_recommandation', application.get('lettre_recommandation')),
+        ('casier_judiciaire', application.get('casier_judiciaire')),
+        ('diplome', application.get('diplome')),
+        ('pdf_convocation', application.get('interview_invitation_pdf')),
+        ('pdf_acceptation', application.get('acceptance_letter_pdf'))
+    ]
+    
+    cleaned_count = 0
+    for file_type, filename in files_to_clean:
+        if not filename:
+            continue
+            
+        try:
+            # Suppression locale uniquement (rapide)
+            if delete_file_if_exists(filename):
+                cleaned_count += 1
+                print(f"🗑️ {file_type}: {filename}")
+            
+            # Si c'est une URL Cloudinary, ignorer pour l'instant (trop lent)
+            elif filename.startswith('http') and 'cloudinary.com' in filename:
+                print(f"☁️ Cloudinary ignoré: {filename}")
+                
+        except Exception as e:
+            print(f"⚠️ Erreur {file_type}: {e}")
+    
+    # Nettoyage rapide des PDFs
+    try:
+        app_id = application.get('id')
+        pdf_paths = [
+            f"static/convocations/{application.get('interview_invitation_pdf', '')}",
+            f"static/acceptances/{application.get('acceptance_letter_pdf', '')}",
+        ]
+        
+        for pdf_path in pdf_paths:
+            if pdf_path and os.path.exists(pdf_path):
+                os.remove(pdf_path)
+                cleaned_count += 1
+                print(f"📄 PDF supprimé: {pdf_path}")
+                
+    except Exception as e:
+        print(f"⚠️ Erreur PDFs: {e}")
+    
+    print(f"🧹 Nettoyage terminé: {cleaned_count} fichiers")
 
 # ==================== STATISTIQUES ====================
 
