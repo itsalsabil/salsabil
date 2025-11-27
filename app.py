@@ -1027,6 +1027,8 @@ def admin_favorite_applications():
 @permission_required('view_applications')
 def admin_spontaneous_application_detail(app_id):
     """Route dédiée pour voir les détails d'une candidature spontanée"""
+    from notifications import generate_whatsapp_link
+    
     all_applications = get_all_applications()
     application = next((app for app in all_applications if app['id'] == app_id), None)
     
@@ -1038,6 +1040,14 @@ def admin_spontaneous_application_detail(app_id):
     if application.get('job_id') is not None:
         flash('Cette candidature n\'est pas une candidature spontanée', 'error')
         return redirect(url_for('admin_applications'))
+    
+    # Générer le lien WhatsApp personnel formaté avec un message simple
+    candidate_name = f"{application.get('prenom', '')} {application.get('nom', '')}"
+    simple_message = f"Bonjour {candidate_name},"
+    whatsapp_personal_link = generate_whatsapp_link(
+        phone=application.get('telephone', ''),
+        message=simple_message
+    )
     
     # Filtrer pour exclure les candidatures spontanées (job_id = 0) pour le badge
     regular_applications = [app for app in all_applications if app.get('job_id') is not None]
@@ -1053,6 +1063,7 @@ def admin_spontaneous_application_detail(app_id):
                          current_user=current_user,
                          permissions=permissions,
                          spontaneous_count=spontaneous_count,
+                         whatsapp_personal_link=whatsapp_personal_link,
                          is_spontaneous_view=True)
 
 @app.route('/admin/applications/<int:app_id>')
@@ -2757,6 +2768,7 @@ def admin_application_detail_ar(app_id):
 def admin_spontaneous_application_detail_ar(app_id):
     """Route pour voir les détails d'une candidature spontanée - Version Arabe"""
     from translations import translate_dict_values
+    from notifications import generate_whatsapp_link
     
     session['lang'] = 'ar'  # Maintenir la langue arabe
     all_applications = get_all_applications()
@@ -2774,6 +2786,14 @@ def admin_spontaneous_application_detail_ar(app_id):
     # Traduire les valeurs des champs en arabe
     application = translate_dict_values(application, target_lang='ar')
     
+    # Générer le lien WhatsApp personnel formaté avec un message simple
+    candidate_name = f"{application.get('prenom', '')} {application.get('nom', '')}"
+    simple_message = f"مرحبا {candidate_name}،"
+    whatsapp_personal_link = generate_whatsapp_link(
+        phone=application.get('telephone', ''),
+        message=simple_message
+    )
+    
     # Filtrer pour exclure les candidatures spontanées (job_id = 0) pour le badge
     regular_applications = [app for app in all_applications if app.get('job_id') is not None]
     spontaneous_count = len([app for app in all_applications if app.get('job_id') is None])
@@ -2788,6 +2808,7 @@ def admin_spontaneous_application_detail_ar(app_id):
                          current_user=current_user,
                          permissions=permissions,
                          spontaneous_count=spontaneous_count,
+                         whatsapp_personal_link=whatsapp_personal_link,
                          is_spontaneous_view=True,
                          lang='ar')
 
