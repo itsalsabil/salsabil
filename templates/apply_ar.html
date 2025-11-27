@@ -1253,8 +1253,9 @@
             const section = document.querySelector(`.form-section[data-section="${sectionNumber}"]`);
             if (!section) return true;
             
-            // Validation spéciale pour Section 5 (Choix de travail) - au moins 1 poste, maximum 5
-            if (sectionNumber === 5) {
+            // Validation spéciale pour Section 5 (Choix de travail) - UNIQUEMENT pour candidatures spontanées
+            // Pour les appels d'offre (totalSections === 5), cette section n'existe pas
+            if (sectionNumber === 5 && totalSections === 6) {
                 const selectedCheckboxes = document.querySelectorAll('input[name="choix_travail"]:checked');
                 
                 if (selectedCheckboxes.length === 0) {
