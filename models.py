@@ -263,7 +263,42 @@ def delete_employee(emp_id):
 # ==================== JOBS ====================
 
 def get_all_jobs():
-    """Récupérer tous les jobs avec support bilingue"""
+    """Récupérer tous les jobs actifs (non expirés) avec support bilingue"""
+    today = get_comoros_time().strftime('%Y-%m-%d')
+    conn = get_db_connection()
+    jobs = conn.execute('SELECT * FROM jobs WHERE date_limite >= ? ORDER BY id DESC', (today,)).fetchall()
+    conn.close()
+    # Convertir en dict et mapper les champs pour compatibilité avec les templates
+    result = []
+    for job in jobs:
+        job_dict = dict(job)
+        # Mapper les champs de la base de données vers les noms utilisés dans les templates
+        job_dict['title'] = job_dict.get('titre', '')
+        job_dict['location'] = job_dict.get('lieu', '')
+        job_dict['deadline'] = job_dict.pop('date_limite')
+        job_dict['posted_date'] = job_dict.get('date_publication', '')
+        # Si department existe dans la BDD, l'utiliser, sinon utiliser type comme fallback
+        if not job_dict.get('department'):
+            job_dict['department'] = job_dict.get('type', 'Non spécifié')
+        # Parser les requirements (stockées comme texte avec \n comme séparateur)
+        req_text = job_dict.get('requirements', '')
+        if req_text:
+            job_dict['requirements'] = [r.strip() for r in req_text.split('\n') if r.strip()]
+        else:
+            job_dict['requirements'] = []
+        
+        # Parser les requirements arabes
+        req_text_ar = job_dict.get('requirements_ar', '')
+        if req_text_ar:
+            job_dict['requirements_ar'] = [r.strip() for r in req_text_ar.split('\n') if r.strip()]
+        else:
+            job_dict['requirements_ar'] = []
+        
+        result.append(job_dict)
+    return result
+
+def get_all_jobs_admin():
+    """Récupérer tous les jobs (y compris expirés) pour l'administration avec support bilingue"""
     conn = get_db_connection()
     jobs = conn.execute('SELECT * FROM jobs ORDER BY id DESC').fetchall()
     conn.close()

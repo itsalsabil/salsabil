@@ -386,6 +386,11 @@ def apply(job_id):
         if job is None:
             flash('Poste non trouvé', 'error')
             return redirect(url_for('jobs'))
+        
+        # Vérifier si le poste est expiré
+        if datetime.strptime(job['deadline'], '%Y-%m-%d') < get_comoros_time():
+            flash('Ce poste n\'accepte plus de candidatures (date limite dépassée)', 'error')
+            return redirect(url_for('jobs'))
     
     if request.method == 'POST':
         # 🔍 DEBUG CRITIQUE: Logs IMMEDIATS
@@ -618,6 +623,11 @@ def apply_ar(job_id):
         job = get_job_by_id(job_id)
         if job is None:
             flash('لم يتم العثور على الوظيفة', 'error')
+            return redirect(url_for('jobs_ar'))
+        
+        # Vérifier si le poste est expiré
+        if datetime.strptime(job['deadline'], '%Y-%m-%d') < get_comoros_time():
+            flash('هذه الوظيفة لم تعد تقبل الطلبات (تجاوز تاريخ الإغلاق)', 'error')
             return redirect(url_for('jobs_ar'))
     
     if request.method == 'POST':
@@ -2036,7 +2046,7 @@ def admin_jobs():
     current_user = get_current_user()
     permissions = has_permission(None)  # Get all permissions
     return render_template('admin/jobs.html', 
-                         jobs=get_all_jobs(), 
+                         jobs=get_all_jobs_admin(), 
                          applications=regular_applications,
                          current_user=current_user,
                          permissions=permissions,
@@ -2048,7 +2058,7 @@ def admin_jobs():
 @permission_required('view_applications')
 def admin_job_candidates(job_id):
     """Route pour afficher les candidats d'un job spécifique"""
-    job = next((job for job in get_all_jobs() if job['id'] == job_id), None)
+    job = next((job for job in get_all_jobs_admin() if job['id'] == job_id), None)
     if job is None:
         flash('Offre d\'emploi non trouvée', 'error')
         return redirect(url_for('admin_jobs'))
@@ -2079,7 +2089,7 @@ def admin_job_candidates(job_id):
 def admin_job_candidates_ar(job_id):
     """Route pour afficher les candidats d'un job spécifique - Version Arabe"""
     session['lang'] = 'ar'  # Maintenir la langue arabe
-    job = next((job for job in get_all_jobs() if job['id'] == job_id), None)
+    job = next((job for job in get_all_jobs_admin() if job['id'] == job_id), None)
     if job is None:
         flash('عرض العمل غير موجود', 'error')
         return redirect(url_for('admin_jobs_ar'))
@@ -2300,7 +2310,7 @@ def admin_delete_job(job_id):
 @permission_required('view_jobs')
 def admin_job_data(job_id):
     """Route API pour récupérer les données d'une offre (pour l'édition)"""
-    job = next((job for job in get_all_jobs() if job['id'] == job_id), None)
+    job = next((job for job in get_all_jobs_admin() if job['id'] == job_id), None)
     
     if job is None:
         return {'error': 'Offre non trouvée'}, 404
@@ -2322,7 +2332,7 @@ def admin_employees():
     current_user = get_current_user()
     return render_template('admin/employees.html', 
                          employees=get_all_employees(),
-                         jobs=get_all_jobs(),
+                         jobs=get_all_jobs_admin(),
                          applications=regular_applications,
                          current_user=current_user,
                          permissions=ROLE_PERMISSIONS.get(current_user['role'], {}),
@@ -2464,7 +2474,7 @@ def admin_profile():
     permissions = has_permission(None)
     return render_template('admin/profile.html',
                          current_user=current_user,
-                         jobs=get_all_jobs(),
+                         jobs=get_all_jobs_admin(),
                          applications=regular_applications,
                          permissions=permissions,
                          spontaneous_count=spontaneous_count)
@@ -2585,7 +2595,7 @@ def admin_dashboard_ar():
     
     return render_template('admin/dashboard.html', 
                          applications=regular_applications,
-                         jobs=get_all_jobs(),
+                         jobs=get_all_jobs_admin(),
                          current_user=current_user,
                          permissions=ROLE_PERMISSIONS.get(current_user['role'], {}),
                          spontaneous_count=spontaneous_count,
@@ -2606,7 +2616,7 @@ def admin_applications_ar():
     permissions = has_permission(None)
     return render_template('admin/applications.html', 
                          applications=regular_applications,
-                         jobs=get_all_jobs(),
+                         jobs=get_all_jobs_admin(),
                          current_user=current_user,
                          permissions=permissions,
                          spontaneous_count=spontaneous_count,
@@ -2673,7 +2683,7 @@ def admin_jobs_ar():
     current_user = get_current_user()
     permissions = has_permission(None)
     return render_template('admin/jobs.html',
-                         jobs=get_all_jobs(),
+                         jobs=get_all_jobs_admin(),
                          applications=regular_applications,
                          current_user=current_user,
                          permissions=permissions,
