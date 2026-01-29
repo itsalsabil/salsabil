@@ -242,6 +242,8 @@
     flex: 1;
     margin-left: 280px;
     padding: 2rem;
+    min-width: 0; /* Permet au contenu de rétrécir */
+    overflow-x: hidden; /* Empêche le débordement horizontal */
 }
 
 .admin-header {
@@ -488,7 +490,7 @@
 
 .filters-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 1.5rem;
 }
@@ -520,6 +522,9 @@
     background: white;
     cursor: pointer;
     transition: all 0.3s ease;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .filter-item select:hover {
@@ -576,11 +581,15 @@
 /* Table */
 .table-container {
     overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .admin-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 800px; /* Largeur minimale pour éviter la compression excessive */
 }
 
 .admin-table thead {
@@ -603,6 +612,9 @@
     padding: 1rem;
     border-bottom: 1px solid #f0f3f7;
     vertical-align: middle;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 200px;
 }
 
 .admin-table td:last-child {
@@ -1104,6 +1116,10 @@
 
     .admin-main {
         margin-left: 250px;
+    }
+
+    .filters-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     }
 }
 
