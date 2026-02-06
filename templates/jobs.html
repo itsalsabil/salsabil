@@ -374,8 +374,8 @@
             modal.style.display = 'none';
             document.body.style.overflow = 'auto'; // Réactive le scroll
             
-            // Sauvegarder que l'utilisateur a vu le modal
-            localStorage.setItem('freeRegistrationModalShown', 'true');
+            // Sauvegarder que l'utilisateur a vu le modal (sessionStorage - se vide à la fermeture de l'onglet)
+            sessionStorage.setItem('freeRegistrationModalShown', 'true');
         }
         
         // Fermer le modal si on clique en dehors
@@ -386,9 +386,9 @@
             }
         }
         
-        // Afficher le modal au chargement de la page (une seule fois par session)
+        // Afficher le modal au chargement de la page (une seule fois par session de navigation)
         document.addEventListener('DOMContentLoaded', function() {
-            const modalShown = localStorage.getItem('freeRegistrationModalShown');
+            const modalShown = sessionStorage.getItem('freeRegistrationModalShown');
             if (!modalShown) {
                 // Petit délai pour s'assurer que la page est complètement chargée
                 setTimeout(showFreeRegistrationModal, 1000);
