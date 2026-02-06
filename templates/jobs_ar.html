@@ -344,7 +344,63 @@
         {% endif %}
     {% endwith %}
 
+    <!-- Modal d'information sur les inscriptions gratuites -->
+    <div id="freeRegistrationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>ℹ️ معلومة مهمة</h2>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p><strong>التسجيلات في سلسبيل مجانية تماماً.</strong></p>
+                <p>تحذير من الاحتيال: بعض الأشخاص يقترحون مساعدتك مقابل دفع للتسجيل في منصتنا. <strong>هذه الممارسة احتيالية وغير مصرح بها.</strong></p>
+                <p>سلسبيل لا تطلب أبداً دفعاً للتسجيل في الوظائف المتاحة. إذا طلب منك أي شخص المال مقابل التسجيل، يرجى الاتصال بنا فوراً.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-close-modal" onclick="closeModal()">فهمت</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ============================================
+        // MODAL D'INFORMATION SUR LES INSCRIPTIONS GRATUITES
+        // ============================================
+        
+        // Fonction pour afficher le modal
+        function showFreeRegistrationModal() {
+            const modal = document.getElementById('freeRegistrationModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Empêche le scroll en arrière-plan
+        }
+        
+        // Fonction pour fermer le modal
+        function closeModal() {
+            const modal = document.getElementById('freeRegistrationModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Réactive le scroll
+            
+            // Sauvegarder que l'utilisateur a vu le modal
+            localStorage.setItem('freeRegistrationModalShown', 'true');
+        }
+        
+        // Fermer le modal si on clique en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('freeRegistrationModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        // Afficher le modal au chargement de la page (une seule fois par session)
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalShown = localStorage.getItem('freeRegistrationModalShown');
+            if (!modalShown) {
+                // Petit délai pour s'assurer que la page est complètement chargée
+                setTimeout(showFreeRegistrationModal, 1000);
+            }
+        });
+        
         // ============================================
         // SYSTÈME DE SYNCHRONISATION CROSS-LANGUE
         // ============================================
