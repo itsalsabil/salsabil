@@ -149,6 +149,97 @@ def is_postgresql():
     """Vérifier si on utilise PostgreSQL ou SQLite"""
     return DATABASE_URL is not None
 
+def migrate_add_bilingual_columns():
+    """Ajouter les colonnes bilingues à la table jobs si elles n'existent pas"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        if is_postgresql():
+            # PostgreSQL - vérifier et ajouter les colonnes
+            cursor.execute('''
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name='jobs' AND column_name='titre_ar'
+            ''')
+            if not cursor.fetchone():
+                cursor.execute('ALTER TABLE jobs ADD COLUMN titre_ar VARCHAR(500)')
+                print("✅ Colonne titre_ar ajoutée")
+            
+            cursor.execute('''
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name='jobs' AND column_name='lieu_ar'
+            ''')
+            if not cursor.fetchone():
+                cursor.execute('ALTER TABLE jobs ADD COLUMN lieu_ar VARCHAR(255)')
+                print("✅ Colonne lieu_ar ajoutée")
+            
+            cursor.execute('''
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name='jobs' AND column_name='description_ar'
+            ''')
+            if not cursor.fetchone():
+                cursor.execute('ALTER TABLE jobs ADD COLUMN description_ar TEXT')
+                print("✅ Colonne description_ar ajoutée")
+            
+            cursor.execute('''
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name='jobs' AND column_name='requirements_ar'
+            ''')
+            if not cursor.fetchone():
+                cursor.execute('ALTER TABLE jobs ADD COLUMN requirements_ar TEXT')
+                print("✅ Colonne requirements_ar ajoutée")
+            
+            cursor.execute('''
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name='jobs' AND column_name='department_ar'
+            ''')
+            if not cursor.fetchone():
+                cursor.execute('ALTER TABLE jobs ADD COLUMN department_ar VARCHAR(255)')
+                print("✅ Colonne department_ar ajoutée")
+            
+            cursor.execute('''
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name='jobs' AND column_name='langues_requises'
+            ''')
+            if not cursor.fetchone():
+                cursor.execute('ALTER TABLE jobs ADD COLUMN langues_requises VARCHAR(255)')
+                print("✅ Colonne langues_requises ajoutée")
+        else:
+            # SQLite - vérifier et ajouter les colonnes
+            cursor.execute('PRAGMA table_info(jobs)')
+            columns = {row[1] for row in cursor.fetchall()}
+            
+            if 'titre_ar' not in columns:
+                cursor.execute('ALTER TABLE jobs ADD COLUMN titre_ar TEXT')
+                print("✅ Colonne titre_ar ajoutée")
+            
+            if 'lieu_ar' not in columns:
+                cursor.execute('ALTER TABLE jobs ADD COLUMN lieu_ar TEXT')
+                print("✅ Colonne lieu_ar ajoutée")
+            
+            if 'description_ar' not in columns:
+                cursor.execute('ALTER TABLE jobs ADD COLUMN description_ar TEXT')
+                print("✅ Colonne description_ar ajoutée")
+            
+            if 'requirements_ar' not in columns:
+                cursor.execute('ALTER TABLE jobs ADD COLUMN requirements_ar TEXT')
+                print("✅ Colonne requirements_ar ajoutée")
+            
+            if 'department_ar' not in columns:
+                cursor.execute('ALTER TABLE jobs ADD COLUMN department_ar TEXT')
+                print("✅ Colonne department_ar ajoutée")
+            
+            if 'langues_requises' not in columns:
+                cursor.execute('ALTER TABLE jobs ADD COLUMN langues_requises TEXT')
+                print("✅ Colonne langues_requises ajoutée")
+        
+        conn.commit()
+        conn.close()
+        print("✅ Migration des colonnes bilingues complétée")
+    except Exception as e:
+        print(f"⚠️  Erreur lors de la migration: {e}")
+        conn.close()
+
 def init_db():
     """Initialiser la base de données avec les tables nécessaires"""
     conn = get_db_connection()
@@ -399,6 +490,9 @@ def init_db():
     ''')
     
     conn.commit()
+    
+    # Exécuter les migrations pour ajouter les colonnes bilingues manquantes
+    migrate_add_bilingual_columns()
     
     # Insérer les employés par défaut s'ils n'existent pas
     cursor.execute('SELECT COUNT(*) as count FROM employees')
