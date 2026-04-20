@@ -31,6 +31,30 @@ def get_comoros_time():
     """Retourne l'heure actuelle aux Comores (UTC+3) sans timezone info"""
     return datetime.now(COMOROS_TZ).replace(tzinfo=None)
 
+def parse_deadline(deadline):
+    """Convertir un deadline en datetime, en gérant les formats SQLite et PostgreSQL"""
+    if deadline is None:
+        return None
+    
+    # Si c'est déjà un objet datetime, le retourner
+    if isinstance(deadline, datetime):
+        return deadline
+    
+    # Si c'est un objet date (PostgreSQL retourne datetime.date)
+    if hasattr(deadline, 'year') and hasattr(deadline, 'month') and hasattr(deadline, 'day'):
+        if not isinstance(deadline, datetime):
+            # C'est un objet date, le convertir en datetime
+            return datetime(deadline.year, deadline.month, deadline.day)
+    
+    # Sinon, essayer de le parser comme une string (SQLite)
+    if isinstance(deadline, str):
+        try:
+            return datetime.strptime(deadline, '%Y-%m-%d')
+        except ValueError:
+            return None
+    
+    return None
+
 # ============================================================================
 # CONFIGURATION DES UPLOADS
 # ============================================================================
@@ -388,7 +412,8 @@ def apply(job_id):
             return redirect(url_for('jobs'))
         
         # Vérifier si le poste est expiré
-        if datetime.strptime(job['deadline'], '%Y-%m-%d') < get_comoros_time():
+        deadline_dt = parse_deadline(job['deadline'])
+        if deadline_dt and deadline_dt < get_comoros_time():
             flash('Ce poste n\'accepte plus de candidatures (date limite dépassée)', 'error')
             return redirect(url_for('jobs'))
     
@@ -626,7 +651,8 @@ def apply_ar(job_id):
             return redirect(url_for('jobs_ar'))
         
         # Vérifier si le poste est expiré
-        if datetime.strptime(job['deadline'], '%Y-%m-%d') < get_comoros_time():
+        deadline_dt = parse_deadline(job['deadline'])
+        if deadline_dt and deadline_dt < get_comoros_time():
             flash('هذه الوظيفة لم تعد تقبل الطلبات (تجاوز تاريخ الإغلاق)', 'error')
             return redirect(url_for('jobs_ar'))
     
